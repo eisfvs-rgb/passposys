@@ -33,11 +33,18 @@ jobs:
           pip install -r requirements.txt
           pip install pyinstaller
 
-      - name: Install Playwright + Chromium (headless shell)
-        run: |
-          source venv/bin/activate
-          export PLAYWRIGHT_BROWSERS_PATH=0
-          python -m playwright install chromium
+      # NOTE: Chromium is intentionally NOT installed here anymore.
+      # build_mac.sh installs it itself, into a scratch folder OUTSIDE the
+      # playwright package (via PLAYWRIGHT_BROWSERS_PATH="$(pwd)/.pw-browsers-scratch"),
+      # specifically so PyInstaller's --collect-all playwright / codesign
+      # step never sees the browser's nested .app bundle. Installing it
+      # here first with PLAYWRIGHT_BROWSERS_PATH=0 put a copy INSIDE the
+      # playwright package (venv/.../playwright/driver/package/.local-browsers/),
+      # which build_mac.sh's own install never overwrote or removed --
+      # --collect-all playwright then picked up that stale in-package copy
+      # and PyInstaller failed trying to codesign "Google Chrome for
+      # Testing.app". Let build_mac.sh be the single source of truth for
+      # where the browser lives.
 
       # ------------------------------------------------------------------
       # Portable MySQL for macOS: MySQL DOES publish an official
