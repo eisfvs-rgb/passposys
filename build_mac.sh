@@ -41,8 +41,34 @@ source venv/bin/activate
 export PLAYWRIGHT_BROWSERS_PATH="$(pwd)/.pw-browsers-scratch"
 mkdir -p "$PLAYWRIGHT_BROWSERS_PATH"
 
+# --- Belt-and-suspenders: purge any browser that may have landed INSIDE
+#     the playwright package itself (e.g. from a stale venv, a cached CI
+#     venv, or an install that happened before PLAYWRIGHT_BROWSERS_PATH
+#     was set). If a browser sits there, --collect-all playwright will
+#     drag it through PyInstaller's Mach-O/codesign step regardless of
+#     what PLAYWRIGHT_BROWSERS_PATH points to now, and the build fails
+#     with "SystemError: Failed to process binary '...Chrome for Testing'".
+IN_PKG_BROWSERS_DIR="venv/lib/python3.11/site-packages/playwright/driver/package/.local-browsers"
+if [ -d "$IN_PKG_BROWSERS_DIR" ]; then
+    echo "[FIX] Removing stale in-package Playwright browsers at:"
+    echo "  $IN_PKG_BROWSERS_DIR"
+    rm -rf "$IN_PKG_BROWSERS_DIR"
+fi
+
 echo "Verifying Playwright browser (chromium headless shell)..."
 python -m playwright install chromium
+
+# --- Confirm the browser actually landed in the scratch folder and NOT
+#     back inside the playwright package (some playwright versions ignore
+#     the env var if it's set after python starts caching sys.path, etc).
+if [ -d "$IN_PKG_BROWSERS_DIR" ] && [ -n "$(ls -A "$IN_PKG_BROWSERS_DIR" 2>/dev/null)" ]; then
+    echo "[ERROR] Playwright installed a browser inside the package dir despite"
+    echo "  PLAYWRIGHT_BROWSERS_PATH=$PLAYWRIGHT_BROWSERS_PATH"
+    echo "  This WILL break --collect-all playwright's codesign step."
+    echo "  Removing it now so the build can proceed; browsers will still be"
+    echo "  available from the scratch folder copied in post-build."
+    rm -rf "$IN_PKG_BROWSERS_DIR"
+fi
 
 # --- Sanity check: warn if both opencv variants are present ---
 if pip list 2>/dev/null | grep -qi "^opencv-python "; then
