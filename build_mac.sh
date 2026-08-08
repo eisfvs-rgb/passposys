@@ -80,11 +80,23 @@ echo "Building app with PyInstaller..."
 # "${ICON_ARGS[@]}" when ICON_ARGS=(), throws "unbound variable" on
 # bash < 4.4. Rather than fight that, run pyinstaller with or without
 # --icon in two separate branches instead of building up an args array.
+#
+# NOTE: the Playwright Chromium browser is deliberately NOT passed via
+# --add-data here (unlike on Windows). On macOS, Playwright ships the
+# browser as a full nested .app bundle (its own Contents/MacOS/,
+# Info.plist, code signature, etc.), and PyInstaller's --add-data pipes
+# every file through its Mach-O binary-dependency scanner. That scanner
+# chokes on a nested .app bundle and aborts the whole build with:
+#   SystemError: Failed to process binary '.../Google Chrome for Testing'!
+# The fix used by the Playwright/PyInstaller community for this exact
+# error is to build without the browser, then copy the already-installed,
+# untouched browser folder straight into the built .app's Resources
+# afterwards -- see the "Copy Playwright browser into the built .app"
+# step below, after this pyinstaller invocation.
 if [ -f "app_icon.icns" ]; then
     pyinstaller --onedir --windowed --name "PassPoSys" --icon=app_icon.icns \
         --collect-all cv2 \
         --collect-all playwright \
-        --add-data "$PW_BROWSERS_DIR:playwright/driver/package/.local-browsers" \
         --collect-all cryptography \
         --add-data "templates:templates" \
         --add-data "static:static" \
@@ -110,7 +122,6 @@ else
     pyinstaller --onedir --windowed --name "PassPoSys" \
         --collect-all cv2 \
         --collect-all playwright \
-        --add-data "$PW_BROWSERS_DIR:playwright/driver/package/.local-browsers" \
         --collect-all cryptography \
         --add-data "templates:templates" \
         --add-data "static:static" \
@@ -131,6 +142,28 @@ else
         --hidden-import ntplib \
         launch.py
 fi
+
+# --- Copy Playwright browser into the built .app (post-build, not via
+#     --add-data -- see the long comment above for why). This places the
+#     browser at the exact path launch.py/Playwright expects at runtime:
+#     .../driver/package/.local-browsers/ inside the playwright package
+#     folder that --collect-all playwright already placed in the bundle.
+echo "Copying Playwright Chromium browser into the built app..."
+
+APP_PATH=$(find dist -maxdepth 1 -name "*.app" | head -n1)
+if [ -z "$APP_PATH" ]; then
+    echo "[ERROR] Could not find built .app under dist/ -- PyInstaller build may have failed silently."
+    exit 1
+fi
+
+# --onedir + --windowed puts the actual onedir payload (where
+# --collect-all playwright placed the playwright package) under
+# Contents/MacOS/ inside the .app bundle.
+DEST_BROWSERS_DIR="$APP_PATH/Contents/MacOS/playwright/driver/package/.local-browsers"
+mkdir -p "$DEST_BROWSERS_DIR"
+cp -R "$PW_BROWSERS_DIR"/. "$DEST_BROWSERS_DIR"/
+
+echo "Playwright browser copied to: $DEST_BROWSERS_DIR"
 
 echo
 echo "============================================"
