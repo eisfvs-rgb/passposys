@@ -1,0 +1,33 @@
+# Derived from static import analysis of app.py, app_core.py, app_routes.py,
+# db.py, launch.py, backup.py, ocr_client.py, mofa.py, mofa_downloader.py,
+# pdf_extractor.py, secrets_client.py, mrz_utils.py, host_api.py, quota.py,
+# time_utils.py, cloudstore_backup.py, config.py, reparse_routes.py,
+# db_admin_routes.py, encrypt_env.py, encrypt_token.py, validate_env.py.
+#
+# NOTE: exact version pins were not present anywhere in the zip (no
+# requirements.txt / Pipfile / lockfile shipped with the project), so these
+# are reasonable current versions rather than pins copied from your Windows
+# venv. Run `pip freeze` on your Windows venv and diff against this list
+# before your first real macOS build, to make sure versions match exactly
+# (matters most for opencv-python-headless, mysql-connector-python, and
+# cryptography, since those wrap native/C extensions).
+
+flask
+waitress
+werkzeug
+python-dotenv
+cryptography
+mysql-connector-python
+opencv-python-headless      # NOT opencv-python -- build.bat warns against having both installed
+numpy
+Pillow
+python-dateutil
+requests
+apscheduler
+openpyxl
+pypdf
+ntplib
+playwright
+groq
+google-auth-oauthlib
+google-api-python-client
