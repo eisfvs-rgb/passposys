@@ -27,10 +27,19 @@ fi
 
 source venv/bin/activate
 
-# --- Force Playwright's browser to install INSIDE the playwright package
-#     folder, same reasoning as build.bat: so --collect-all playwright
-#     actually bundles the browser binary into the app bundle.
-export PLAYWRIGHT_BROWSERS_PATH=0
+# --- Install Playwright's Chromium browser to a SEPARATE scratch folder,
+#     NOT inside the playwright package itself (unlike build.bat's
+#     Windows approach of PLAYWRIGHT_BROWSERS_PATH=0). On macOS the
+#     browser is a full nested .app bundle, and --collect-all playwright
+#     walks the ENTIRE playwright package directory tree -- if the
+#     browser lives inside that tree, --collect-all drags it through
+#     PyInstaller's Mach-O binary scanner and the build aborts with:
+#       SystemError: Failed to process binary '.../Google Chrome for Testing'!
+#     Keeping the browser physically outside the playwright package
+#     avoids this: --collect-all playwright never sees it, and it gets
+#     copied into the built .app afterward instead (see below).
+export PLAYWRIGHT_BROWSERS_PATH="$(pwd)/.pw-browsers-scratch"
+mkdir -p "$PLAYWRIGHT_BROWSERS_PATH"
 
 echo "Verifying Playwright browser (chromium headless shell)..."
 python -m playwright install chromium
@@ -62,14 +71,14 @@ echo "Cleaning __pycache__ / .pyc files..."
 find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 find . -type f -name "*.pyc" -delete
 
-# --- Locate the installed Playwright browser folder (version-dependent
-#     folder name, must be discovered, not hardcoded) ---
-PW_BROWSERS_DIR=$(python -c "import playwright, os; print(os.path.join(os.path.dirname(playwright.__file__), 'driver', 'package', '.local-browsers'))")
+# --- The Playwright browser now lives in the scratch folder set via
+#     PLAYWRIGHT_BROWSERS_PATH above, NOT inside the playwright package.
+PW_BROWSERS_DIR="$PLAYWRIGHT_BROWSERS_PATH"
 
-if [ ! -d "$PW_BROWSERS_DIR" ]; then
-    echo "[ERROR] Playwright browsers folder not found at:"
+if [ ! -d "$PW_BROWSERS_DIR" ] || [ -z "$(ls -A "$PW_BROWSERS_DIR" 2>/dev/null)" ]; then
+    echo "[ERROR] Playwright browsers folder is missing or empty at:"
     echo "  $PW_BROWSERS_DIR"
-    echo "Run 'playwright install chromium' (with PLAYWRIGHT_BROWSERS_PATH=0) first."
+    echo "Run 'playwright install chromium' first."
     exit 1
 fi
 
