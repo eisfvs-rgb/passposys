@@ -75,37 +75,62 @@ fi
 
 echo "Building app with PyInstaller..."
 
-ICON_ARGS=()
+# NOTE: macOS ships bash 3.2 by default (Apple froze it there over GPLv3
+# licensing) -- empty-array expansion under "set -u" (nounset), i.e.
+# "${ICON_ARGS[@]}" when ICON_ARGS=(), throws "unbound variable" on
+# bash < 4.4. Rather than fight that, run pyinstaller with or without
+# --icon in two separate branches instead of building up an args array.
 if [ -f "app_icon.icns" ]; then
-    ICON_ARGS=(--icon=app_icon.icns)
+    pyinstaller --onedir --windowed --name "PassPoSys" --icon=app_icon.icns \
+        --collect-all cv2 \
+        --collect-all playwright \
+        --add-data "$PW_BROWSERS_DIR:playwright/driver/package/.local-browsers" \
+        --collect-all cryptography \
+        --add-data "templates:templates" \
+        --add-data "static:static" \
+        --add-data "private:private" \
+        --add-data "arial.ttf:." \
+        --add-data "arialbd.ttf:." \
+        --add-data "haarcascade_frontalface_default.xml:cv2/data" \
+        --add-data "token.enc:." \
+        --add-data "env.enc:." \
+        --hidden-import mysql.connector.locales.eng.client_error \
+        --collect-all google_auth_oauthlib \
+        --collect-all googleapiclient \
+        --hidden-import google.oauth2.credentials \
+        --hidden-import google.auth.transport.requests \
+        --collect-all apscheduler \
+        --collect-all openpyxl \
+        --hidden-import pypdf \
+        --hidden-import ntplib \
+        launch.py
 else
     echo "[NOTE] app_icon.icns not found -- building without a custom icon."
     echo "       Convert app_icon.ico to .icns first if you want one (see README)."
+    pyinstaller --onedir --windowed --name "PassPoSys" \
+        --collect-all cv2 \
+        --collect-all playwright \
+        --add-data "$PW_BROWSERS_DIR:playwright/driver/package/.local-browsers" \
+        --collect-all cryptography \
+        --add-data "templates:templates" \
+        --add-data "static:static" \
+        --add-data "private:private" \
+        --add-data "arial.ttf:." \
+        --add-data "arialbd.ttf:." \
+        --add-data "haarcascade_frontalface_default.xml:cv2/data" \
+        --add-data "token.enc:." \
+        --add-data "env.enc:." \
+        --hidden-import mysql.connector.locales.eng.client_error \
+        --collect-all google_auth_oauthlib \
+        --collect-all googleapiclient \
+        --hidden-import google.oauth2.credentials \
+        --hidden-import google.auth.transport.requests \
+        --collect-all apscheduler \
+        --collect-all openpyxl \
+        --hidden-import pypdf \
+        --hidden-import ntplib \
+        launch.py
 fi
-
-pyinstaller --onedir --windowed --name "PassPoSys" "${ICON_ARGS[@]}" \
-    --collect-all cv2 \
-    --collect-all playwright \
-    --add-data "$PW_BROWSERS_DIR:playwright/driver/package/.local-browsers" \
-    --collect-all cryptography \
-    --add-data "templates:templates" \
-    --add-data "static:static" \
-    --add-data "private:private" \
-    --add-data "arial.ttf:." \
-    --add-data "arialbd.ttf:." \
-    --add-data "haarcascade_frontalface_default.xml:cv2/data" \
-    --add-data "token.enc:." \
-    --add-data "env.enc:." \
-    --hidden-import mysql.connector.locales.eng.client_error \
-    --collect-all google_auth_oauthlib \
-    --collect-all googleapiclient \
-    --hidden-import google.oauth2.credentials \
-    --hidden-import google.auth.transport.requests \
-    --collect-all apscheduler \
-    --collect-all openpyxl \
-    --hidden-import pypdf \
-    --hidden-import ntplib \
-    launch.py
 
 echo
 echo "============================================"
