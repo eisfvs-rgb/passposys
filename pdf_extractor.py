@@ -10,7 +10,17 @@ from PIL import Image, ImageOps
 from werkzeug.utils import secure_filename
 import json
 
-UPLOAD_FOLDER = 'uploads'
+# NOTE: UPLOAD_FOLDER used to be a bare relative path ('uploads'), created
+# eagerly at import time with os.makedirs(). That resolves against the
+# process's current working directory, which for a frozen macOS .app
+# launched via `open`/Finder/LaunchServices is often "/" or some other
+# read-only location -- NOT the folder next to the executable. That caused:
+#   OSError: [Errno 30] Read-only file system: 'uploads'
+# config.py already computes the correct, writable path
+# (os.path.join(BASE_DIR, 'uploads'), anchored to the real executable
+# location via sys.executable when frozen -- see config.py). Reuse that
+# single source of truth instead of maintaining a second, wrong one here.
+from config import UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ── Cascade loader — mirrors app.py's _find_cascade() pattern ────────────────
