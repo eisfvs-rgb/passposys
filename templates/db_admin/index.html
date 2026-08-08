@@ -1,0 +1,41 @@
+{% include "db_admin/_layout_top.html" %}
+
+<div class="toolbar">
+  <h2 style="margin:0;flex:1;">Tables</h2>
+  <form method="post" action="{{ url_for('db_admin.toggle_fk_checks') }}" style="display:flex;align-items:center;gap:8px;margin:0;">
+    <input type="hidden" name="enable" value="{{ '0' if fk_checks_enabled else '1' }}">
+    <span class="muted">Foreign key checks:</span>
+    <button class="btn {{ 'btn-primary' if fk_checks_enabled else 'btn-danger' }}" type="submit">
+      {{ 'ON' if fk_checks_enabled else 'OFF' }}
+    </button>
+  </form>
+  <a class="btn btn-primary" href="{{ url_for('db_admin.run_query') }}">Run SQL query</a>
+</div>
+
+{% if not fk_checks_enabled %}
+<div class="flash flash-error">
+  Foreign key checks are currently <strong>disabled</strong> for this admin session. Edits, deletes, and empties made here will not enforce referential integrity until you turn them back on.
+</div>
+{% endif %}
+
+<table>
+  <thead><tr><th>Table</th><th>Approx. rows</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for t in tables %}
+    <tr>
+      <td><a class="table-link" href="{{ url_for('db_admin.view_table', table_name=t.name) }}">{{ t.name }}</a></td>
+      <td>{{ t.approx_rows if t.approx_rows is not none else '?' }}</td>
+      <td>
+        <form method="post" action="{{ url_for('db_admin.empty_table', table_name=t.name) }}"
+              onsubmit="return confirm('Empty ALL rows in \'{{ t.name }}\'? This cannot be undone.');" style="display:inline;">
+          <button class="btn btn-danger" type="submit">Empty</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="3" class="muted">No tables found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% include "db_admin/_layout_bottom.html" %}

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recycle Bin — Passport Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            color-scheme: light;
+            --navy-deep:    #060f1e;
+            --navy-dark:    #0c1a30;
+            --navy-mid:     #112244;
+            --navy-light:   #1a3260;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --cream:        #faf8f4;
+            --white:        #ffffff;
+            --border-light: #e8e4dc;
+            --border-gold:  rgba(201,168,76,0.35);
+            --text-dark:    #0c1a30;
+            --text-mid:     #3d5275;
+            --text-muted:   #7a8fa8;
+            --success:      #0d7a55;
+            --success-bg:   #edfaf5;
+            --warning-bg:   #fffbeb;
+            --danger:       #be2121;
+            --danger-bg:    #fef2f2;
+            --info-bg:      #eff6ff;
+            --sidebar-w:    260px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--cream);
+            color: var(--text-dark);
+            display: flex; min-height: 100vh;
+        }
+
+        /* ══════════════════ SIDEBAR ══════════════════ */
+        .sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15);overflow: hidden; }
+        .sidebar-logo {
+    
+    margin: 20px auto;
+}
+        
+        .sidebar-nav {
+    padding: 20px 0;
+    flex: 1; /* This pushes the user section to the bottom */
+    overflow-y: auto; /* Adds scrollbar only when items overflow */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,168,76,0.2) transparent;
+}
+        .nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+        .nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+        .nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+        .nav-link-item.active i { color: var(--gold); }
+        .nav-link-item.nav-warning { color: rgba(255,200,80,0.75); }
+        .nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+        .nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+        .nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+        .nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+        .nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+        .sidebar-user {
+    padding: 18px 28px;
+    border-top: 1px solid rgba(201,168,76,0.15);
+    background: inherit; /* Ensures it masks the scrolling nav behind it */
+    flex-shrink: 0; /* Prevents this section from squishing */
+}
+        .user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+        .user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+        .user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+        .sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: block; }
+        .user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+        .user-menu a:hover { background: rgba(255,80,80,0.1); }
+
+        /* ══════════════════ MAIN ══════════════════ */
+        .main-content { margin-left: var(--sidebar-w); flex: 1; padding: 40px 44px 60px; max-width: calc(100% - var(--sidebar-w)); }
+
+        .page-header { margin-bottom: 32px; }
+        .page-eyebrow { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; color: var(--gold); margin-bottom: 6px; }
+        .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--navy-dark); line-height: 1.2; }
+        .page-title span { color: var(--gold); }
+
+        /* ══════════════════ RECYCLE BANNER ══════════════════ */
+        .recycle-banner {
+            display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(135deg, #f8f4f0, #f2ede4);
+            border: 1px solid var(--border-light);
+            border-left: 4px solid var(--text-muted);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 28px;
+            font-size: 0.85rem;
+            color: var(--text-mid);
+        }
+
+        /* ══════════════════ ACTION BAR ══════════════════ */
+        .action-bar {
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            background: var(--white); border: 1px solid var(--border-light); border-radius: 12px;
+            padding: 16px 22px; margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(12,26,48,0.04);
+        }
+
+        .action-bar-label { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; color: var(--navy-dark); }
+
+        /* ══════════════════ TABS ══════════════════ */
+        .custom-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border-light); margin-bottom: 22px; }
+        .custom-tab-btn { background: none; border: none; padding: 10px 18px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; border-radius: 6px 6px 0 0; }
+        .custom-tab-btn:hover { color: var(--text-dark); background: rgba(0,0,0,0.02); }
+        .custom-tab-btn.active#tab-invalid { color: var(--danger); border-bottom-color: var(--danger); }
+        .custom-tab-btn.active#tab-duplicates { color: var(--navy-mid); border-bottom-color: var(--navy-mid); }
+        .tab-pill { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+        .tab-pill-danger { background: #fef2f2; color: var(--danger); }
+        .tab-pill-blue { background: var(--info-bg); color: #1e40af; }
+
+        /* ══════════════════ PASSPORT CARDS ══════════════════ */
+        .invalid-card {
+            background: var(--white); border: 1px solid var(--border-light); border-radius: 14px;
+            margin-bottom: 18px; box-shadow: 0 2px 10px rgba(12,26,48,0.05);
+            display: flex; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            filter: grayscale(15%); opacity: 0.92;
+        }
+
+        .invalid-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(12,26,48,0.1); filter: grayscale(0%); opacity: 1; }
+        .invalid-card.duplicate-card { border-left: 4px solid var(--navy-mid); }
+
+        @media (max-width: 767px) { .invalid-card { flex-direction: column; } }
+
+        .card-image-section { flex: 0 0 180px; background: var(--cream); border-right: 1px solid var(--border-light); padding: 18px; display: flex; align-items: center; justify-content: center; }
+        .card-image-section img { width: 100%; border-radius: 8px; border: 1px solid var(--border-light); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .no-image-box { width: 100%; height: 140px; background: var(--cream); border: 2px dashed var(--border-light); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; gap: 6px; }
+        .no-image-box i { font-size: 1.8rem; opacity: 0.4; }
+
+        .card-data-section { flex: 1; padding: 22px 24px; display: flex; flex-direction: column; }
+        .card-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; gap: 12px; }
+        .card-filename { font-size: 0.95rem; font-weight: 700; color: var(--navy-dark); display: flex; align-items: center; gap: 8px; }
+        .card-filename i { color: var(--text-muted); }
+
+        .recycled-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #f1f5f9; color: var(--text-muted);
+            border: 1px solid #dde3eb;
+            padding: 3px 10px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .error-badge { display: inline-flex; align-items: center; gap: 6px; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; margin-bottom: 14px; }
+        .duplicate-badge { background: var(--info-bg) !important; color: #1e40af !important; border-color: #bfdbfe !important; }
+
+        .mrz-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; }
+        .mrz-box { background: var(--navy-deep); color: #a8d8a8; border: 1px solid rgba(201,168,76,0.15); padding: 10px 14px; border-radius: 8px; font-family: 'DM Mono', monospace; font-size: 0.82rem; letter-spacing: 1.5px; word-break: break-all; margin-bottom: 14px; white-space: pre-wrap; line-height: 1.7; }
+        .mrz-empty { background: var(--cream); border: 2px dashed var(--border-light); color: var(--text-muted); text-align: center; padding: 10px; font-size: 0.82rem; }
+
+        .card-actions { margin-top: auto; display: flex; gap: 10px; padding-top: 14px; border-top: 1px dashed var(--border-light); }
+
+        /* ══════════════════ BUTTONS ══════════════════ */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 18px; font-size: 0.82rem; font-weight: 600; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy-deep); font-weight: 700; box-shadow: 0 3px 10px rgba(201,168,76,0.25); }
+        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        .btn-secondary { background: var(--white); color: var(--text-dark); border-color: var(--border-light); }
+        .btn-secondary:hover { background: var(--cream); border-color: var(--gold); color: var(--navy-mid); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #065f46; transform: translateY(-1px); color: white; }
+        .btn-danger-outline { background: var(--white); color: var(--danger); border-color: #fca5a5; }
+        .btn-danger-outline:hover { background: var(--danger-bg); border-color: var(--danger); }
+        .btn-danger { background: var(--danger); color: white; border-color: var(--danger); }
+        .btn-danger:hover { background: #991b1b; transform: translateY(-1px); color: white; }
+
+        /* ══════════════════ EMPTY STATE ══════════════════ */
+        .empty-state { text-align: center; padding: 72px 24px; background: var(--white); border: 1px solid var(--border-light); border-radius: 16px; box-shadow: 0 2px 12px rgba(12,26,48,0.05); }
+        .empty-icon { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, #f1f5f9, #e2e8f0); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 20px; }
+        .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--navy-dark); margin-bottom: 8px; }
+        .empty-state p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; }
+
+        /* ══════════════════ PAGINATION ══════════════════ */
+        .pagination .page-link { font-family: 'DM Sans', sans-serif; color: var(--navy-mid); border-color: var(--border-light); font-weight: 600; font-size: 0.85rem; }
+        .pagination .page-item.active .page-link { background: var(--navy-mid); border-color: var(--navy-mid); color: white; }
+        .pagination .page-link:hover { background: var(--cream); color: var(--navy-dark); }
+
+        /* ══════════════════ ALERTS ══════════════════ */
+        .alert { padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; border: 1.5px solid transparent; font-size: 0.88rem; }
+        .alert-success { background: var(--success-bg); border-color: #a7f3d0; color: #065f46; }
+        .alert-danger  { background: var(--danger-bg);  border-color: #fecaca; color: #991b1b; }
+
+        #tabEmptyMessage { background: var(--white); border: 1px dashed var(--border-light); border-radius: 12px; padding: 48px 24px; text-align: center; }
+        #tabEmptyMessage i { font-size: 2.5rem; color: var(--text-muted); display: block; margin-bottom: 12px; }
+        #tabEmptyMessage h5 { font-family: 'Playfair Display', serif; color: var(--navy-dark); }
+        #tabEmptyMessage p { font-size: 0.85rem; color: var(--text-muted); }
+
+        .fade-up { opacity: 0; transform: translateY(16px); animation: fadeUp 0.45s ease forwards; }
+        .fade-up:nth-child(1) { animation-delay: 0.05s; }
+        .fade-up:nth-child(2) { animation-delay: 0.1s; }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            /* sidebar hidden via transform on mobile */
+            .main-content { margin-left: 0; max-width: 100%; padding: 20px 16px 40px; }
+        }
+    
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+
+        /* Sidebar slide transition — desktop & mobile */
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Desktop: collapsed state */
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        /* Nav scroll when content overflows */
+        .sidebar-nav {
+            overflow-y: auto;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201,168,76,0.2) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+
+        /* ── Toggle button ──
+           Desktop: fixed, sits flush on RIGHT edge of sidebar when open,
+                    moves to left:0 when sidebar is collapsed.
+           Mobile:  always top-left corner.
+        ────────────────────────────────────── */
+.sidebar-toggle-btn {
+            position: fixed;
+            top: 5px;
+            left: 0;
+            z-index: 500;
+            width: 36px;
+            height: 36px;
+            background: var(--navy-mid);
+            border: 1px solid rgba(201,168,76,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gold);
+            font-size: 1.1rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--navy-light);
+            color: var(--gold-light);
+        }
+        /* When sidebar is OPEN → button hugs its right edge */
+        .sidebar-toggle-btn.sidebar-open {
+            left: 220px;
+            top: 5px;
+            border-radius: 0;
+            border: 1px solid rgba(201,168,76,0.3);
+        }
+        /* ── Dark overlay (mobile only) ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.7);
+            z-index: 300;
+            backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* Main content slides with sidebar on desktop */
+        .main-content {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.sidebar-collapsed {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* User menu: click-only (hover disabled) */
+        .sidebar-user:hover .user-menu,
+        .sidebar-user:focus-within .user-menu { display: none; }
+        .user-menu.open { display: block !important; }
+
+        /* ══════════════════════════════════════
+           MOBILE  ≤ 768px
+        ══════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Sidebar is a full-height drawer — always in DOM, off-screen by default */
+            .sidebar {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 0; left: 0;
+                width: 260px;
+                height: 100vh;
+                min-height: 100vh;
+                transform: translateX(-260px);
+                z-index: 400;
+                overflow: hidden;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+                box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+            }
+            /* Desktop collapsed class must not interfere */
+            .sidebar.collapsed { transform: translateX(-260px); }
+
+            /* Nav area fills available space and scrolls if needed */
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                max-height: none;
+            }
+
+            /* Main content: full width, no margin */
+            .main-content,
+            .main-content.sidebar-collapsed {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding-top: 56px !important;
+            }
+
+            /* Toggle btn: always top-left, small, rounded */
+            .sidebar-toggle-btn,
+            .sidebar-toggle-btn.sidebar-open {
+                left: 10px !important;
+                top: 10px !important;
+                width: 34px;
+                height: 34px;
+                border-radius: 8px !important;
+                border: 1px solid rgba(201,168,76,0.35) !important;
+                border-left: 1px solid rgba(201,168,76,0.35) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+
+        </style>
+</head>
+<body>
+
+    <!-- ══════════════════ SIDEBAR ══════════════════ -->
+    <!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+    <div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+<main class="main-content">
+
+        <div class="page-header fade-up">
+            <div class="page-eyebrow">Deleted Records</div>
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <h1 class="page-title">Recycle <span>Bin</span></h1>
+                <a href="{{ url_for('view_invalid_passports') }}" class="btn btn-secondary" style="margin-bottom:4px;">
+                    <i class="bi bi-arrow-left"></i> Back to Invalid Passports
+                </a>
+            </div>
+        </div>
+
+        <div class="recycle-banner fade-up">
+            <i class="bi bi-info-circle-fill" style="font-size:1.1rem; color:var(--text-muted); flex-shrink:0;"></i>
+            <span>Records moved to the Recycle Bin can be <strong>restored</strong> or <strong>permanently deleted</strong>. Restoring a record will return it to the Invalid Passports queue for review.</span>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} fade-up">
+                <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if invalid_passports %}
+            {% set counts = namespace(invalid=0, duplicate=0) %}
+            {% for passport in invalid_passports %}
+                {% if 'Duplicate passport number' in passport.error_message %}
+                    {% set counts.duplicate = counts.duplicate + 1 %}
+                {% else %}
+                    {% set counts.invalid = counts.invalid + 1 %}
+                {% endif %}
+            {% endfor %}
+
+            <!-- Action Bar -->
+            <div class="action-bar fade-up">
+                <div class="action-bar-label">
+                    <i class="bi bi-trash3-fill" style="color:var(--text-muted);"></i>
+                    Deleted Invalid Passports
+                </div>
+                <form id="emptyBinForm" method="POST" action="{{ url_for('empty_invalid_recycle_bin') }}" style="margin:0;">
+                    <button type="button" id="emptyBinBtn" class="btn btn-danger">
+                        <i class="bi bi-fire"></i> Empty Recycle Bin ({{ total }})
+                    </button>
+                </form>
+            </div>
+
+            <!-- Tabs -->
+            <div class="custom-tabs fade-up">
+                <button class="custom-tab-btn active" id="tab-invalid" onclick="filterTabs('invalid')">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Invalid Data
+                    <span class="tab-pill tab-pill-danger">{{ counts.invalid }}</span>
+                </button>
+                <button class="custom-tab-btn" id="tab-duplicates" onclick="filterTabs('duplicates')">
+                    <i class="bi bi-files"></i> Duplicates
+                    <span class="tab-pill tab-pill-blue">{{ counts.duplicate }}</span>
+                </button>
+            </div>
+
+            <div id="tabEmptyMessage" style="display:none;">
+                <i class="bi bi-folder-x"></i>
+                <h5>No records found</h5>
+                <p>There are no records of this type in the recycle bin.</p>
+            </div>
+
+            <div id="recordsContainer">
+                {% for passport in invalid_passports %}
+                {% set is_duplicate = 'Duplicate passport number' in passport.error_message %}
+
+                <div class="invalid-card record-item {% if is_duplicate %}record-duplicate duplicate-card{% else %}record-invalid{% endif %} fade-up">
+
+                    <div class="card-image-section">
+                        {% if passport.original_image_b64 %}
+                            <img src="data:image/jpeg;base64,{{ passport.original_image_b64 }}" alt="Passport scan">
+                        {% else %}
+                            <div class="no-image-box">
+                                <i class="bi bi-image"></i>
+                                No Image
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-data-section">
+    {% set grp_name = "" %}
+    {% set display_error = passport.error_message %}
+    
+    {% if passport.group_name %}
+        {% set grp_name = passport.group_name %}
+    {% elif "(Group: " in passport.error_message %}
+        {% set grp_name = passport.error_message.split("(Group: ")[1].split(")")[0] %}
+        {% set display_error = passport.error_message.split(" (Group: ")[0] %}
+    {% endif %}
+
+    <div class="card-header-row">
+        <div class="card-filename">
+            <i class="bi bi-file-earmark-image"></i>
+            {{ passport.filename }}
+        </div>
+        
+        <div style="display: flex; gap: 10px; align-items: center;">
+            {% if grp_name %}
+            <span style="background: rgba(201,168,76,0.12); color: black; border: 1px solid rgba(201,168,76,0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="bi bi-folder2-open"></i> {{ grp_name }}
+            </span>
+            {% endif %}
+            
+            <span class="recycled-badge"><i class="bi bi-recycle"></i> Recycled</span>
+        </div>
+    </div>
+
+ 
+
+                        <div class="error-badge {% if is_duplicate %}duplicate-badge{% endif %}">
+                            {% if is_duplicate %}
+                                <i class="bi bi-files"></i> {{ passport.error_message }}
+                            {% else %}
+                                <i class="bi bi-exclamation-triangle-fill"></i> Error: {{ passport.error_message }}
+                            {% endif %}
+                        </div>
+
+                        <div class="mrz-label">Raw MRZ Detected</div>
+                        {% if passport.mrz_text %}
+                            <div class="mrz-box">{{ passport.mrz_text }}</div>
+                        {% else %}
+                            <div class="mrz-box mrz-empty">No MRZ code could be detected in this image.</div>
+                        {% endif %}
+
+                        <div class="card-actions">
+                            <form method="POST" action="{{ url_for('restore_invalid', invalid_id=passport.id) }}" style="margin:0; flex:1;">
+                                <button type="button" class="btn btn-success w-100 restore-single-btn">
+                                    <i class="bi bi-arrow-counterclockwise"></i> Restore Record
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('hard_delete_invalid', invalid_id=passport.id) }}" class="single-delete-form" style="margin:0; flex:1;">
+                                <button type="button" class="btn btn-danger-outline w-100 delete-single-btn">
+                                    <i class="bi bi-trash-fill"></i> Delete Permanently
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if total_pages > 1 %}
+            <div class="d-flex justify-content-center mt-4 mb-4">
+                <ul class="pagination">
+                    {%- set _win = 2 %}
+                    {%- if page > 1 %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('invalid_recycle_bin', page=page-1) }}">Previous</a></li>
+                    {%- endif %}
+                    {%- for p in range(1, total_pages+1) %}
+                        {%- if p == 1 or p == total_pages or (p >= page - _win and p <= page + _win) %}
+                            {%- if not loop.first and loop.previtem != p - 1 %}
+                    <li class="page-item disabled"><a class="page-link" href="#">…</a></li>
+                            {%- endif %}
+                    <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="{{ url_for('invalid_recycle_bin', page=p) }}">{{ p }}</a></li>
+                        {%- endif %}
+                    {%- endfor %}
+                    {%- if page < total_pages %}
+                    <li class="page-item"><a class="page-link" href="{{ url_for('invalid_recycle_bin', page=page+1) }}">Next</a></li>
+                    {%- endif %}
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+
+        {% else %}
+            <div class="empty-state fade-up">
+                <div class="empty-icon"><i class="bi bi-trash" style="color:var(--text-muted);"></i></div>
+                <h3>Recycle Bin is Empty</h3>
+                <p>Deleted invalid records will appear here for review before permanent removal.</p>
+                <a href="{{ url_for('view_invalid_passports') }}" class="btn btn-gold" style="padding:12px 28px;">
+                    <i class="bi bi-arrow-left"></i> Back to Invalid Passports
+                </a>
+            </div>
+        {% endif %}
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function filterTabs(type) {
+            document.getElementById('tab-invalid').classList.remove('active');
+            document.getElementById('tab-duplicates').classList.remove('active');
+            document.getElementById('tab-' + type).classList.add('active');
+            const allItems = document.querySelectorAll('.record-item');
+            let visibleCount = 0;
+            allItems.forEach(item => {
+                if (type === 'invalid' && item.classList.contains('record-invalid')) {
+                    item.style.display = ''; visibleCount++;
+                } else if (type === 'duplicates' && item.classList.contains('record-duplicate')) {
+                    item.style.display = ''; visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            document.getElementById('tabEmptyMessage').style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (document.querySelectorAll('.record-item').length > 0) filterTabs('invalid');
+        });
+
+        document.querySelectorAll('.restore-single-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('form').submit();
+            });
+        });
+
+        document.querySelectorAll('.delete-single-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const form = this.closest('form');
+                Swal.fire({
+                    title: 'Permanently Delete?',
+                    text: "You won't be able to recover this record!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#be2121',
+                    cancelButtonColor: '#7a8fa8',
+                    confirmButtonText: 'Yes, permanently delete it!',
+                    background: '#ffffff',
+                    color: '#0c1a30'
+                }).then(result => { if (result.isConfirmed) form.submit(); });
+            });
+        });
+
+        const emptyBinBtn = document.getElementById('emptyBinBtn');
+        if (emptyBinBtn) {
+            emptyBinBtn.addEventListener('click', function() {
+                Swal.fire({
+                    title: 'Empty Recycle Bin?',
+                    text: "This will permanently destroy all records. This cannot be undone.",
+                    icon: 'error',
+                    showCancelButton: true,
+                    confirmButtonColor: '#be2121',
+                    cancelButtonColor: '#7a8fa8',
+                    confirmButtonText: 'Yes, Empty It',
+                    background: '#ffffff',
+                    color: '#0c1a30'
+                }).then(result => { if (result.isConfirmed) document.getElementById('emptyBinForm').submit(); });
+            });
+        }
+    </script>
+
+    
+
+</body>
+</html>

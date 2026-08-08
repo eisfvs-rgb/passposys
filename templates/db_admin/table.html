@@ -1,0 +1,63 @@
+{% include "db_admin/_layout_top.html" %}
+
+<div class="toolbar">
+  <h2 style="margin:0;flex:1;">{{ table_name }} <span class="muted">({{ total }} rows)</span></h2>
+  <form method="post" action="{{ url_for('db_admin.empty_table', table_name=table_name) }}"
+        onsubmit="return confirm('Empty ALL rows in \'{{ table_name }}\'? This cannot be undone.');">
+    <button class="btn btn-danger" type="submit">Empty table</button>
+  </form>
+  <form method="get" style="display:flex;gap:8px;">
+    <input type="text" name="q" value="{{ search }}" placeholder="Search text columns...">
+    <button class="btn" type="submit">Search</button>
+    {% if search %}<a class="btn" href="{{ url_for('db_admin.view_table', table_name=table_name) }}">Clear</a>{% endif %}
+  </form>
+</div>
+
+<div style="overflow:auto;">
+<table>
+  <thead>
+    <tr>
+      {% for c in columns %}
+        <th>{{ c.name }}{% if c.is_pk %}<span class="pk-badge">PK</span>{% endif %}</th>
+      {% endfor %}
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      {% set display_row = display_rows[loop.index0] %}
+      {% for c in columns %}
+        <td>{{ display_row[c.name] }}</td>
+      {% endfor %}
+      <td style="white-space:nowrap;">
+        {% if pk_col %}
+        <a class="btn" href="{{ url_for('db_admin.edit_row', table_name=table_name, pk_value=row[pk_col]) }}">Edit</a>
+        <form method="post" style="display:inline;" onsubmit="return confirm('Delete this row? This cannot be undone.');" action="{{ url_for('db_admin.delete_row', table_name=table_name, pk_value=row[pk_col]) }}">
+          <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+        {% else %}
+        <span class="muted">no PK</span>
+        {% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="{{ columns|length + 1 }}" class="muted">No rows found.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% for p in range(1, total_pages + 1) %}
+    {% if p == page %}
+      <strong>{{ p }}</strong>
+    {% else %}
+      <a class="btn" href="{{ url_for('db_admin.view_table', table_name=table_name, page=p, q=search) }}">{{ p }}</a>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+{% include "db_admin/_layout_bottom.html" %}

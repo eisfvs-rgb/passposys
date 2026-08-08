@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="Recycle Bin — Passport Manager" data-ar="سلة المهملات — مدير جوازات السفر">Recycle Bin — Passport Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            color-scheme: light;
+            --navy-deep: #060f1e; --navy-dark: #0c1a30; --navy-mid: #112244; --navy-light: #1a3260;
+            --gold: #c9a84c; --gold-light: #e8c97a; --cream: #faf8f4; --white: #ffffff;
+            --border-light: #e8e4dc; --text-dark: #0c1a30; --text-mid: #3d5275; --text-muted: #7a8fa8;
+            --success: #0d7a55; --success-bg: #edfaf5; --danger: #be2121; --danger-bg: #fef2f2;
+            --sidebar-w: 260px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--cream); color: var(--text-dark); display: flex; min-height: 100vh; padding-bottom: 60px; }
+
+        /* ══ MAIN ══ */
+        .main-content { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100% - var(--sidebar-w)); }
+
+        /* ══ TOOLBAR ══ */
+        .toolbar { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border-light); box-shadow: 0 2px 12px rgba(12,26,48,0.07); }
+        .toolbar-top { padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .toolbar-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-left: 1.8em; font-weight: 700; color: var(--navy-dark); }
+        .toolbar-title .eyebrow { font-family: 'DM Sans', sans-serif; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); display: block; margin-bottom: 2px; }
+
+        /* ══ BUTTONS ══ */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 18px; font-size: 0.82rem; font-weight: 600; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+        .btn-secondary { background: var(--white); color: var(--text-dark); border-color: var(--border-light); }
+        .btn-secondary:hover { background: var(--cream); border-color: var(--gold); color: var(--navy-mid); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #065f46; color: white; transform: translateY(-1px); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #991b1b; color: white; }
+        .btn-danger-outline { background: var(--white); color: var(--danger); border-color: #fca5a5; }
+        .btn-danger-outline:hover { background: var(--danger-bg); border-color: var(--danger); }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy-deep); font-weight: 700; }
+        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        .w-100 { width: 100%; }
+
+        /* ══ MAIN EMPTY BIN BAR ══ */
+        .main-empty-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            background: linear-gradient(135deg, #fff8f8, #fef2f2);
+            border: 1.5px solid #fca5a5;
+            border-radius: 14px;
+            padding: 18px 26px;
+            margin: 28px 32px 0;
+            gap: 16px;
+        }
+        .main-empty-bar-info { display: flex; align-items: center; gap: 14px; }
+        .main-empty-bar-icon { width: 46px; height: 46px; background: var(--danger-bg); border: 1.5px solid #fca5a5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--danger); flex-shrink: 0; }
+        .main-empty-bar-text { font-size: 0.88rem; color: var(--text-mid); }
+        .main-empty-bar-text strong { display: block; font-size: 1rem; color: var(--navy-dark); font-weight: 700; margin-bottom: 2px; }
+
+        /* ══ RECYCLE BIN FILTER BAR ══ */
+        .filter-bar { margin: 24px 32px 0; background: var(--white); border: 1px solid var(--border-light); border-radius: 12px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(12,26,48,0.04); }
+        .filter-bar-header { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 700; color: var(--navy-dark); margin-bottom: 12px; }
+        .filter-bar-header i { color: var(--gold); }
+        .filter-bar-search { position: relative; }
+        .filter-bar-search i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem; }
+        .filter-bar-search input { width: 100%; border: 1.5px solid var(--border-light); border-radius: 8px; padding: 10px 14px 10px 38px; font-size: 0.9rem; font-family: 'DM Sans', sans-serif; color: var(--text-dark); transition: border-color 0.2s; }
+        .filter-bar-search input:focus { outline: none; border-color: var(--gold); }
+        .filter-bar-footer { display: flex; justify-content: flex-end; margin-top: 12px; }
+        .filter-clear-btn { background: none; border: none; color: var(--text-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+        .filter-clear-btn:hover { color: var(--danger); }
+        .filter-no-results { display: none; text-align: center; padding: 40px 24px; color: var(--text-muted); font-size: 0.9rem; }
+
+        /* ══ TAB SWITCHER ══ */
+        .main-tabs-wrapper { padding: 24px 32px 0; }
+        .main-tabs { display: flex; gap: 6px; border-bottom: 2px solid var(--border-light); }
+        .main-tab-btn {
+            background: none; border: none; border-bottom: 3px solid transparent; margin-bottom: -2px;
+            padding: 11px 22px; font-family: 'DM Sans', sans-serif; font-size: 0.92rem; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 9px; border-radius: 8px 8px 0 0;
+        }
+        .main-tab-btn:hover { color: var(--navy-dark); background: rgba(12,26,48,0.03); }
+        .main-tab-btn.active { color: var(--navy-dark); border-bottom-color: var(--gold); }
+        .main-tab-btn.active i { color: var(--gold); }
+        .tab-count { background: var(--cream); color: var(--text-muted); border: 1px solid var(--border-light); border-radius: 20px; padding: 2px 9px; font-size: 0.72rem; font-weight: 700; }
+        .main-tab-btn.active .tab-count { background: rgba(201,168,76,0.12); color: var(--navy-mid); border-color: rgba(201,168,76,0.3); }
+
+        /* ══ TAB PANELS ══ */
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ══ SECTION CONTENT ══ */
+        .section-content { padding: 28px 32px; }
+
+        /* ══ INFO BANNER ══ */
+        .info-banner { background: linear-gradient(135deg, #f8f4f0, #f2ede4); border: 1px solid var(--border-light); border-left: 4px solid var(--text-muted); border-radius: 10px; padding: 13px 18px; margin-bottom: 24px; font-size: 0.85rem; color: var(--text-mid); display: flex; align-items: center; gap: 10px; }
+        .info-banner i { color: var(--text-muted); font-size: 1rem; flex-shrink: 0; }
+
+        /* ══ SECTION ACTION BAR ══ */
+        .section-action-bar {
+            display: flex; align-items: center; justify-content: space-between; gap: 16px;
+            background: var(--white); border: 1px solid var(--border-light); border-radius: 12px;
+            padding: 14px 20px; margin-bottom: 22px; box-shadow: 0 2px 8px rgba(12,26,48,0.04);
+        }
+        .section-action-bar-label { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; font-weight: 700; color: var(--navy-dark); }
+
+        /* ══ INVALID SUB-TABS ══ */
+        .sub-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border-light); margin-bottom: 22px; }
+        .sub-tab-btn { background: none; border: none; padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s ease; display: flex; align-items: center; gap: 7px; border-radius: 6px 6px 0 0; }
+        .sub-tab-btn:hover { color: var(--navy-dark); background: rgba(12,26,48,0.03); }
+        .sub-tab-btn.active { color: var(--navy-dark); border-bottom-color: var(--navy-mid); }
+        .tab-pill { border-radius: 20px; padding: 2px 8px; font-size: 0.68rem; font-weight: 700; }
+        .tab-pill-danger { background: #fef2f2; color: var(--danger); border: 1px solid #fca5a5; }
+        .tab-pill-blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+        /* ══ PASSPORT CARDS (Processed) ══ */
+        .passport-card {
+            background: var(--white); border: 1px solid var(--border-light); border-radius: 16px;
+            margin-bottom: 22px; box-shadow: 0 2px 12px rgba(12,26,48,0.05);
+            display: flex; overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+            filter: grayscale(15%); opacity: 0.92;
+        }
+        .passport-card:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(12,26,48,0.1); filter: grayscale(0%); opacity: 1; }
+        @media (max-width: 991px) { .passport-card { flex-direction: column; } }
+        .card-data-section { flex: 0 0 45%; padding: 24px; display: flex; flex-direction: column; border-right: 1px solid var(--border-light); }
+        .face-img-wrapper { width: 100px; height: 130px; border-radius: 8px; border: 2px solid var(--border-light); overflow: hidden; background: var(--cream); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .face-img-wrapper img { width: 100%; height: 100%; object-fit: cover; }
+        .card-top-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .recycled-badge { background: #f1f5f9; color: #475569; border: 1px solid #dde3eb; padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; }
+        .details-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+        .detail-item { display: flex; flex-direction: column; }
+        .detail-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
+        .detail-value { font-size: 0.88rem; color: var(--text-dark); font-weight: 500; }
+        .detail-value.highlight { color: var(--navy-mid); font-weight: 700; font-family: 'DM Mono', monospace; font-size: 0.85rem; }
+        .card-actions { margin-top: auto; padding-top: 14px; border-top: 1px dashed var(--border-light); display: flex; gap: 10px; }
+        .card-image-section { flex: 1; padding: 24px; background: var(--cream); display: flex; align-items: center; justify-content: center; }
+        .passport-full-img { max-width: 100%; max-height: 380px; border-radius: 10px; box-shadow: 0 4px 16px rgba(12,26,48,0.1); border: 1px solid var(--border-light); }
+
+        /* ══ INVALID CARDS ══ */
+        .invalid-card {
+            background: var(--white); border: 1px solid var(--border-light); border-radius: 14px;
+            margin-bottom: 18px; box-shadow: 0 2px 8px rgba(12,26,48,0.04);
+            display: flex; overflow: hidden; opacity: 0.93;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .invalid-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(12,26,48,0.09); opacity: 1; }
+        .duplicate-card { border-left: 4px solid #3b82f6; }
+        .record-invalid { border-left: 4px solid var(--danger); }
+        .invalid-card .card-image-section { flex: 0 0 200px; padding: 16px; background: #f8f8f8; display: flex; align-items: center; justify-content: center; }
+        .invalid-card .card-image-section img { max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-light); }
+        .invalid-card .card-data-section { flex: 1; padding: 20px; display: flex; flex-direction: column; }
+        .card-header-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+        .card-filename { font-size: 0.82rem; font-weight: 600; color: var(--text-mid); display: flex; align-items: center; gap: 6px; }
+        .error-badge { display: inline-flex; align-items: center; gap: 7px; background: var(--danger-bg); color: var(--danger); border: 1px solid #fca5a5; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600; margin-bottom: 12px; }
+        .duplicate-badge { background: #eff6ff; color: #1d4ed8; border-color: #bfdbfe; }
+        .mrz-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; margin-bottom: 5px; }
+        .mrz-box { background: var(--navy-dark); color: #a8d8a8; font-family: 'DM Mono', monospace; font-size: 0.75rem; padding: 10px 14px; border-radius: 8px; line-height: 1.6; white-space: pre-wrap; word-break: break-all; margin-bottom: 14px; }
+        .mrz-empty { color: var(--text-muted); font-style: italic; }
+        .no-image-box { text-align: center; color: var(--text-muted); font-size: 0.8rem; }
+        .no-image-box i { font-size: 2rem; display: block; margin-bottom: 6px; }
+
+        /* ══ ALERTS ══ */
+        .alert { padding: 13px 18px; border-radius: 10px; margin-bottom: 18px; border: 1.5px solid transparent; font-size: 0.88rem; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: var(--success-bg); border-color: #a7f3d0; color: #065f46; }
+        .alert-danger { background: var(--danger-bg); border-color: #fecaca; color: #991b1b; }
+
+        /* ══ EMPTY STATE ══ */
+        .empty-state { text-align: center; padding: 72px 24px; background: var(--white); border: 1px solid var(--border-light); border-radius: 16px; }
+        .empty-state i { font-size: 3rem; color: var(--text-muted); display: block; margin-bottom: 16px; }
+        .empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--navy-dark); margin-bottom: 8px; }
+        .empty-state p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 24px; }
+
+        /* ══ PAGINATION ══ */
+        .pagination .page-link { font-family: 'DM Sans', sans-serif; color: var(--navy-mid); border-color: var(--border-light); font-weight: 600; font-size: 0.85rem; }
+        .pagination .page-item.active .page-link { background: var(--navy-mid); border-color: var(--navy-mid); color: white; }
+
+        .fade-up { opacity: 0; transform: translateY(14px); animation: fadeUp 0.4s ease forwards; }
+        @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .main-content { margin-left: 0; max-width: 100%; }
+            .toolbar-top, .section-content, .main-tabs-wrapper, .main-empty-bar { padding-left: 16px; padding-right: 16px; }
+            .main-empty-bar { margin-left: 0; margin-right: 0; }
+        }
+
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+        .sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.collapsed { transform: translateX(-260px); }
+        .sidebar-nav { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: rgba(201,168,76,0.2) transparent; }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+        .sidebar-toggle-btn { position: fixed; top: 5px; left: 0; z-index: 500; width: 36px; height: 36px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gold); font-size: 1.1rem; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; box-shadow: 3px 0 10px rgba(0,0,0,0.3); }
+        .sidebar-toggle-btn:hover { background: var(--navy-light); color: var(--gold-light); }
+        .sidebar-toggle-btn.sidebar-open { left: 220px; top: 5px; border-radius: 0; border: 1px solid rgba(201,168,76,0.3); }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(6,15,30,0.7); z-index: 300; backdrop-filter: blur(3px); }
+        .sidebar-overlay.visible { display: block; }
+        .main-content { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; }
+        .sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: none; }
+        .user-menu.open { display: block !important; }
+        @media (max-width: 768px) {
+            .sidebar { display: flex !important; flex-direction: column; position: fixed; top: 0; left: 0; width: 260px; height: 100vh; min-height: 100vh; transform: translateX(-260px); z-index: 400; overflow: hidden; }
+            .sidebar.mobile-open { transform: translateX(0) !important; box-shadow: 8px 0 32px rgba(0,0,0,0.5); }
+            .sidebar.collapsed { transform: translateX(-260px); }
+            .sidebar-nav { flex: 1; overflow-y: auto; max-height: none; }
+            .main-content, .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; padding-top: 56px !important; }
+            .sidebar-toggle-btn, .sidebar-toggle-btn.sidebar-open { left: 10px !important; top: 10px !important; width: 34px; height: 34px; border-radius: 8px !important; border: 1px solid rgba(201,168,76,0.35) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        }
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+
+<div class="main-content">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-top">
+            <div class="toolbar-title">
+                <span class="eyebrow" data-en="Deleted Records" data-ar="السجلات المحذوفة">Deleted Records</span>
+                <span data-en="Recycle Bin" data-ar="سلة المهملات">Recycle Bin</span>
+            </div>
+            <a href="{{ url_for('results') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> <span data-en="Back to Results" data-ar="العودة للنتائج">Back to Results</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding: 18px 32px 0;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} fade-up">
+                <i class="bi bi-info-circle-fill"></i> <span class="flash-text" data-orig-msg="{{ message }}">{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- ══ MASTER EMPTY BIN BAR ══ -->
+    {% set total_all = (total_processed or 0) + (recycled_invalid_total or 0) %}
+    {% if total_all > 0 %}
+    <div class="main-empty-bar fade-up">
+        <div class="main-empty-bar-info">
+            <div class="main-empty-bar-icon"><i class="bi bi-fire"></i></div>
+            <div class="main-empty-bar-text">
+                <strong data-en="Empty All Bins" data-ar="إفراغ جميع السلال">Empty All Bins</strong>
+                <span data-en="Permanently destroy all" data-ar="حذف جميع السجلات البالغ عددها">Permanently destroy all</span> <span class="num">{{ total_all }}</span> <span data-en="deleted records across both sections. This cannot be undone." data-ar="والتي تم حذفها من كلا القسمين بشكل نهائي. لا يمكن التراجع عن هذا الإجراء.">deleted records across both sections. This cannot be undone.</span>
+            </div>
+        </div>
+        <form id="emptyAllForm" method="POST" action="{{ url_for('empty_all_bins') }}" style="margin:0;">
+            <button type="button" id="emptyAllBtn" class="btn btn-danger" style="white-space:nowrap;">
+                <i class="bi bi-fire"></i> <span data-en="Empty All Bins" data-ar="إفراغ جميع السلال">Empty All Bins</span> (<span class="num">{{ total_all }}</span>)
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- ══ FILTER BAR ══ -->
+    <div class="filter-bar fade-up">
+        <div class="filter-bar-header">
+            <i class="bi bi-funnel-fill"></i>
+            <span data-en="Filter Records" data-ar="تصفية السجلات">Filter Records</span>
+        </div>
+        <div class="filter-bar-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="filterSearch"
+                   data-en-placeholder="Search by first, middle, or last name, or passport number..."
+                   data-ar-placeholder="ابحث بالاسم الأول أو الأوسط أو الأخير أو رقم الجواز..."
+                   placeholder="Search by first, middle, or last name, or passport number..."
+                   oninput="applyRecycleFilter()">
+        </div>
+        <div class="filter-bar-footer">
+            <button type="button" class="filter-clear-btn" onclick="clearRecycleFilter()">
+                <i class="bi bi-x-circle"></i> <span data-en="Clear Filters" data-ar="مسح عوامل التصفية">Clear Filters</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══ INFO BANNER ══ -->
+    <div class="info-banner fade-up" style="margin: 20px 32px 0;">
+        <i class="bi bi-info-circle-fill"></i>
+        <span data-en="Passports in the recycle bin can be" data-ar="يمكن">Passports in the recycle bin can be</span> <strong data-en="restored" data-ar="استعادة">restored</strong> <span data-en="to the active queue or" data-ar="جوازات السفر الموجودة في سلة المهملات إلى قائمة الانتظار النشطة أو">to the active queue or</span> <strong data-en="permanently deleted" data-ar="حذفها نهائياً">permanently deleted</strong>.
+    </div>
+
+    <!-- ══ MAIN TABS ══ -->
+    <div class="main-tabs-wrapper">
+        <div class="main-tabs">
+            <button class="main-tab-btn active" id="mainTab-processed" onclick="switchMainTab('processed')">
+                <i class="bi bi-table"></i>
+                <span data-en="Processed Passports" data-ar="جوازات السفر المعالجة">Processed Passports</span>
+                <span class="tab-count num" id="count-processed">{{ total_processed or 0 }}</span>
+            </button>
+            <button class="main-tab-btn" id="mainTab-invalid" onclick="switchMainTab('invalid')">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span data-en="Invalid Passports" data-ar="جوازات السفر غير الصالحة">Invalid Passports</span>
+                <span class="tab-count num" id="count-invalid">{{ recycled_invalid_total or 0 }}</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         TAB: PROCESSED PASSPORTS
+    ══════════════════════════════════ -->
+    <div class="tab-panel active" id="panel-processed">
+        <div class="section-content">
+
+            {% if data %}
+                <!-- Section action bar -->
+                <div class="section-action-bar fade-up">
+                    <div class="section-action-bar-label">
+                        <i class="bi bi-trash3-fill" style="color:var(--text-muted);"></i>
+                        <span data-en="Deleted Processed Passports" data-ar="جوازات السفر المعالجة المحذوفة">Deleted Processed Passports</span>
+                        <span style="background:var(--cream); color:var(--text-muted); border:1px solid var(--border-light); border-radius:20px; padding:2px 9px; font-size:0.72rem; font-weight:700;" class="num">{{ total_processed }}</span>
+                    </div>
+                    <form id="emptyProcessedForm" method="POST" action="{{ url_for('empty_recycle_bin_route') }}" style="margin:0;">
+                        <button type="button" id="emptyProcessedBtn" class="btn btn-danger">
+                            <i class="bi bi-trash3-fill"></i> <span data-en="Empty This Bin" data-ar="إفراغ هذه السلة">Empty This Bin</span> (<span class="num">{{ total_processed }}</span>)
+                        </button>
+                    </form>
+                </div>
+
+                {% for passport in data %}
+                <div class="passport-card fade-up"
+                     data-fname="{{ (passport.given_names or '') | lower }}"
+                     data-mname="{{ (passport.middle_name or '') | lower }}"
+                     data-lname="{{ (passport.surname or '') | lower }}"
+                     data-passport="{{ (passport.passport_number or '') | lower }}">
+                    <div class="card-data-section">
+                        <div class="card-top-row">
+                            <div class="face-img-wrapper">
+                                <img src="{{ url_for('db_face_image', passport_id=passport.id) }}?cb={{ range(1, 9999999) | random }}" alt="Face"
+                                     onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\' fill=\'%23ccc\'><path d=\'M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z\'/><path fill-rule=\'evenodd\' d=\'M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z\'/></svg>'">
+                            </div>
+                            <span class="recycled-badge"><i class="bi bi-recycle"></i> <span data-en="Recycled" data-ar="محذوف">Recycled</span></span>
+                        </div>
+                        <div class="details-grid">
+                            <div class="detail-item">
+                                <span class="detail-label" data-en="Passport No." data-ar="رقم الجواز">Passport No.</span>
+                                <span class="detail-value highlight">{{ passport.passport_number }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label" data-en="Full Name" data-ar="الاسم الكامل">Full Name</span>
+                                <span class="detail-value">
+                                    {{ passport.given_names }}
+                                    {% if passport.middle_name %}{{ passport.middle_name }} {% endif %}
+                                    {{ passport.surname }}
+                                </span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label" data-en="Nationality" data-ar="الجنسية">Nationality</span>
+                                <span class="detail-value">{{ passport.country }}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <form method="POST" action="{{ url_for('restore_passport_route', passport_id=passport.id) }}" style="flex:1; margin:0;">
+                                <button type="button" class="btn btn-success w-100 restore-passport-btn">
+                                    <i class="bi bi-arrow-counterclockwise"></i> <span data-en="Restore" data-ar="استعادة">Restore</span>
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('hard_delete_passport_route', passport_id=passport.id) }}" class="single-delete-form" style="flex:1; margin:0;">
+                                <button type="button" class="btn btn-danger-outline w-100 delete-single-btn">
+                                    <i class="bi bi-trash-fill"></i> <span data-en="Delete Forever" data-ar="حذف نهائي">Delete Forever</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-image-section">
+                        <img src="{{ url_for('db_passport_image', passport_id=passport.id) }}?cb={{ range(1, 9999999) | random }}"
+                             class="passport-full-img" alt="Passport Image"
+                             onerror="this.onerror=null; this.style.display='none'; this.parentElement.insertAdjacentHTML('beforeend', '<div style=\'text-align:center; color:var(--text-muted); padding:40px;\'><i class=\'bi bi-file-earmark-image\' style=\'font-size:3rem; display:block; margin-bottom:10px;\'></i>No Image</div>');">
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if total_pages > 1 %}
+                <div class="d-flex justify-content-center mt-4 mb-4">
+                    <ul class="pagination">
+                        {%- set _win = 2 %}
+                        {%- if page > 1 %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('recycle_bin', page=page-1) }}" data-en="Previous" data-ar="السابق">Previous</a></li>
+                        {%- endif %}
+                        {%- for p in range(1, total_pages+1) %}
+                            {%- if p == 1 or p == total_pages or (p >= page - _win and p <= page + _win) %}
+                                {%- if not loop.first and loop.previtem != p - 1 %}
+                        <li class="page-item disabled"><a class="page-link" href="#">…</a></li>
+                                {%- endif %}
+                        <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link num" href="{{ url_for('recycle_bin', page=p) }}">{{ p }}</a></li>
+                            {%- endif %}
+                        {%- endfor %}
+                        {%- if page < total_pages %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('recycle_bin', page=page+1) }}" data-en="Next" data-ar="التالي">Next</a></li>
+                        {%- endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <div class="empty-state fade-up">
+                    <i class="bi bi-trash"></i>
+                    <h3 data-en="Processed Bin is Empty" data-ar="سلة المعالجة فارغة">Processed Bin is Empty</h3>
+                    <p data-en="Deleted processed passports will appear here before permanent removal." data-ar="ستظهر جوازات السفر المعالجة المحذوفة هنا قبل إزالتها نهائياً.">Deleted processed passports will appear here before permanent removal.</p>
+                    <a href="{{ url_for('results') }}" class="btn btn-gold" style="padding:12px 28px;">
+                        <i class="bi bi-table"></i> <span data-en="Go to Results" data-ar="الانتقال إلى النتائج">Go to Results</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         TAB: INVALID PASSPORTS
+    ══════════════════════════════════ -->
+    <div class="tab-panel" id="panel-invalid">
+        <div class="section-content">
+
+            <div class="info-banner fade-up">
+                <i class="bi bi-info-circle-fill"></i>
+                <span data-en="Records moved here can be" data-ar="يمكن">Records moved here can be</span> <strong data-en="restored" data-ar="استعادة">restored</strong> <span data-en="to the Invalid Passports queue or" data-ar="السجلات المنقولة إلى هنا وإعادتها إلى قائمة جوازات السفر غير الصالحة أو">to the Invalid Passports queue or</span> <strong data-en="permanently deleted" data-ar="حذفها نهائياً">permanently deleted</strong>.
+            </div>
+
+            {% if invalid_passports %}
+                {% set counts = namespace(invalid=0, duplicate=0) %}
+                {% for passport in invalid_passports %}
+                    {% if 'Duplicate passport number' in passport.error_message %}
+                        {% set counts.duplicate = counts.duplicate + 1 %}
+                    {% else %}
+                        {% set counts.invalid = counts.invalid + 1 %}
+                    {% endif %}
+                {% endfor %}
+
+                <!-- Section action bar -->
+                <div class="section-action-bar fade-up">
+                    <div class="section-action-bar-label">
+                        <i class="bi bi-exclamation-triangle-fill" style="color:var(--text-muted);"></i>
+                        <span data-en="Deleted Invalid Passports" data-ar="جوازات السفر غير الصالحة المحذوفة">Deleted Invalid Passports</span>
+                        <span style="background:var(--cream); color:var(--text-muted); border:1px solid var(--border-light); border-radius:20px; padding:2px 9px; font-size:0.72rem; font-weight:700;" class="num">{{ recycled_invalid_total }}</span>
+                    </div>
+                    <form id="emptyInvalidForm" method="POST" action="{{ url_for('empty_invalid_recycle_bin') }}" style="margin:0;">
+                        <button type="button" id="emptyInvalidBtn" class="btn btn-danger">
+                            <i class="bi bi-trash3-fill"></i> <span data-en="Empty This Bin" data-ar="إفراغ هذه السلة">Empty This Bin</span> (<span class="num">{{ recycled_invalid_total }}</span>)
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Sub-tabs: Invalid / Duplicates -->
+                <div class="sub-tabs fade-up">
+                    <button class="sub-tab-btn active" id="subTab-invalid" onclick="switchSubTab('invalid')">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span data-en="Invalid Data" data-ar="بيانات غير صالحة">Invalid Data</span>
+                        <span class="tab-pill tab-pill-danger num">{{ counts.invalid }}</span>
+                    </button>
+                    <button class="sub-tab-btn" id="subTab-duplicates" onclick="switchSubTab('duplicates')">
+                        <i class="bi bi-files"></i>
+                        <span data-en="Duplicates" data-ar="المكررة">Duplicates</span>
+                        <span class="tab-pill tab-pill-blue num">{{ counts.duplicate }}</span>
+                    </button>
+                </div>
+
+                <div id="subTabEmptyMessage" style="display:none;">
+                    <div class="empty-state fade-up">
+                        <i class="bi bi-folder-x"></i>
+                        <h3 data-en="No records found" data-ar="لم يتم العثور على سجلات">No records found</h3>
+                        <p data-en="There are no records of this type in the recycle bin." data-ar="لا توجد سجلات من هذا النوع في سلة المهملات.">There are no records of this type in the recycle bin.</p>
+                    </div>
+                </div>
+
+                <div id="invalidRecordsContainer">
+                    {% for passport in invalid_passports %}
+                    {% set is_duplicate = 'Duplicate passport number' in passport.error_message %}
+                    <div class="invalid-card record-item {% if is_duplicate %}record-duplicate duplicate-card{% else %}record-invalid{% endif %} fade-up"
+                         data-mrz="{{ (passport.mrz_text or '') | lower }}">
+                        <div class="card-image-section">
+                            {% if passport.original_image_b64 %}
+                                <img src="data:image/jpeg;base64,{{ passport.original_image_b64 }}" alt="Passport scan">
+                            {% else %}
+                                <div class="no-image-box">
+                                    <i class="bi bi-image"></i>
+                                    <span data-en="No Image" data-ar="لا توجد صورة">No Image</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-data-section">
+                            {% set grp_name = "" %}
+                            {% set display_error = passport.error_message %}
+                            {% if passport.group_name %}
+                                {% set grp_name = passport.group_name %}
+                            {% elif "(Group: " in passport.error_message %}
+                                {% set grp_name = passport.error_message.split("(Group: ")[1].split(")")[0] %}
+                                {% set display_error = passport.error_message.split(" (Group: ")[0] %}
+                            {% endif %}
+
+                            {# ── mrz_utils.py validator / parser messages (static, no dynamic values) ── #}
+                            {% set lower_error = display_error | lower %}
+                            {% if 'provB' in lower_error or 'grpc' in lower_error or '503' in lower_error or 'vision' in lower_error or 'api' in lower_error %}
+                            {% set display_error = "Can't extract due to server error" %}
+                            {% set display_error_ar = "تعذر الاستخراج بسبب خطأ في الخادم" %}
+                            {% elif 'MRZ not detected after ProvA batch' in display_error %}
+                            {% set display_error_ar = "لم يتم اكتشاف MRZ بعد مسح دفعات ProvA ومسح ProvB Vision" %}
+                            {% elif 'MRZ not detected' in display_error %}
+                            {% set display_error_ar = "لم يتم اكتشاف MRZ" %}
+                            {% elif 'Duplicate passport number' in display_error %}
+                            {% set display_error_ar = display_error.replace('Duplicate passport number', 'رقم جواز سفر مكرر') %}
+                            {% elif 'Processing error' in display_error %}
+                            {% set display_error_ar = display_error.replace('Processing error', 'خطأ في المعالجة') %}
+                            {% elif 'Unhandled processing failure' in display_error %}
+                            {% set display_error_ar = "فشل غير معالج في المعالجة (شبكة الأمان)" %}
+                            {% elif 'Image fell through processing pipeline' in display_error %}
+                            {% set display_error_ar = "سقطت الصورة من مسار المعالجة (شبكة الأمان)" %}
+                            {% elif display_error == "MRZ must contain exactly 2 lines" %}
+                            {% set display_error_ar = "يجب أن يحتوي MRZ على 2 أسطر بالضبط" %}
+                            {% elif display_error == "Line 1 must start with 'P' (Passport document type)" %}
+                            {% set display_error_ar = "يجب أن يبدأ السطر 1 بحرف 'P' (نوع مستند جواز السفر)" %}
+                            {% elif display_error == "Name field contains no readable characters" %}
+                            {% set display_error_ar = "حقل الاسم لا يحتوي على أحرف مقروءة" %}
+                            {% elif display_error == "Invalid name format: More than 2 consecutive separators (<<<) detected" %}
+                            {% set display_error_ar = "تنسيق الاسم غير صالح: تم اكتشاف أكثر من 2 فواصل متتالية (<<<)" %}
+                            {% elif display_error == "Name field must contain '<<' between surname and given names" %}
+                            {% set display_error_ar = "يجب أن يحتوي حقل الاسم على '<<' بين اسم العائلة والأسماء الأولى" %}
+                            {% elif display_error == "Invalid MRZ: Surname contains digits — likely an OCR misread." %}
+                            {% set display_error_ar = "MRZ غير صالح: اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                            {% elif display_error == "Invalid MRZ: Given names contain digits — likely an OCR misread." %}
+                            {% set display_error_ar = "MRZ غير صالح: الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                            {% elif display_error == "Surname contains internal filler (<) — likely a misread letter." %}
+                            {% set display_error_ar = "اسم العائلة يحتوي على حرف تعبئة داخلي (<) — يُرجح أنه حرف مقروء بشكل خاطئ." %}
+                            {% elif display_error.startswith("Surname field is empty.") %}
+                            {% set display_error_ar = "حقل اسم العائلة فارغ. إذا كان هذا جواز سفر هندي، استخدم validate_and_parse_mrz_ind()." %}
+                            {% elif display_error == "Passport number check digit failed" %}
+                            {% set display_error_ar = "فشل رقم التحقق لجواز السفر" %}
+                            {% elif display_error == "Date of birth check digit failed" %}
+                            {% set display_error_ar = "فشل رقم التحقق لتاريخ الميلاد" %}
+                            {% elif display_error == "Expiry date check digit failed" %}
+                            {% set display_error_ar = "فشل رقم التحقق لتاريخ الانتهاء" %}
+                            {% elif display_error == "Name field is entirely empty." %}
+                            {% set display_error_ar = "حقل الاسم فارغ تماماً." %}
+                            {% elif display_error == "Name field must contain '<<' as the surname/given-name separator." %}
+                            {% set display_error_ar = "يجب أن يحتوي حقل الاسم على '<<' كفاصل بين اسم العائلة والأسماء الأولى." %}
+                            {% elif display_error == "Surname contains digits — likely an OCR misread." %}
+                            {% set display_error_ar = "اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                            {% elif display_error.startswith("Surname contains more than one internal separator") %}
+                            {% set display_error_ar = "اسم العائلة يحتوي على أكثر من فاصل داخلي واحد (<). يُسمح فقط بأسماء العائلة المركبة من كلمتين." %}
+                            {% elif display_error == "Given-name section is empty — at least one name token is required." %}
+                            {% set display_error_ar = "قسم الأسماء الأولى فارغ — مطلوب جزء واحد على الأقل من الاسم." %}
+                            {% elif display_error.startswith("Unexpected '<<' inside the given-name section") %}
+                            {% set display_error_ar = "وجود '<<' غير متوقع داخل قسم الأسماء الأولى. تحقق من أخطاء OCR." %}
+                            {% elif display_error == "Given names contain digits — likely an OCR misread." %}
+                            {% set display_error_ar = "الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                            {% elif display_error == "Both surname and given-name sections are empty." %}
+                            {% set display_error_ar = "كل من قسمي اسم العائلة والأسماء الأولى فارغان." %}
+                            {% elif display_error == "MRZ must contain at least 2 lines" %}
+                            {% set display_error_ar = "يجب أن يحتوي MRZ على 2 أسطر على الأقل" %}
+                            {% elif display_error == "No parsed data available." %}
+                            {% set display_error_ar = "لا تتوفر بيانات تم تحليلها." %}
+                            {% elif display_error == "Cannot validate issue date: Missing or invalid expiry date." %}
+                            {% set display_error_ar = "لا يمكن التحقق من تاريخ الإصدار: تاريخ الانتهاء مفقود أو غير صالح." %}
+
+                            {# ── mrz_utils.py messages WITH dynamic values — translate the fixed  ── #}
+                            {# ── wording on either side of the value using replace(), keep value  ── #}
+                            {% elif display_error.startswith("Each MRZ line must be exactly 44 characters") %}
+                            {% set display_error_ar = display_error
+                                | replace("Each MRZ line must be exactly 44 characters (Line 1: ", "يجب أن يكون كل سطر في MRZ 44 حرفاً بالضبط (السطر 1: ")
+                                | replace(", Line 2: ", "، السطر 2: ") %}
+                            {% elif display_error.startswith("Invalid issuing country code") %}
+                            {% set display_error_ar = display_error | replace("Invalid issuing country code", "رمز بلد الإصدار غير صالح") %}
+                            {% elif display_error.startswith("Invalid nationality code") %}
+                            {% set display_error_ar = display_error | replace("Invalid nationality code", "رمز الجنسية غير صالح") %}
+                            {% elif display_error.startswith("Invalid MRZ: Issuing country") %}
+                            {% set display_error_ar = display_error
+                                | replace("Invalid MRZ: Issuing country (", "MRZ غير صالح: بلد الإصدار (")
+                                | replace(") does not match nationality (", ") لا يتطابق مع الجنسية (")
+                                | replace(").", ").") %}
+                            {% elif display_error.startswith("Invalid MRZ: Surname exceeds 15 characters") %}
+                            {% set display_error_ar = display_error
+                                | replace("Invalid MRZ: Surname exceeds 15 characters (length: ", "MRZ غير صالح: اسم العائلة يتجاوز 15 حرفاً (الطول: ") %}
+                            {% elif display_error.startswith("Invalid MRZ: First name exceeds 15 characters") %}
+                            {% set display_error_ar = display_error
+                                | replace("Invalid MRZ: First name exceeds 15 characters (length: ", "MRZ غير صالح: الاسم الأول يتجاوز 15 حرفاً (الطول: ") %}
+                            {% elif display_error.startswith("Sex must be M, F, or <") %}
+                            {% set display_error_ar = display_error
+                                | replace("Sex must be M, F, or < (found '", "يجب أن يكون الجنس M أو F أو < (تم العثور على '") %}
+                            {% elif display_error.startswith("DOB must be YYMMDD") %}
+                            {% set display_error_ar = display_error
+                                | replace("DOB must be YYMMDD (found '", "يجب أن يكون تاريخ الميلاد بتنسيق YYMMDD (تم العثور على '") %}
+                            {% elif display_error.startswith("Expiry must be YYMMDD") %}
+                            {% set display_error_ar = display_error
+                                | replace("Expiry must be YYMMDD (found '", "يجب أن يكون تاريخ الانتهاء بتنسيق YYMMDD (تم العثور على '") %}
+                            {% elif display_error.startswith("IND validator received a non-Indian passport") %}
+                            {% set display_error_ar = display_error
+                                | replace("IND validator received a non-Indian passport (country: ", "تلقى مدقق IND جواز سفر غير هندي (البلد: ")
+                                | replace("). Use the general validator instead.", "). استخدم المدقق العام بدلاً من ذلك.") %}
+                            {% elif display_error.startswith("Indian passport nationality mismatch") %}
+                            {% set display_error_ar = display_error
+                                | replace("Indian passport nationality mismatch: expected IND, got '", "عدم تطابق جنسية جواز السفر الهندي: المتوقع IND، تم العثور على '") %}
+                            {% elif display_error.startswith("Individual surname token") %}
+                            {% set display_error_ar = display_error
+                                | replace("Individual surname token '", "الجزء الفردي من اسم العائلة '")
+                                | replace("' exceeds 15 characters.", "' يتجاوز 15 حرفاً.") %}
+                            {% elif display_error.startswith("Given-name section has") %}
+                            {% set display_error_ar = display_error
+                                | replace("Given-name section has ", "قسم الأسماء الأولى يحتوي على ")
+                                | replace(" tokens; maximum 4 are supported.", " أجزاء؛ الحد الأقصى المدعوم هو 4.") %}
+                            {% elif display_error.startswith("Given-name token") %}
+                            {% set display_error_ar = display_error
+                                | replace("Given-name token '", "جزء الاسم الأول '")
+                                | replace("' exceeds 20 characters.", "' يتجاوز 20 حرفاً.") %}
+                            {% elif display_error.startswith("Cannot open image:") %}
+                            {% set display_error_ar = display_error | replace("Cannot open image:", "لا يمكن فتح الصورة:") %}
+                            {% elif display_error.startswith("Passport is already expired") %}
+                            {% set display_error_ar = display_error
+                                | replace("Passport is already expired (Expiry: ", "جواز السفر منتهي الصلاحية بالفعل (الانتهاء: ") %}
+                            {% elif display_error.startswith("Date calculation error:") %}
+                            {% set display_error_ar = display_error | replace("Date calculation error:", "خطأ في حساب التاريخ:") %}
+
+                            {# ── ICAO check-digit messages, possibly " | "-joined ── #}
+                            {% elif "check digit failed" in display_error %}
+                            {% set display_error_ar = display_error
+                                | replace("Passport number check digit failed", "فشل رقم التحقق لجواز السفر")
+                                | replace("Date of birth check digit failed", "فشل رقم التحقق لتاريخ الميلاد")
+                                | replace("Expiry date check digit failed", "فشل رقم التحقق لتاريخ الانتهاء")
+                                | replace(" | ", " | ") %}
+
+                            {% else %}
+                            {% set display_error_ar = display_error %}
+                            {% endif %}
+
+                            <div class="card-header-row">
+                                <div class="card-filename">
+                                    <i class="bi bi-file-earmark-image"></i>
+                                    {{ passport.filename }}
+                                </div>
+                                <div style="display:flex; gap:10px; align-items:center;">
+                                    {% if grp_name %}
+                                    <span style="background:rgba(201,168,76,0.12); color:black; border:1px solid rgba(201,168,76,0.3); padding:3px 8px; border-radius:6px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:4px;">
+                                        <i class="bi bi-folder2-open"></i> {{ grp_name }}
+                                    </span>
+                                    {% endif %}
+                                    <span class="recycled-badge"><i class="bi bi-recycle"></i> <span data-en="Recycled" data-ar="محذوف">Recycled</span></span>
+                                </div>
+                            </div>
+
+                            <div class="error-badge {% if is_duplicate %}duplicate-badge{% endif %}">
+                                {% if is_duplicate %}
+                                    <i class="bi bi-files"></i> <span data-en="{{ display_error }}" data-ar="{{ display_error_ar }}">{{ display_error }}</span>
+                                {% else %}
+                                    <i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Error:" data-ar="خطأ:">Error:</span> <span data-en="{{ display_error }}" data-ar="{{ display_error_ar }}">{{ display_error }}</span>
+                                {% endif %}
+                            </div>
+
+                            <div class="mrz-label" data-en="Raw MRZ Detected" data-ar="تم اكتشاف بيانات MRZ الخام">Raw MRZ Detected</div>
+                            {% if passport.mrz_text %}
+                                <div class="mrz-box">{{ passport.mrz_text }}</div>
+                            {% else %}
+                                <div class="mrz-box mrz-empty" data-en="No MRZ code could be detected in this image." data-ar="لم يتم اكتشاف رمز MRZ في هذه الصورة.">No MRZ code could be detected in this image.</div>
+                            {% endif %}
+
+                            <div class="card-actions">
+                                <form method="POST" action="{{ url_for('restore_invalid', invalid_id=passport.id) }}" style="margin:0; flex:1;">
+                                    <button type="button" class="btn btn-success w-100 restore-invalid-btn">
+                                        <i class="bi bi-arrow-counterclockwise"></i> <span data-en="Restore Record" data-ar="استعادة السجل">Restore Record</span>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('hard_delete_invalid', invalid_id=passport.id) }}" class="invalid-delete-form" style="margin:0; flex:1;">
+                                    <button type="button" class="btn btn-danger-outline w-100 delete-invalid-btn">
+                                        <i class="bi bi-trash-fill"></i> <span data-en="Delete Permanently" data-ar="حذف نهائي">Delete Permanently</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% if invalid_total_pages > 1 %}
+                <div class="d-flex justify-content-center mt-4 mb-4">
+                    <ul class="pagination">
+                        {%- set _win = 2 %}
+                        {%- if invalid_page > 1 %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('recycle_bin', invalid_page=invalid_page-1, tab='invalid') }}" data-en="Previous" data-ar="السابق">Previous</a></li>
+                        {%- endif %}
+                        {%- for p in range(1, invalid_total_pages+1) %}
+                            {%- if p == 1 or p == invalid_total_pages or (p >= invalid_page - _win and p <= invalid_page + _win) %}
+                                {%- if not loop.first and loop.previtem != p - 1 %}
+                        <li class="page-item disabled"><a class="page-link" href="#">…</a></li>
+                                {%- endif %}
+                        <li class="page-item {% if p == invalid_page %}active{% endif %}"><a class="page-link num" href="{{ url_for('recycle_bin', invalid_page=p, tab='invalid') }}">{{ p }}</a></li>
+                            {%- endif %}
+                        {%- endfor %}
+                        {%- if invalid_page < invalid_total_pages %}
+                        <li class="page-item"><a class="page-link" href="{{ url_for('recycle_bin', invalid_page=invalid_page+1, tab='invalid') }}" data-en="Next" data-ar="التالي">Next</a></li>
+                        {%- endif %}
+                    </ul>
+                </div>
+                {% endif %}
+
+            {% else %}
+                <div class="empty-state fade-up">
+                    <i class="bi bi-trash"></i>
+                    <h3 data-en="Invalid Bin is Empty" data-ar="سلة غير الصالحة فارغة">Invalid Bin is Empty</h3>
+                    <p data-en="Deleted invalid passport records will appear here before permanent removal." data-ar="ستظهر سجلات جوازات السفر غير الصالحة المحذوفة هنا قبل إزالتها نهائياً.">Deleted invalid passport records will appear here before permanent removal.</p>
+                    <a href="{{ url_for('view_invalid_passports') }}" class="btn btn-gold" style="padding:12px 28px;">
+                        <i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Go to Invalid Passports" data-ar="الانتقال إلى جوازات السفر غير الصالحة">Go to Invalid Passports</span>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+</div><!-- /main-content -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+/* ── Main tab switcher ── */
+function switchMainTab(tab) {
+    document.querySelectorAll('.main-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('mainTab-' + tab).classList.add('active');
+    document.getElementById('panel-' + tab).classList.add('active');
+    // Remember tab in URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set('tab', tab);
+    window.history.replaceState({}, '', url);
+}
+
+/* ── Invalid sub-tab switcher ── */
+function switchSubTab(type) {
+    document.getElementById('subTab-invalid').classList.remove('active');
+    document.getElementById('subTab-duplicates').classList.remove('active');
+    document.getElementById('subTab-' + type).classList.add('active');
+    const items = document.querySelectorAll('#invalidRecordsContainer .record-item');
+    let visible = 0;
+    items.forEach(item => {
+        const show = (type === 'invalid' && item.classList.contains('record-invalid'))
+                  || (type === 'duplicates' && item.classList.contains('record-duplicate'));
+        item.classList.toggle('sub-tab-hidden', !show);
+        if (show && !item.classList.contains('filter-hidden')) visible++;
+    });
+    const emptyMsg = document.getElementById('subTabEmptyMessage');
+    if (emptyMsg) emptyMsg.style.display = visible === 0 ? 'block' : 'none';
+    applyItemVisibility();
+}
+
+/* ── Filter bar: single search box, matches first/middle/last name or passport number.
+   The query is split into words; every word must be found somewhere across the
+   record's fields (in any order, any field) for the record to match. ── */
+function applyRecycleFilter() {
+    const query = document.getElementById('filterSearch').value.trim().toLowerCase();
+    const words = query.split(/\s+/).filter(Boolean);
+    const anyFilterActive = words.length > 0;
+
+    // Processed cards: structured name + passport number fields
+    document.querySelectorAll('.passport-card').forEach(card => {
+        const haystack = [card.dataset.fname, card.dataset.mname, card.dataset.lname, card.dataset.passport]
+            .filter(Boolean).join(' ');
+        const matches = words.every(w => haystack.includes(w));
+        card.classList.toggle('filter-hidden', anyFilterActive && !matches);
+    });
+
+    // Invalid cards: no structured name fields; only passport number can match (via raw MRZ text).
+    document.querySelectorAll('.invalid-card').forEach(card => {
+        const haystack = card.dataset.mrz || '';
+        const matches = words.every(w => haystack.includes(w));
+        card.classList.toggle('filter-hidden', anyFilterActive && !matches);
+    });
+
+    applyItemVisibility();
+}
+
+function clearRecycleFilter() {
+    document.getElementById('filterSearch').value = '';
+    applyRecycleFilter();
+}
+
+/* ── Reconciles filter-hidden state with sub-tab visibility and updates empty-state messaging ── */
+function applyItemVisibility() {
+    document.querySelectorAll('.passport-card').forEach(card => {
+        card.style.display = card.classList.contains('filter-hidden') ? 'none' : '';
+    });
+    document.querySelectorAll('#invalidRecordsContainer .record-item').forEach(item => {
+        const hiddenBySubTab = item.classList.contains('sub-tab-hidden');
+        const hiddenByFilter = item.classList.contains('filter-hidden');
+        item.style.display = (hiddenBySubTab || hiddenByFilter) ? 'none' : '';
+    });
+    const emptyMsg = document.getElementById('subTabEmptyMessage');
+    if (emptyMsg) {
+        const visibleInvalid = document.querySelectorAll('#invalidRecordsContainer .record-item')
+            .length && Array.from(document.querySelectorAll('#invalidRecordsContainer .record-item'))
+            .filter(i => i.style.display !== 'none').length;
+        emptyMsg.style.display = (document.querySelectorAll('#invalidRecordsContainer .record-item').length > 0 && visibleInvalid === 0) ? 'block' : 'none';
+    }
+}
+
+/* ── Shared: submit a restore form via AJAX, showing a duplicate-conflict
+   popup (with a Force Restore option) if the backend blocks it. ── */
+function submitRestoreWithDuplicateCheck(form, opts) {
+    const _ar = window.CURRENT_LANG === 'ar';
+    const formData = new FormData(form);
+    if (opts && opts.force) formData.set('confirm_duplicate', '1');
+
+    return fetch(form.action, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        body: formData
+    })
+    .then(r => r.json().catch(() => ({})).then(data => ({ status: r.status, data: data })))
+    .then(result => {
+        if (result.data && result.data.success) {
+            window.location.reload();
+            return;
+        }
+        if (result.data && result.data.duplicate_conflict) {
+            const c = result.data.conflict || {};
+            const reasonMap = {
+                same_group: _ar
+                    ? 'يوجد سجل نشط بنفس رقم جواز السفر في هذه المجموعة بالفعل.'
+                    : 'An active record with the same passport number already exists in this group.',
+                cross_group_visit_visa_valid: _ar
+                    ? 'السجل الموجود هو تأشيرة زيارة نشطة لم تنتهِ صلاحيتها بعد.'
+                    : 'The existing record is an active Visit Visa passport whose validity has not expired yet.',
+                cross_group_90day: _ar
+                    ? 'سجل نسك الموجود لا يزال ضمن فترة إعادة الأهلية البالغة 365 يومًا.'
+                    : 'The existing Nusuk record is still within its 365-day re-eligibility window.'
+            };
+            const reason = reasonMap[c.rule] || '';
+            Swal.fire({
+                icon: 'error',
+                title: _ar ? 'تعارض في التكرار' : 'Duplicate Conflict',
+                html: '<div style="text-align:left; font-size:0.85rem;">'
+                    + '<p>' + (_ar
+                        ? 'رقم جواز السفر <strong>' + (c.passport_number || '') + '</strong> نشط بالفعل في المجموعة "' + (c.group_name || '') + '" (سجل #' + (c.existing_passport_id || '') + ').'
+                        : 'Passport number <strong>' + (c.passport_number || '') + '</strong> is already active in group "' + (c.group_name || '') + '" (record #' + (c.existing_passport_id || '') + ').')
+                    + (reason ? '</p><p>' + (_ar ? 'السبب: ' : 'Reason: ') + reason : '')
+                    + '</p></div>',
+                confirmButtonColor: '#7a8fa8',
+                background: '#fff',
+                color: '#0c1a30'
+            });
+            return;
+        }
+        Swal.fire({
+            icon: 'error',
+            title: _ar ? 'تعذر الاستعادة' : 'Could not restore',
+            text: (result.data && result.data.message) || (_ar ? 'حدث خطأ ما.' : 'Something went wrong.'),
+            confirmButtonColor: '#7a8fa8'
+        });
+    })
+    .catch(() => {
+        Swal.fire({
+            icon: 'error',
+            title: _ar ? 'خطأ في الشبكة' : 'Network error',
+            text: _ar ? 'تعذر الاتصال بالخادم.' : 'Could not reach the server.',
+            confirmButtonColor: '#7a8fa8'
+        });
+    });
+}
+
+/* ── Restore on invalid tab ── */
+document.querySelectorAll('.restore-invalid-btn').forEach(btn => {
+    btn.addEventListener('click', function() { submitRestoreWithDuplicateCheck(this.closest('form')); });
+});
+
+/* ── Restore on processed/recycled passports tab ── */
+document.querySelectorAll('.restore-passport-btn').forEach(btn => {
+    btn.addEventListener('click', function() { submitRestoreWithDuplicateCheck(this.closest('form')); });
+});
+
+/* ── Delete single processed passport ── */
+document.querySelectorAll('.delete-single-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const form = this.closest('form');
+        const _ar = window.CURRENT_LANG === 'ar';
+        Swal.fire({
+            title: _ar ? 'حذف نهائي؟' : 'Permanently Delete?',
+            text: _ar ? "لن تتمكن من استعادة جواز السفر هذا!" : "You won't be able to recover this passport!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#be2121',
+            cancelButtonColor: '#7a8fa8',
+            confirmButtonText: _ar ? 'نعم، احذفه نهائياً' : 'Yes, delete forever',
+            cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+            background: '#fff',
+            color: '#0c1a30'
+        })
+        .then(r => { if (r.isConfirmed) form.submit(); });
+    });
+});
+
+/* ── Delete single invalid record ── */
+document.querySelectorAll('.delete-invalid-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const form = this.closest('form');
+        const _ar = window.CURRENT_LANG === 'ar';
+        Swal.fire({
+            title: _ar ? 'حذف نهائي؟' : 'Permanently Delete?',
+            text: _ar ? "لن تتمكن من استعادة هذا السجل!" : "You won't be able to recover this record!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#be2121',
+            cancelButtonColor: '#7a8fa8',
+            confirmButtonText: _ar ? 'نعم، احذفه نهائياً!' : 'Yes, permanently delete it!',
+            cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+            background: '#fff',
+            color: '#0c1a30'
+        })
+        .then(r => { if (r.isConfirmed) form.submit(); });
+    });
+});
+
+/* ── Empty processed bin ── */
+const emptyProcessedBtn = document.getElementById('emptyProcessedBtn');
+if (emptyProcessedBtn) {
+    emptyProcessedBtn.addEventListener('click', function() {
+        const _ar = window.CURRENT_LANG === 'ar';
+        Swal.fire({
+            title: _ar ? 'إفراغ سلة المعالجة؟' : 'Empty Processed Bin?',
+            text: _ar ? "سيؤدي هذا إلى تدمير جميع جوازات السفر المعالجة المحذوفة نهائياً. لا يمكن التراجع عن هذا الإجراء." : "This will permanently destroy all deleted processed passports. This cannot be undone.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#be2121',
+            cancelButtonColor: '#7a8fa8',
+            confirmButtonText: _ar ? 'نعم، إفراغ' : 'Yes, Empty It',
+            cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+            background: '#fff',
+            color: '#0c1a30'
+        })
+        .then(r => { if (r.isConfirmed) document.getElementById('emptyProcessedForm').submit(); });
+    });
+}
+
+/* ── Empty invalid bin ── */
+const emptyInvalidBtn = document.getElementById('emptyInvalidBtn');
+if (emptyInvalidBtn) {
+    emptyInvalidBtn.addEventListener('click', function() {
+        const _ar = window.CURRENT_LANG === 'ar';
+        Swal.fire({
+            title: _ar ? 'إفراغ سلة غير الصالحة؟' : 'Empty Invalid Bin?',
+            text: _ar ? "سيؤدي هذا إلى تدمير جميع السجلات غير الصالحة المحذوفة نهائياً. لا يمكن التراجع عن هذا الإجراء." : "This will permanently destroy all deleted invalid records. This cannot be undone.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#be2121',
+            cancelButtonColor: '#7a8fa8',
+            confirmButtonText: _ar ? 'نعم، إفراغ' : 'Yes, Empty It',
+            cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+            background: '#fff',
+            color: '#0c1a30'
+        })
+        .then(r => { if (r.isConfirmed) document.getElementById('emptyInvalidForm').submit(); });
+    });
+}
+
+/* ── Empty ALL bins ── */
+const emptyAllBtn = document.getElementById('emptyAllBtn');
+if (emptyAllBtn) {
+    emptyAllBtn.addEventListener('click', function() {
+        const _ar = window.CURRENT_LANG === 'ar';
+        Swal.fire({
+            title: _ar ? 'إفراغ جميع السلال؟' : 'Empty ALL Bins?',
+            text: _ar ? "سيؤدي هذا إلى تدمير كل سجل محذوف في كلا السلتين نهائياً. لا يمكن التراجع عن هذا الإجراء." : "This will permanently destroy every deleted record in both bins. This cannot be undone.",
+            icon: 'error',
+            showCancelButton: true,
+            confirmButtonColor: '#be2121',
+            cancelButtonColor: '#7a8fa8',
+            confirmButtonText: _ar ? 'نعم، تدمير كل شيء' : 'Yes, Destroy Everything',
+            cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+            background: '#fff',
+            color: '#0c1a30'
+        })
+        .then(r => { if (r.isConfirmed) document.getElementById('emptyAllForm').submit(); });
+    });
+}
+
+// ── TRANSLATE FLASH MESSAGES ON THE CLIENT-SIDE ─────────────────────
+function translateFlashMessages() {
+    const _ar = window.CURRENT_LANG === 'ar';
+    document.querySelectorAll('.flash-text').forEach(el => {
+        let msg = el.getAttribute('data-orig-msg');
+        if (_ar) {
+            msg = msg.replace(/Passport restored successfully!/gi, 'تم استعادة جواز السفر بنجاح!');
+            msg = msg.replace(/Record restored to invalid queue!/gi, 'تم استعادة السجل إلى قائمة غير الصالحة!');
+            
+            // Fixes for the specific messages requested:
+            msg = msg.replace(/Passport #(\d+) permanently deleted!/gi, 'تم حذف جواز السفر #$1 نهائياً!');
+            msg = msg.replace(/Record permanently deleted!/gi, 'تم حذف السجل نهائياً!');
+            msg = msg.replace(/All bins emptied — every deleted record has been permanently removed./gi, 'تم إفراغ جميع السلال — تمت إزالة كل سجل محذوف بشكل نهائي.');
+            
+            msg = msg.replace(/Passport permanently deleted./gi, 'تم حذف جواز السفر نهائياً.');
+            msg = msg.replace(/Record deleted permanently./gi, 'تم حذف السجل نهائياً.');
+            msg = msg.replace(/Recycle bin emptied! (\d+) processed passports deleted permanently./gi, 'تم إفراغ سلة المهملات! تم حذف $1 جوازات سفر معالجة نهائياً.');
+            msg = msg.replace(/Recycle bin emptied! (\d+) invalid records deleted permanently./gi, 'تم إفراغ سلة المهملات! تم حذف $1 سجلات غير صالحة نهائياً.');
+            msg = msg.replace(/All recycle bins emptied! (\d+) total records deleted permanently./gi, 'تم إفراغ جميع سلال المهملات! تم حذف إجمالي $1 سجلات نهائياً.');
+            
+            el.textContent = window.fmtNum ? window.fmtNum(msg) : msg; 
+        } else {
+            el.textContent = msg;
+        }
+    });
+}
+
+// ── TRANSLATE FILTER PLACEHOLDERS ────────────────────────────────────
+function translateFilterPlaceholders() {
+    const _ar = window.CURRENT_LANG === 'ar';
+    document.querySelectorAll('.filter-bar-search input[data-en-placeholder]').forEach(el => {
+        el.placeholder = _ar ? el.getAttribute('data-ar-placeholder') : el.getAttribute('data-en-placeholder');
+    });
+}
+
+// Hook into the global applyLanguage from _sidebar.html
+const originalApplyLanguage = window.applyLanguage;
+if (originalApplyLanguage) {
+    window.applyLanguage = function(lang) {
+        originalApplyLanguage(lang);
+        translateFlashMessages();
+        translateFilterPlaceholders();
+    };
+}
+
+/* ── Restore tab from URL on load ── */
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.CURRENT_LANG) { translateFlashMessages(); translateFilterPlaceholders(); }
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'invalid') switchMainTab('invalid');
+    // Init invalid sub-tab
+    if (document.querySelectorAll('#invalidRecordsContainer .record-item').length > 0) {
+        switchSubTab('invalid');
+    }
+});
+</script>
+
+</body>
+</html>

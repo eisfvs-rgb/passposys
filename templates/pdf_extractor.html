@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="PDF Extractor - Passport Processing System" data-ar="مستخرج PDF - نظام معالجة جوازات السفر">PDF Extractor - Passport Processing System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Exact base styles from index.html */
+        :root {
+            color-scheme: light;
+            --navy-deep:    #060f1e;
+            --navy-dark:    #0c1a30;
+            --navy-mid:     #112244;
+            --navy-light:   #1a3260;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --cream:        #faf8f4;
+            --white:        #ffffff;
+            --border-light: #e8e4dc;
+            --border-gold:  rgba(201,168,76,0.35);
+            --text-dark:    #0c1a30;
+            --text-mid:     #3d5275;
+            --text-muted:   #7a8fa8;
+            --success:      #0d7a55;
+            --success-bg:   #edfaf5;
+            --warning:      #b45309;
+            --warning-bg:   #fffbeb;
+            --danger:       #be2121;
+            --danger-bg:    #fef2f2;
+            --info-bg:      #eff6ff;
+            --sidebar-w:    260px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ═══════════════════════════════════════
+           SIDEBAR (Matching index.html)
+        ═══════════════════════════════════════ */
+        .sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15);overflow: hidden; }
+        .sidebar-logo { margin: 20px auto; }
+        .sidebar-nav {
+            padding: 20px 0;
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201,168,76,0.2) transparent;
+        }
+        .nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+        .nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+        .nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+        .nav-link-item.active i { color: var(--gold); }
+        .nav-link-item.nav-warning { color: rgba(255,200,80,0.75); }
+        .nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+        .nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+        .nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+        .nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+        .nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+        .sidebar-user {
+            padding: 18px 28px;
+            border-top: 1px solid rgba(201,168,76,0.15);
+            background: inherit;
+            flex-shrink: 0;
+        }
+        .user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+        .user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+        .user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+        .sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: block; }
+        .user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+        .user-menu a:hover { background: rgba(255,80,80,0.1); }
+        
+        /* ═══════════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════════ */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 40px 44px 60px;
+            max-width: calc(100% - var(--sidebar-w));
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .page-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            line-height: 1.2;
+        }
+
+        .page-title span { color: var(--danger); }
+
+        /* ═══════════════════════════════════════
+           CARDS & FORMS
+        ═══════════════════════════════════════ */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 16px rgba(12,26,48,0.06), 0 1px 4px rgba(12,26,48,0.04);
+            position: relative;
+            overflow: hidden;
+            max-width: 800px;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+        }
+        
+        .card.card-danger::before {
+            background: linear-gradient(90deg, var(--danger), #ef4444);
+        }
+
+        .card-watermark {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 7rem;
+            opacity: 0.03;
+            color: var(--navy-deep);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 14px;
+            margin-bottom: 24px !important;
+            margin-top: 0 !important;
+        }
+
+        .section-title .title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .title-icon-red { background: var(--danger-bg); color: var(--danger); }
+
+        .form-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-light);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--text-dark) !important;
+            background-color: var(--cream) !important;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #fca5a5;
+            outline: 0;
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+        }
+
+        .form-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* ═══════════════════════════════════════
+           UPLOAD AREA
+        ═══════════════════════════════════════ */
+        .upload-area {
+            border: 2px dashed #fca5a5;
+            border-radius: 14px;
+            padding: 40px 30px;
+            text-align: center;
+            background: linear-gradient(145deg, #fdfcf7, #f8f4ea);
+            transition: all 0.25s ease;
+            margin-bottom: 24px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(145deg, #fef2f2, #fee2e2);
+            border-color: var(--danger);
+        }
+
+        .upload-area.has-file {
+            background: var(--success-bg);
+            border-color: var(--success);
+            border-style: solid;
+        }
+
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .upload-icon {
+            font-size: 2.5rem;
+            color: var(--danger);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .has-file .upload-icon { color: var(--success); }
+
+        .upload-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 6px;
+        }
+
+        .has-file .upload-title { color: var(--success); }
+
+        /* ═══════════════════════════════════════
+           BUTTONS
+        ═══════════════════════════════════════ */
+        .btn-submit {
+            background: linear-gradient(135deg, var(--danger), #991b1b);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(153, 27, 27, 0.2);
+            transition: all 0.2s;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(153, 27, 27, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .btn-submit:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ═══════════════════════════════════════
+           ALERTS & ANIMATIONS
+        ═══════════════════════════════════════ */
+        .alert {
+            padding: 16px 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            border: 1.5px solid transparent;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-danger { background: var(--danger-bg); border-color: #fecaca; color: #991b1b; }
+        .alert-success { background: var(--success-bg); border-color: #a7f3d0; color: #065f46; }
+        .alert-info { background: var(--info-bg); border-color: #bfdbfe; color: #1e40af; }
+
+        .fade-up {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: fadeUp 0.5s ease forwards;
+        }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            /* sidebar hidden via transform on mobile */
+            .main-content { margin-left: 0; max-width: 100%; padding: 20px 16px 40px; }
+        }
+    
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+
+        /* Sidebar slide transition — desktop & mobile */
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Desktop: collapsed state */
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        /* Nav scroll when content overflows */
+        .sidebar-nav {
+            overflow-y: auto;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201,168,76,0.2) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+
+        /* ── Toggle button ──
+           Desktop: fixed, sits flush on RIGHT edge of sidebar when open,
+                    moves to left:0 when sidebar is collapsed.
+           Mobile:  always top-left corner.
+        ────────────────────────────────────── */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 5px;
+            left: 0;
+            z-index: 500;
+            width: 36px;
+            height: 36px;
+            background: var(--navy-mid);
+            border: 1px solid rgba(201,168,76,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gold);
+            font-size: 1.1rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--navy-light);
+            color: var(--gold-light);
+        }
+        /* When sidebar is OPEN → button hugs its right edge */
+        .sidebar-toggle-btn.sidebar-open {
+            left: 220px;
+            top: 5px;
+            border-radius: 0;
+            border: 1px solid rgba(201,168,76,0.3);
+        }
+        /* ── Dark overlay (mobile only) ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.7);
+            z-index: 300;
+            backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* Main content slides with sidebar on desktop */
+        .main-content {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.sidebar-collapsed {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* User menu: click-only (hover disabled) */
+        .sidebar-user:hover .user-menu,
+        .sidebar-user:focus-within .user-menu { display: none; }
+        .user-menu.open { display: block !important; }
+
+        /* ══════════════════════════════════════
+           MOBILE  ≤ 768px
+        ══════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Sidebar is a full-height drawer — always in DOM, off-screen by default */
+            .sidebar {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 0; left: 0;
+                width: 260px;
+                height: 100vh;
+                min-height: 100vh;
+                transform: translateX(-260px);
+                z-index: 400;
+                overflow: hidden;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+                box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+            }
+            /* Desktop collapsed class must not interfere */
+            .sidebar.collapsed { transform: translateX(-260px); }
+
+            /* Nav area fills available space and scrolls if needed */
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                max-height: none;
+            }
+
+            /* Main content: full width, no margin */
+            .main-content,
+            .main-content.sidebar-collapsed {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding-top: 56px !important;
+            }
+
+            /* Toggle btn: always top-left, small, rounded */
+            .sidebar-toggle-btn,
+            .sidebar-toggle-btn.sidebar-open {
+                left: 10px !important;
+                top: 10px !important;
+                width: 34px;
+                height: 34px;
+                border-radius: 8px !important;
+                border: 1px solid rgba(201,168,76,0.35) !important;
+                border-left: 1px solid rgba(201,168,76,0.35) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+
+        </style>
+</head>
+<body>
+
+    <div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+<main class="main-content">
+
+        <div class="page-header fade-up">
+            <div class="page-header-text">
+                <div class="page-eyebrow" data-en="Operations Center" data-ar="مركز العمليات">Operations Center</div>
+                <h1 class="page-title">
+                    <span data-en="PDF" data-ar="مستخرج" style="color:var(--navy-dark);">PDF</span>
+                    <span data-en="Extractor" data-ar="PDF">Extractor</span>
+                </h1>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(category_filter=['error', 'success', 'danger', 'info']) %}
+            {% if messages %}
+                <div class="fade-up">
+                    {% for message in messages %}
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div class="flash-text" data-orig-msg="{{ message }}">{{ message }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close" style="position: static;"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="card card-danger fade-up">
+            <span class="card-watermark"><i class="bi bi-file-earmark-pdf"></i></span>
+            
+            <h2 class="section-title">
+                <span class="title-icon title-icon-red"><i class="bi bi-scissors"></i></span>
+                <span data-en="Extract Passports from PDF" data-ar="استخراج جوازات السفر من ملف PDF">Extract Passports from PDF</span>
+            </h2>
+            <p class="text-muted" style="font-size: 0.9rem; margin-top: -10px; margin-bottom: 24px;" data-en="Upload a multi-page PDF document and specify which pages contain passports. The system will automatically extract and crop the images for you to download." data-ar="قم برفع مستند PDF متعدد الصفحات وحدد الصفحات التي تحتوي على جوازات السفر. سيقوم النظام تلقائياً باستخراج وقص الصور لتتمكن من تنزيلها.">
+                Upload a multi-page PDF document and specify which pages contain passports. The system will automatically extract and crop the images for you to download.
+            </p>
+
+            <form method="POST" action="{{ url_for('pdf_upload') }}" enctype="multipart/form-data" id="pdfForm">
+                
+                <div class="mb-4">
+                    <label for="page_range" class="form-label" data-en="Page Range Format" data-ar="تنسيق نطاق الصفحات">Page Range Format</label>
+                    <input type="text" id="page_range" name="page_range" data-placeholder-en="1-3,5,7-9" data-placeholder-ar="١-٣،٥،٧-٩" placeholder="1-3,5,7-9" value="1" required autocomplete="off">
+                    <div class="form-text mt-2">
+                        <i class="bi bi-info-circle me-1"></i> <span data-en="Use commas for specific pages and hyphens for ranges. Example:" data-ar="استخدم الفواصل للصفحات المحددة والشرطات للنطاقات. مثال:">Use commas for specific pages and hyphens for ranges. Example:</span> <code dir="ltr">1-5, 8, 11-13</code>
+                    </div>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" required onchange="updateFileName(this)">
+                    <i class="bi bi-filetype-pdf upload-icon" id="uploadIcon"></i>
+                    <div class="upload-title" id="uploadTitle" data-en="Click or Drag PDF to Upload" data-ar="انقر أو اسحب ملف PDF للرفع">Click or Drag PDF to Upload</div>
+                    <div class="text-muted mt-1" id="fileNameDisplay" style="font-size: 0.85rem;" data-en="Supports standard PDF files" data-ar="يدعم ملفات PDF القياسية">Supports standard PDF files</div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="bi bi-magic"></i> <span data-en="Extract &amp; Crop Passports" data-ar="استخراج وقص جوازات السفر" id="submitBtnText">Extract &amp; Crop Passports</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Image Upload Area -->
+<div class="card card-danger fade-up mt-4">
+    <span class="card-watermark"><i class="bi bi-images"></i></span>
+    
+    <h2 class="section-title">
+        <span class="title-icon title-icon-red"><i class="bi bi-person-bounding-box"></i></span>
+        <span data-en="Bulk Crop Passport Images" data-ar="قص صور جوازات السفر دفعة واحدة">Bulk Crop Passport Images</span>
+    </h2>
+    <p class="text-muted" style="font-size: 0.9rem; margin-top: -10px; margin-bottom: 24px;" data-en="Upload single or multiple images. The system will crop the faces and return a ZIP file. Failed crops will be skipped." data-ar="قم برفع صورة أو عدة صور. سيتم قصها وإرجاعها في ملف ZIP. سيتم تخطي الصور الفاشلة.">
+        Upload single or multiple images. The system will crop the faces and return a ZIP file. Failed crops will be skipped.
+    </p>
+
+    <form method="POST" action="{{ url_for('image_upload') }}" enctype="multipart/form-data" id="imageForm">
+        <div class="upload-area" id="imgUploadArea">
+            <input type="file" name="image_files" id="image_files" accept="image/*" multiple required onchange="updateImgFileName(this)">
+            <i class="bi bi-images upload-icon" id="imgUploadIcon"></i>
+            <div class="upload-title" id="imgUploadTitle" data-en="Click or Drag Images to Upload" data-ar="انقر أو اسحب الصور للرفع">Click or Drag Images to Upload</div>
+            <div class="text-muted mt-1" id="imgFileNameDisplay" style="font-size: 0.85rem;" data-en="Supports JPG, PNG (Bulk allowed)" data-ar="يدعم رفع صور متعددة (JPG, PNG)">Supports JPG, PNG (Bulk allowed)</div>
+        </div>
+
+        <!-- Dynamic Error Container for Skipped Files -->
+        <div id="imageErrors" class="alert alert-warning d-none" style="margin-bottom: 22px;"></div>
+
+        <button type="submit" class="btn-submit" id="imgSubmitBtn">
+            <i class="bi bi-crop"></i> <span data-en="Crop Images" data-ar="قص الصور" id="imgSubmitBtnText">Crop Images</span>
+        </button>
+    </form>
+</div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // --- Handle File Upload UI Changes ---
+        function updateFileName(input) {
+            const uploadArea = document.getElementById('uploadArea');
+            const uploadIcon = document.getElementById('uploadIcon');
+            const uploadTitle = document.getElementById('uploadTitle');
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            const _ar = window.CURRENT_LANG === 'ar';
+            
+            if (input.files && input.files[0]) {
+                const fileName = input.files[0].name;
+                
+                // Change styles to indicate success
+                uploadArea.classList.add('has-file');
+                uploadIcon.className = 'bi bi-check-circle-fill upload-icon';
+                
+                // Set text directly, overriding data-en/ar to handle dynamic state
+                uploadTitle.textContent = _ar ? 'تم تحديد ملف PDF بنجاح!' : 'PDF Selected Successfully!';
+                uploadTitle.removeAttribute('data-en');
+                uploadTitle.removeAttribute('data-ar');
+                
+                // Display filename with a strong tag
+                fileNameDisplay.innerHTML = `<strong>${_ar ? 'تم التحديد:' : 'Selected:'}</strong> ${fileName}`;
+                fileNameDisplay.removeAttribute('data-en');
+                fileNameDisplay.removeAttribute('data-ar');
+            } else {
+                // Revert to default state
+                uploadArea.classList.remove('has-file');
+                uploadIcon.className = 'bi bi-filetype-pdf upload-icon';
+                
+                // Restore data-en/ar attributes and call global translation func if exists
+                uploadTitle.setAttribute('data-en', 'Click or Drag PDF to Upload');
+                uploadTitle.setAttribute('data-ar', 'انقر أو اسحب ملف PDF للرفع');
+                fileNameDisplay.setAttribute('data-en', 'Supports standard PDF files');
+                fileNameDisplay.setAttribute('data-ar', 'يدعم ملفات PDF القياسية');
+                
+                if (window.translateStaticStrings) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+            }
+        }
+
+        // --- Handle Form Submission Loading State & File Download ---
+        document.getElementById('pdfForm').addEventListener('submit', async function(e) {
+            // 1. Prevent the standard form submission
+            e.preventDefault(); 
+            
+            const form = this;
+            const btn = document.getElementById('submitBtn');
+            const btnTextSpan = document.getElementById('submitBtnText');
+            const _ar = window.CURRENT_LANG === 'ar';
+            
+            // Save original HTML structure of the button text span
+            const originalHTML = btnTextSpan.outerHTML;
+
+            // 2. Set button to loading state
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> <span id="submitBtnText">${_ar ? 'جاري معالجة PDF...' : 'Processing PDF...'}</span>`;
+
+            try {
+                // 3. Send the form data via Fetch API
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: new FormData(form)
+                });
+
+                // 4. Check if the backend returned a ZIP file
+                const contentType = response.headers.get('Content-Type');
+                
+                if (contentType && contentType.includes('application/zip')) {
+                    // Success! Convert response to a blob and force download
+                    const blob = await response.blob();
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    
+                    // Try to get exact filename from backend, default if missing
+                    let filename = "cropped_passports.zip";
+                    const disposition = response.headers.get('Content-Disposition');
+                    if (disposition && disposition.indexOf('filename=') !== -1) {
+                        const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                        if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+                    }
+                    
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(downloadUrl);
+                } else {
+                    // If not a ZIP, the backend likely returned an error page with flash messages
+                    // We replace the current page content to display the errors natively
+                    const html = await response.text();
+                    document.open();
+                    document.write(html);
+                    document.close();
+                }
+            } catch (error) {
+                console.error('Extraction Error:', error);
+                alert(_ar ? 'حدث خطأ أثناء الاتصال بالخادم.' : 'An error occurred while connecting to the server.');
+            } finally {
+                // 5. Instantly reset the button once the download triggers
+                btn.disabled = false;
+                btn.innerHTML = `<i class="bi bi-magic"></i> ${originalHTML}`;
+                // Re-apply language immediately to fix the inner span if it got messed up
+                if (window.translateStaticStrings) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+            }
+        });
+
+        // --- Drag and Drop ---
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput  = document.getElementById('pdf_file');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadArea.style.backgroundColor = '#fee2e2';
+            uploadArea.style.borderColor = 'var(--danger)';
+        }
+
+        function unhighlight(e) {
+            if (!uploadArea.classList.contains('has-file')) {
+                uploadArea.style.background = 'linear-gradient(145deg, #fdfcf7, #f8f4ea)';
+                uploadArea.style.borderColor = '#fca5a5';
+            }
+        }
+
+        uploadArea.addEventListener('drop', function(e) {
+            const dt    = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                // Only accept PDF files
+                if (files[0].type === 'application/pdf' || files[0].name.toLowerCase().endsWith('.pdf')) {
+                    // Assign dropped file to the input via DataTransfer
+                    const dTransfer = new DataTransfer();
+                    dTransfer.items.add(files[0]);
+                    fileInput.files = dTransfer.files;
+                    updateFileName(fileInput);
+                } else {
+                    const _ar = window.CURRENT_LANG === 'ar';
+                    alert(_ar ? 'يرجى إسقاط ملف PDF.' : 'Please drop a PDF file.');
+                }
+            }
+        }, false);
+        
+        // ── TRANSLATE FLASH MESSAGES ON THE CLIENT-SIDE ─────────────────────
+        function translateFlashMessages() {
+            const _ar = window.CURRENT_LANG === 'ar';
+            document.querySelectorAll('.flash-text').forEach(el => {
+                let msg = el.getAttribute('data-orig-msg');
+                if (_ar) {
+                    // Example regex replacements for potential PDF extractor flash messages
+                    msg = msg.replace(/Invalid page range format/gi, 'تنسيق نطاق الصفحات غير صالح');
+                    msg = msg.replace(/No PDF file uploaded/gi, 'لم يتم رفع ملف PDF');
+                    msg = msg.replace(/Error processing PDF/gi, 'خطأ في معالجة ملف PDF');
+                    
+                    el.textContent = window.fmtNum ? window.fmtNum(msg) : msg; 
+                } else {
+                    el.textContent = msg;
+                }
+            });
+        }
+
+        // Hook into the global applyLanguage from _sidebar.html
+        const originalApplyLanguage = window.applyLanguage;
+        if (originalApplyLanguage) {
+            window.applyLanguage = function(lang) {
+                originalApplyLanguage(lang);
+                translateFlashMessages();
+                
+                // Re-trigger updateFileName to translate dynamic state if a file is already selected
+                const fileInput = document.getElementById('pdf_file');
+                if (fileInput.files.length > 0) {
+                     updateFileName(fileInput);
+                }
+            };
+        }
+
+        // Run once on load
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.CURRENT_LANG) translateFlashMessages();
+        });
+
+
+
+        // --- Handle Image Upload UI Changes ---
+function updateImgFileName(input) {
+    const uploadArea = document.getElementById('imgUploadArea');
+    const uploadIcon = document.getElementById('imgUploadIcon');
+    const uploadTitle = document.getElementById('imgUploadTitle');
+    const fileNameDisplay = document.getElementById('imgFileNameDisplay');
+    const _ar = window.CURRENT_LANG === 'ar';
+    
+    if (input.files && input.files.length > 0) {
+        uploadArea.classList.add('has-file');
+        uploadIcon.className = 'bi bi-check-circle-fill upload-icon';
+        uploadTitle.textContent = _ar ? `تم تحديد ${input.files.length} صورة بنجاح!` : `${input.files.length} Image(s) Selected!`;
+        
+        const firstFileName = input.files[0].name;
+        const moreText = input.files.length > 1 ? ` (+${input.files.length - 1} ${_ar ? 'أخرى' : 'more'})` : '';
+        fileNameDisplay.innerHTML = `<strong>${_ar ? 'تم التحديد:' : 'Selected:'}</strong> ${firstFileName}${moreText}`;
+        
+        uploadTitle.removeAttribute('data-en'); uploadTitle.removeAttribute('data-ar');
+        fileNameDisplay.removeAttribute('data-en'); fileNameDisplay.removeAttribute('data-ar');
+    } else {
+        uploadArea.classList.remove('has-file');
+        uploadIcon.className = 'bi bi-images upload-icon';
+        uploadTitle.setAttribute('data-en', 'Click or Drag Images to Upload');
+        uploadTitle.setAttribute('data-ar', 'انقر أو اسحب الصور للرفع');
+        fileNameDisplay.setAttribute('data-en', 'Supports JPG, PNG (Bulk allowed)');
+        fileNameDisplay.setAttribute('data-ar', 'يدعم رفع صور متعددة (JPG, PNG)');
+        if (window.translateStaticStrings) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+    }
+}
+
+// --- Handle Image Form Submission & Skipped Files ---
+document.getElementById('imageForm').addEventListener('submit', async function(e) {
+    e.preventDefault(); 
+    
+    const form = this;
+    const btn = document.getElementById('imgSubmitBtn');
+    const btnTextSpan = document.getElementById('imgSubmitBtnText');
+    const errorContainer = document.getElementById('imageErrors');
+    const _ar = window.CURRENT_LANG === 'ar';
+    const originalHTML = btnTextSpan.outerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2"></span> <span id="imgSubmitBtnText">${_ar ? 'جاري معالجة الصور...' : 'Processing Images...'}</span>`;
+    
+    // Reset errors
+    errorContainer.classList.add('d-none');
+    errorContainer.innerHTML = '';
+
+    try {
+        const response = await fetch(form.action, {
+            method: form.method,
+            body: new FormData(form)
+        });
+
+        // Check for skipped files header
+        const failedHeader = response.headers.get('X-Failed-Files');
+        if (failedHeader) {
+            const failedFiles = JSON.parse(failedHeader);
+            if (failedFiles.length > 0) {
+                errorContainer.classList.remove('d-none');
+                errorContainer.innerHTML = `<strong><i class="bi bi-exclamation-triangle-fill"></i> ${_ar ? 'تم تخطي الملفات التالية (فشل القص):' : 'Skipped files (Crop failed):'}</strong><br>` + 
+                                           failedFiles.map(f => `• ${f}`).join('<br>');
+            }
+        }
+
+        const contentType = response.headers.get('Content-Type');
+        if (contentType && contentType.includes('application/zip')) {
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = downloadUrl;
+            
+            let filename = "cropped_images.zip";
+            const disposition = response.headers.get('Content-Disposition');
+            if (disposition && disposition.indexOf('filename=') !== -1) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                if (matches != null && matches[1]) filename = matches[1].replace(/['"]/g, '');
+            }
+            
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(downloadUrl);
+        } else {
+            const html = await response.text();
+            document.open();
+            document.write(html);
+            document.close();
+        }
+    } catch (error) {
+        console.error('Image Extraction Error:', error);
+        alert(_ar ? 'حدث خطأ أثناء الاتصال.' : 'An connection error occurred.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="bi bi-crop"></i> ${originalHTML}`;
+        if (window.translateStaticStrings) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+    }
+});
+
+// --- Image Drag and Drop Hook ---
+const imgUploadArea = document.getElementById('imgUploadArea');
+const imgFileInput  = document.getElementById('image_files');
+
+['dragenter', 'dragover'].forEach(eventName => {
+    imgUploadArea.addEventListener(eventName, () => {
+        imgUploadArea.style.backgroundColor = '#fee2e2';
+        imgUploadArea.style.borderColor = 'var(--danger)';
+    }, false);
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    imgUploadArea.addEventListener(eventName, () => {
+        if (!imgUploadArea.classList.contains('has-file')) {
+            imgUploadArea.style.background = 'linear-gradient(145deg, #fdfcf7, #f8f4ea)';
+            imgUploadArea.style.borderColor = '#fca5a5';
+        }
+    }, false);
+});
+
+imgUploadArea.addEventListener('drop', function(e) {
+    const dt = e.dataTransfer;
+    if (dt.files.length > 0) {
+        const dTransfer = new DataTransfer();
+        // Check types to ensure only images go through
+        Array.from(dt.files).forEach(file => {
+            if (file.type.startsWith('image/')) dTransfer.items.add(file);
+        });
+        
+        if (dTransfer.files.length > 0) {
+            imgFileInput.files = dTransfer.files;
+            updateImgFileName(imgFileInput);
+        }
+    }
+}, false);
+    </script>
+
+</body>
+</html>

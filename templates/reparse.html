@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="Reparse Document — Passport Manager" data-ar="إعادة تحليل المستند — مدير جوازات السفر">Reparse Document — Passport Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        :root {
+            --navy-deep:    #060f1e;
+            --navy-dark:    #0c1a30;
+            --navy-mid:     #112244;
+            --navy-light:   #1a3260;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --cream:        #faf8f4;
+            --white:        #ffffff;
+            --border-light: #e8e4dc;
+            --text-dark:    #0c1a30;
+            --text-mid:     #3d5275;
+            --text-muted:   #7a8fa8;
+            --danger:       #be2121;
+            --danger-bg:    #fef2f2;
+            --warning:      #b45309;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--navy-deep);
+            color: var(--text-dark);
+        }
+
+        /* ══════════════════ POPUP SHELL ══════════════════ */
+        .popup-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+
+        /* ══════════════════ POPUP HEADER ══════════════════ */
+        .popup-header {
+            background: var(--navy-deep);
+            background-image: radial-gradient(ellipse at 0% 50%, rgba(201,168,76,0.08) 0%, transparent 60%);
+            border-bottom: 1px solid rgba(201,168,76,0.2);
+            padding: 16px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .header-logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+            box-shadow: 0 3px 10px rgba(201,168,76,0.3);
+            flex-shrink: 0;
+        }
+
+        .header-text {}
+
+        .header-eyebrow {
+            font-size: 0.62rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: var(--gold); margin-bottom: 2px;
+        }
+
+        .header-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.05rem; font-weight: 700;
+            color: var(--white); line-height: 1.2;
+        }
+
+        .header-filename {
+            font-size: 0.75rem; color: rgba(255,255,255,0.4);
+            margin-top: 1px;
+        }
+
+        /* ══════════════════ POPUP BODY ══════════════════ */
+        .popup-body {
+            flex: 1;
+            overflow: hidden;
+            background: var(--cream);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .popup-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ══════════════════ LEFT PANEL ══════════════════ */
+        .left-panel {
+            overflow-y: auto;
+            padding: 28px 24px 20px 28px;
+            border-right: 1px solid var(--border-light);
+            background: var(--white);
+        }
+
+        .left-panel::-webkit-scrollbar { width: 5px; }
+        .left-panel::-webkit-scrollbar-track { background: var(--cream); border-radius: 4px; }
+        .left-panel::-webkit-scrollbar-thumb { background: #c8c0b0; border-radius: 4px; }
+        .left-panel::-webkit-scrollbar-thumb:hover { background: #a89c88; }
+
+        /* ══════════════════ RIGHT PANEL ══════════════════ */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 28px 28px 20px 24px;
+            background: var(--navy-dark);
+            background-image: radial-gradient(ellipse at 100% 0%, rgba(201,168,76,0.06) 0%, transparent 50%);
+        }
+
+        .image-panel-label {
+            font-size: 0.65rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 2px;
+            color: rgba(255,255,255,0.3);
+            margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .image-panel-label i { font-size: 0.85rem; color: var(--gold); }
+
+        .image-preview-box {
+            flex: 1;
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            min-height: 0;
+            background: rgba(6,15,30,0.5);
+        }
+
+        .image-preview-box img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            object-fit: contain;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+
+        .no-image-placeholder {
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 10px; color: rgba(255,255,255,0.25);
+        }
+
+        .no-image-placeholder i { font-size: 3rem; }
+        .no-image-placeholder span { font-size: 0.85rem; font-weight: 600; }
+
+        /* ══════════════════ SECTION TITLES ══════════════════ */
+        .panel-section-title {
+            font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 6px;
+        }
+
+        .panel-section-title i { color: var(--gold); }
+
+        /* ══════════════════ ERROR BOX ══════════════════ */
+        .error-panel {
+            background: var(--danger-bg);
+            border: 1.5px solid #fecaca;
+            border-left: 4px solid var(--danger);
+            border-radius: 10px;
+            padding: 14px 18px;
+            margin-bottom: 22px;
+        }
+
+        .error-panel-title {
+            font-size: 0.85rem; font-weight: 700;
+            color: #991b1b;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .error-list {
+            color: #991b1b;
+            margin: 0;
+            padding-left: 18px;
+            font-size: 0.82rem;
+        }
+
+        .error-list li { margin-bottom: 3px; }
+
+        /* ══════════════════ MRZ TEXTAREA ══════════════════ */
+        .mrz-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 0.75rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .mrz-label i { color: var(--gold); }
+
+        textarea.mrz-textarea {
+            width: 100%;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 2.5px;
+            resize: none;
+            overflow-x: hidden;
+            background: var(--navy-deep) !important;
+            color: #a8d8a8 !important;
+            border: 1.5px solid rgba(201,168,76,0.3);
+            border-radius: 10px;
+            text-transform: uppercase;
+            padding: 14px 16px;
+            height: 100px;
+            line-height: 1.8;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        textarea.mrz-textarea:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201,168,76,0.12);
+            outline: none;
+        }
+
+        /* ══════════════════ FOOTER ══════════════════ */
+        .popup-footer {
+            background: var(--navy-deep);
+            border-top: 1px solid rgba(201,168,76,0.15);
+            padding: 14px 28px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        /* ══════════════════ BUTTONS ══════════════════ */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 10px 22px; font-size: 0.88rem; font-weight: 600;
+            border-radius: 8px; border: 1.5px solid transparent; cursor: pointer;
+            transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy-deep); border-color: transparent;
+            box-shadow: 0 4px 14px rgba(201,168,76,0.3);
+            font-weight: 700;
+        }
+        .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.05); color: var(--navy-deep); }
+        .btn-primary i { color: var(--navy-deep) !important; }
+        .btn-primary span { color: var(--navy-deep) !important; }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            filter: none;
+        }
+        .btn-primary:disabled:hover { transform: none; filter: none; }
+
+        .btn-amber {
+            background: rgba(201,168,76,0.15);
+            color: var(--gold-light);
+            border-color: rgba(201,168,76,0.3);
+        }
+        .btn-amber:hover {
+            background: var(--gold);
+            color: var(--navy-deep);
+            border-color: var(--gold);
+            transform: translateY(-1px);
+        }
+        .btn-amber:hover i { color: var(--navy-deep); }
+
+        .btn-ghost {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.5);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); }
+    
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+
+        /* Sidebar slide transition — desktop & mobile */
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Desktop: collapsed state */
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        /* Nav scroll when content overflows */
+        .sidebar-nav {
+            overflow-y: auto;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201,168,76,0.2) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+
+        /* ── Toggle button ──
+           Desktop: fixed, sits flush on RIGHT edge of sidebar when open,
+                    moves to left:0 when sidebar is collapsed.
+           Mobile:  always top-left corner.
+        ────────────────────────────────────── */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 14px;
+            left: 0;
+            z-index: 500;
+            width: 36px;
+            height: 36px;
+            background: var(--navy-mid);
+            border: 1px solid rgba(201,168,76,0.3);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gold);
+            font-size: 1.1rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--navy-light);
+            color: var(--gold-light);
+        }
+        /* When sidebar is OPEN → button hugs its right edge */
+        .sidebar-toggle-btn.sidebar-open {
+            left: 260px;
+        }
+
+        /* ── Dark overlay (mobile only) ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.7);
+            z-index: 300;
+            backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* Main content slides with sidebar on desktop */
+        .main-content {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.sidebar-collapsed {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* User menu: click-only (hover disabled) */
+        .sidebar-user:hover .user-menu,
+        .sidebar-user:focus-within .user-menu { display: none; }
+        .user-menu.open { display: block !important; }
+
+        /* ══════════════════════════════════════
+           MOBILE  ≤ 768px
+        ══════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Sidebar is a full-height drawer — always in DOM, off-screen by default */
+            .sidebar {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 0; left: 0;
+                width: 260px;
+                height: 100vh;
+                min-height: 100vh;
+                transform: translateX(-260px);
+                z-index: 400;
+                overflow: hidden;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+                box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+            }
+            /* Desktop collapsed class must not interfere */
+            .sidebar.collapsed { transform: translateX(-260px); }
+
+            /* Nav area fills available space and scrolls if needed */
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                max-height: none;
+            }
+
+            /* Main content: full width, no margin */
+            .main-content,
+            .main-content.sidebar-collapsed {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding-top: 56px !important;
+            }
+
+            /* Toggle btn: always top-left, small, rounded */
+            .sidebar-toggle-btn,
+            .sidebar-toggle-btn.sidebar-open {
+                left: 10px !important;
+                top: 10px !important;
+                width: 34px;
+                height: 34px;
+                border-radius: 8px !important;
+                border: 1px solid rgba(201,168,76,0.35) !important;
+                border-left: 1px solid rgba(201,168,76,0.35) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+/* ── Scan overlay on passport image during Re-Scan ── */
+#scan-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 5;
+    background: rgba(6,15,30,0.35);
+}
+#scan-overlay.active { display: block; }
+
+/* Moving gold scan line */
+#scan-overlay::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #c9a84c;
+    box-shadow: 0 0 14px rgba(201,168,76,0.95), 0 0 5px #fff;
+    animation: reScanLine 2s ease-in-out infinite alternate;
+}
+@keyframes reScanLine {
+    from { top: 0; }
+    to   { top: calc(100% - 3px); }
+}
+
+/* "Scanning…" label centred on the overlay */
+#scan-overlay-label {
+    position: absolute;
+    bottom: 14px;
+    left: 0; right: 0;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #c9a84c;
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+}
+
+/* ── Full-page OCR processing overlay ── */
+#ocr-processing-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(6,15,30,0.82);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+#ocr-processing-overlay.active { display: flex; }
+
+.ocr-spinner-ring {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(201,168,76,0.15);
+    border-top-color: #c9a84c;
+    border-radius: 50%;
+    animation: ocrSpin 0.85s linear infinite;
+}
+@keyframes ocrSpin { to { transform: rotate(360deg); } }
+
+.ocr-spinner-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.3px;
+}
+.ocr-spinner-sub {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.3px;
+}
+        </style>
+</head>
+<body>
+
+    <!-- Full-page overlay — shown on popup load (auto-submit) and during OCR/saving -->
+    <div id="ocr-processing-overlay" class="active">
+        <div class="ocr-spinner-ring"></div>
+        <div class="ocr-spinner-title" id="ocr-overlay-title" data-en="Loading…" data-ar="جاري التحميل...">Loading…</div>
+        <div class="ocr-spinner-sub"   id="ocr-overlay-sub" data-en="Preparing document — please wait…" data-ar="جاري تحضير المستند — يرجى الانتظار...">Preparing document — please wait…</div>
+    </div>
+
+    <div class="popup-shell">
+
+        <div class="popup-header">
+            <div class="header-brand">
+                <div class="header-logo">🛂</div>
+                <div class="header-text">
+                    <div class="header-eyebrow" data-en="Manual Reparse" data-ar="إعادة التحليل يدوياً">Manual Reparse</div>
+                    <div class="header-title" data-en="Reparse Document" data-ar="إعادة تحليل المستند">Reparse Document</div>
+                    <div class="header-filename">{{ invalid_passport.filename }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="popup-body">
+            <div class="popup-row">
+
+                <div class="left-panel">
+
+                    {% if errors %}
+                    <div class="error-panel">
+                        <div class="error-panel-title">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <span data-en="Validation Errors" data-ar="أخطاء التحقق">Validation Errors</span>
+                        </div>
+                        <ul class="error-list">
+                            {% for error in errors %}
+                                {% set display_error = error %}
+                                {% set lower_error = display_error | lower %}
+                                {% set display_error_ar = display_error %}
+                                
+                                {% if 'provB' in lower_error or 'grpc' in lower_error or '503' in lower_error or 'vision' in lower_error or 'api' in lower_error %}
+                                    {% set display_error = "Can't extract due to server error" %}
+                                    {% set display_error_ar = "تعذر الاستخراج بسبب خطأ في الخادم" %}
+                                {% elif 'MRZ not detected after ProvA batch' in display_error %}
+                                    {% set display_error_ar = "لم يتم اكتشاف MRZ بعد مسح دفعات ProvA ومسح ProvB Vision" %}
+                                {% elif 'MRZ not detected' in display_error %}
+                                    {% set display_error_ar = "لم يتم اكتشاف MRZ" %}
+                                {% elif 'Duplicate passport number' in display_error %}
+                                    {% set display_error_ar = display_error.replace('Duplicate passport number', 'رقم جواز سفر مكرر') %}
+                                {% elif 'Processing error' in display_error %}
+                                    {% set display_error_ar = display_error.replace('Processing error', 'خطأ في المعالجة') %}
+                                {% elif 'Unhandled processing failure' in display_error %}
+                                    {% set display_error_ar = "فشل غير معالج في المعالجة (شبكة الأمان)" %}
+                                {% elif 'Image fell through processing pipeline' in display_error %}
+                                    {% set display_error_ar = "سقطت الصورة من مسار المعالجة (شبكة الأمان)" %}
+                                {% elif display_error == "MRZ must contain exactly 2 lines" %}
+                                    {% set display_error_ar = "يجب أن يحتوي MRZ على 2 أسطر بالضبط" %}
+                                {% elif display_error == "Line 1 must start with 'P' (Passport document type)" %}
+                                    {% set display_error_ar = "يجب أن يبدأ السطر 1 بحرف 'P' (نوع مستند جواز السفر)" %}
+                                {% elif display_error == "Name field contains no readable characters" %}
+                                    {% set display_error_ar = "حقل الاسم لا يحتوي على أحرف مقروءة" %}
+                                {% elif display_error == "Invalid name format: More than 2 consecutive separators (<<<) detected" %}
+                                    {% set display_error_ar = "تنسيق الاسم غير صالح: تم اكتشاف أكثر من 2 فواصل متتالية (<<<)" %}
+                                {% elif display_error == "Name field must contain '<<' between surname and given names" %}
+                                    {% set display_error_ar = "يجب أن يحتوي حقل الاسم على '<<' بين اسم العائلة والأسماء الأولى" %}
+                                {% elif display_error == "Invalid MRZ: Surname contains digits — likely an OCR misread." %}
+                                    {% set display_error_ar = "MRZ غير صالح: اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                                {% elif display_error == "Invalid MRZ: Given names contain digits — likely an OCR misread." %}
+                                    {% set display_error_ar = "MRZ غير صالح: الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                                {% elif display_error == "Surname contains internal filler (<) — likely a misread letter." %}
+                                    {% set display_error_ar = "اسم العائلة يحتوي على حرف تعبئة داخلي (<) — يُرجح أنه حرف مقروء بشكل خاطئ." %}
+                                {% elif display_error.startswith("Surname field is empty.") %}
+                                    {% set display_error_ar = "حقل اسم العائلة فارغ. إذا كان هذا جواز سفر هندي، استخدم validate_and_parse_mrz_ind()." %}
+                                {% elif display_error == "Passport number check digit failed" %}
+                                    {% set display_error_ar = "فشل رقم التحقق لجواز السفر" %}
+                                {% elif display_error == "Date of birth check digit failed" %}
+                                    {% set display_error_ar = "فشل رقم التحقق لتاريخ الميلاد" %}
+                                {% elif display_error == "Expiry date check digit failed" %}
+                                    {% set display_error_ar = "فشل رقم التحقق لتاريخ الانتهاء" %}
+                                {% elif display_error == "Name field is entirely empty." %}
+                                    {% set display_error_ar = "حقل الاسم فارغ تماماً." %}
+                                {% elif display_error == "Name field must contain '<<' as the surname/given-name separator." %}
+                                    {% set display_error_ar = "يجب أن يحتوي حقل الاسم على '<<' كفاصل بين اسم العائلة والأسماء الأولى." %}
+                                {% elif display_error == "Surname contains digits — likely an OCR misread." %}
+                                    {% set display_error_ar = "اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                                {% elif display_error.startswith("Surname contains more than one internal separator") %}
+                                    {% set display_error_ar = "اسم العائلة يحتوي على أكثر من فاصل داخلي واحد (<). يُسمح فقط بأسماء العائلة المركبة من كلمتين." %}
+                                {% elif display_error == "Given-name section is empty — at least one name token is required." %}
+                                    {% set display_error_ar = "قسم الأسماء الأولى فارغ — مطلوب جزء واحد على الأقل من الاسم." %}
+                                {% elif display_error.startswith("Unexpected '<<' inside the given-name section") %}
+                                    {% set display_error_ar = "وجود '<<' غير متوقع داخل قسم الأسماء الأولى. تحقق من أخطاء OCR." %}
+                                {% elif display_error == "Given names contain digits — likely an OCR misread." %}
+                                    {% set display_error_ar = "الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+                                {% elif display_error == "Both surname and given-name sections are empty." %}
+                                    {% set display_error_ar = "كل من قسمي اسم العائلة والأسماء الأولى فارغان." %}
+                                {% elif display_error == "MRZ must contain at least 2 lines" %}
+                                    {% set display_error_ar = "يجب أن يحتوي MRZ على 2 أسطر على الأقل" %}
+                                {% elif display_error == "No parsed data available." %}
+                                    {% set display_error_ar = "لا تتوفر بيانات تم تحليلها." %}
+                                {% elif display_error == "Cannot validate issue date: Missing or invalid expiry date." %}
+                                    {% set display_error_ar = "لا يمكن التحقق من تاريخ الإصدار: تاريخ الانتهاء مفقود أو غير صالح." %}
+                                {% elif display_error.startswith("Each MRZ line must be exactly 44 characters") %}
+                                    {% set display_error_ar = display_error | replace("Each MRZ line must be exactly 44 characters (Line 1: ", "يجب أن يكون كل سطر في MRZ 44 حرفاً بالضبط (السطر 1: ") | replace(", Line 2: ", "، السطر 2: ") %}
+                                {% elif display_error.startswith("Invalid issuing country code") %}
+                                    {% set display_error_ar = display_error | replace("Invalid issuing country code", "رمز بلد الإصدار غير صالح") %}
+                                {% elif display_error.startswith("Invalid nationality code") %}
+                                    {% set display_error_ar = display_error | replace("Invalid nationality code", "رمز الجنسية غير صالح") %}
+                                {% elif display_error.startswith("Invalid MRZ: Issuing country") %}
+                                    {% set display_error_ar = display_error | replace("Invalid MRZ: Issuing country (", "MRZ غير صالح: بلد الإصدار (") | replace(") does not match nationality (", ") لا يتطابق مع الجنسية (") | replace(").", ").") %}
+                                {% elif display_error.startswith("Invalid MRZ: Surname exceeds 15 characters") %}
+                                    {% set display_error_ar = display_error | replace("Invalid MRZ: Surname exceeds 15 characters (length: ", "MRZ غير صالح: اسم العائلة يتجاوز 15 حرفاً (الطول: ") %}
+                                {% elif display_error.startswith("Invalid MRZ: First name exceeds 15 characters") %}
+                                    {% set display_error_ar = display_error | replace("Invalid MRZ: First name exceeds 15 characters (length: ", "MRZ غير صالح: الاسم الأول يتجاوز 15 حرفاً (الطول: ") %}
+                                {% elif display_error.startswith("Sex must be M, F, or <") %}
+                                    {% set display_error_ar = display_error | replace("Sex must be M, F, or < (found '", "يجب أن يكون الجنس M أو F أو < (تم العثور على '") %}
+                                {% elif display_error.startswith("DOB must be YYMMDD") %}
+                                    {% set display_error_ar = display_error | replace("DOB must be YYMMDD (found '", "يجب أن يكون تاريخ الميلاد بتنسيق YYMMDD (تم العثور على '") %}
+                                {% elif display_error.startswith("Expiry must be YYMMDD") %}
+                                    {% set display_error_ar = display_error | replace("Expiry must be YYMMDD (found '", "يجب أن يكون تاريخ الانتهاء بتنسيق YYMMDD (تم العثور على '") %}
+                                {% elif display_error.startswith("IND validator received a non-Indian passport") %}
+                                    {% set display_error_ar = display_error | replace("IND validator received a non-Indian passport (country: ", "تلقى مدقق IND جواز سفر غير هندي (البلد: ") | replace("). Use the general validator instead.", "). استخدم المدقق العام بدلاً من ذلك.") %}
+                                {% elif display_error.startswith("Indian passport nationality mismatch") %}
+                                    {% set display_error_ar = display_error | replace("Indian passport nationality mismatch: expected IND, got '", "عدم تطابق جنسية جواز السفر الهندي: المتوقع IND، تم العثور على '") %}
+                                {% elif display_error.startswith("Individual surname token") %}
+                                    {% set display_error_ar = display_error | replace("Individual surname token '", "الجزء الفردي من اسم العائلة '") | replace("' exceeds 15 characters.", "' يتجاوز 15 حرفاً.") %}
+                                {% elif display_error.startswith("Given-name section has") %}
+                                    {% set display_error_ar = display_error | replace("Given-name section has ", "قسم الأسماء الأولى يحتوي على ") | replace(" tokens; maximum 4 are supported.", " أجزاء؛ الحد الأقصى المدعوم هو 4.") %}
+                                {% elif display_error.startswith("Given-name token") %}
+                                    {% set display_error_ar = display_error | replace("Given-name token '", "جزء الاسم الأول '") | replace("' exceeds 20 characters.", "' يتجاوز 20 حرفاً.") %}
+                                {% elif display_error.startswith("Cannot open image:") %}
+                                    {% set display_error_ar = display_error | replace("Cannot open image:", "لا يمكن فتح الصورة:") %}
+                                {% elif display_error.startswith("Passport is already expired") %}
+                                    {% set display_error_ar = display_error | replace("Passport is already expired (Expiry: ", "جواز السفر منتهي الصلاحية بالفعل (الانتهاء: ") %}
+                                {% elif display_error.startswith("Date calculation error:") %}
+                                    {% set display_error_ar = display_error | replace("Date calculation error:", "خطأ في حساب التاريخ:") %}
+                                {% elif "check digit failed" in display_error %}
+                                    {% set display_error_ar = display_error | replace("Passport number check digit failed", "فشل رقم التحقق لجواز السفر") | replace("Date of birth check digit failed", "فشل رقم التحقق لتاريخ الميلاد") | replace("Expiry date check digit failed", "فشل رقم التحقق لتاريخ الانتهاء") | replace(" | ", " | ") %}
+                                {% endif %}
+                                
+                                <li data-en="{{ display_error }}" data-ar="{{ display_error_ar }}">{{ display_error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <form id="reparseForm" method="POST" action="{{ url_for('reparse_action', invalid_id=invalid_passport.id) }}">
+
+                        <div class="mrz-label">
+                            <i class="bi bi-upc-scan"></i>
+                            <span data-en="Edit MRZ Text" data-ar="تعديل نص MRZ">Edit MRZ Text</span>
+                        </div>
+                        <textarea id="mrz_text" name="mrz_text" class="mrz-textarea" wrap="off" required>{{ "\n".join(mrz_lines) if mrz_lines else invalid_passport.mrz_text }}</textarea>
+
+                        <input type="hidden" id="manual_issue_date" name="manual_issue_date">
+
+                        <div style="display:none;">
+                            <input type="text" name="group_name" value="GROUP 1">
+                            <select name="nationality_id">
+                                {% for id, name in nationality_options %}
+                                <option value="{{ id }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="marital_status">
+                                {% for id, name in marital_status_options %}
+                                <option value="{{ id }}">{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="text" name="city_of_birth" value="MAIN STREET">
+                            <input type="text" name="profession" value="TOURISM">
+                            <input type="text" name="city" value="MAIN STREET">
+                            <input type="text" name="zip_postal_code" value="676542">
+                            <input type="text" name="address" value="ADDRESS">
+                            <input type="text" name="passport_issue_place" value="PLACE">
+                            <input type="text" name="hotel_name" value="Hayat Mall Gate 6, Riyadh">
+                            <input type="text" name="contact_number" value="">
+                            <input type="text" name="email" value="">
+                        </div>
+                    </form>
+
+                </div>
+
+                <div class="right-panel">
+                    <div class="image-panel-label" style="justify-content: space-between; display: flex;">
+                        <div>
+                            <i class="bi bi-image"></i> <span data-en="Document Scan" data-ar="مسح المستند">Document Scan</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                                <button type="button" id="btn_rescan" class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.8rem; color: #a8d8a8; border-color: rgba(168, 216, 168, 0.3);" onclick="rescanImage()" title="Extract MRZ text using OCR" data-title-en="Extract MRZ text using OCR" data-title-ar="استخراج نص MRZ باستخدام OCR">
+                                <i class="bi bi-upc-scan"></i> <span data-en="Re-Scan" data-ar="إعادة المسح">Re-Scan</span>
+                            </button>
+                            
+                            <div style="width: 1px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+                            
+                            <button type="button" id="btn_crop_scan" class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.8rem;" onclick="toggleCropSelect()" title="Crop &amp; Scan" data-title-en="Crop &amp; Scan" data-title-ar="قص ومسح">
+                                <span data-en="Crop &amp; Scan" data-ar="قص ومسح">Crop &amp; Scan</span>
+                            </button>
+                            <button type="button" id="btn_crop_confirm" class="btn btn-primary" style="display:none; padding: 4px 10px; font-size: 0.8rem;" onclick="submitCropSelection()" title="Validate MRZ from crop" data-title-en="Validate MRZ from crop" data-title-ar="تحقق من MRZ من القص">
+                                <i class="bi bi-check-circle"></i> <span data-en="Validate MRZ" data-ar="تحقق من MRZ">Validate MRZ</span>
+                            </button>
+                            <button type="button" id="btn_crop_cancel" class="btn btn-ghost" style="display:none; padding: 4px 10px; font-size: 0.8rem;" onclick="cancelCropSelect()" title="Cancel crop selection" data-title-en="Cancel crop selection" data-title-ar="إلغاء تحديد القص">
+                                <i class="bi bi-x"></i>
+                            </button>
+
+                            <div style="width: 1px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+
+                            <button type="button" id="btn_crop_image" class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.8rem;" onclick="toggleImageCrop()" title="Crop Image (saves permanently)" data-title-en="Crop Image (saves permanently)" data-title-ar="قص الصورة (حفظ دائم)">
+                                <i class="bi bi-crop"></i> <span data-en="Crop Image" data-ar="قص الصورة">Crop Image</span>
+                            </button>
+                            <button type="button" id="btn_crop_image_submit" class="btn btn-primary" style="display:none; padding: 4px 10px; font-size: 0.8rem;" onclick="submitImageCrop()" title="Submit crop and save" data-title-en="Submit crop and save" data-title-ar="إرسال القص والحفظ">
+                                <i class="bi bi-check-circle"></i> <span data-en="Submit" data-ar="إرسال">Submit</span>
+                            </button>
+                            <button type="button" id="btn_crop_image_cancel" class="btn btn-ghost" style="display:none; padding: 4px 10px; font-size: 0.8rem;" onclick="cancelImageCrop()" title="Cancel" data-title-en="Cancel" data-title-ar="إلغاء">
+                                <i class="bi bi-x"></i>
+                            </button>
+
+                            <button type="button" id="btn_rotate_left" class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.8rem;" onclick="rotateImage('left')" title="Rotate Left (Visual Only)" data-title-en="Rotate Left (Visual Only)" data-title-ar="تدوير لليسار (عرض فقط)">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+                            <button type="button" id="btn_rotate_right" class="btn btn-ghost" style="padding: 4px 10px; font-size: 0.8rem;" onclick="rotateImage('right')" title="Rotate Right (Visual Only)" data-title-en="Rotate Right (Visual Only)" data-title-ar="تدوير لليمين (عرض فقط)">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="crop_image_hint" style="display:none; margin-bottom:8px; padding:8px 12px; background:rgba(40,167,69,0.12); border:1px solid rgba(40,167,69,0.35); border-radius:8px; color:#28a745; font-size:0.8rem; text-align:center;">
+                        <i class="bi bi-info-circle"></i>
+                        <span data-en="Drag to select the crop area, then press Enter or Submit to save the cropped image permanently." data-ar="اسحب لتحديد منطقة القص، ثم اضغط Enter أو إرسال لحفظ الصورة المقصوصة بشكل دائم.">Drag to select the crop area, then press Enter or Submit to save the cropped image permanently.</span>
+                    </div>
+                    
+                    <div style="margin-bottom:8px; padding:8px 12px; background:rgba(201,168,76,0.12); border:1px solid rgba(201,168,76,0.35); border-radius:8px; color:var(--gold); font-size:0.8rem; text-align:center;">
+                        <i class="bi bi-info-circle"></i>
+                        <span data-en="When using Crop Scan, make sure your selection covers the MRZ and issue date area. Selecting a larger area than needed may reduce MRZ accuracy." data-ar="عند استخدام قص الصورة، تأكد من أن التحديد يشمل منطقة MRZ وتاريخ الإصدار. قد يؤدي تحديد منطقة أكبر من اللازم إلى تقليل دقة MRZ.">When using Crop Scan, make sure your selection covers the MRZ and issue date area. Selecting a larger area than needed may reduce MRZ accuracy.</span>
+                    </div>
+
+                    <div class="image-preview-box" style="position: relative;">
+                        <div id="rotate_loader" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:var(--gold); z-index: 10;">
+                            <i class="bi bi-arrow-repeat" style="font-size:2.5rem; display:inline-block; animation: spin 1s linear infinite;"></i>
+                        </div>
+                        <!-- Scan overlay — shown during Re-Scan, hidden when done -->
+                        <div id="scan-overlay">
+                            <div id="scan-overlay-label" data-en="Scanning…" data-ar="جاري المسح...">Scanning…</div>
+                        </div>
+
+                        {% if invalid_passport.original_image_b64 %}
+                            <img id="preview_image" src="data:image/jpeg;base64,{{ invalid_passport.original_image_b64 }}" alt="Passport Image" style="transition: opacity 0.2s;">
+                            <div id="cropSelectLayer" style="position:absolute; display:none; cursor:crosshair;">
+                                <div id="cropSelectBox" style="position:absolute; border:2px solid var(--gold); background:rgba(201,168,76,0.15); display:none;">
+                                    <div class="crop-handle" data-handle="nw" style="position:absolute; width:12px; height:12px; left:-6px; top:-6px; background:var(--gold); border-radius:2px; cursor:nwse-resize;"></div>
+                                    <div class="crop-handle" data-handle="ne" style="position:absolute; width:12px; height:12px; right:-6px; top:-6px; background:var(--gold); border-radius:2px; cursor:nesw-resize;"></div>
+                                    <div class="crop-handle" data-handle="sw" style="position:absolute; width:12px; height:12px; left:-6px; bottom:-6px; background:var(--gold); border-radius:2px; cursor:nesw-resize;"></div>
+                                    <div class="crop-handle" data-handle="se" style="position:absolute; width:12px; height:12px; right:-6px; bottom:-6px; background:var(--gold); border-radius:2px; cursor:nwse-resize;"></div>
+                                    <div class="crop-handle" data-handle="n" style="position:absolute; width:12px; height:12px; left:50%; top:-6px; margin-left:-6px; background:var(--gold); border-radius:2px; cursor:ns-resize;"></div>
+                                    <div class="crop-handle" data-handle="s" style="position:absolute; width:12px; height:12px; left:50%; bottom:-6px; margin-left:-6px; background:var(--gold); border-radius:2px; cursor:ns-resize;"></div>
+                                    <div class="crop-handle" data-handle="w" style="position:absolute; width:12px; height:12px; left:-6px; top:50%; margin-top:-6px; background:var(--gold); border-radius:2px; cursor:ew-resize;"></div>
+                                    <div class="crop-handle" data-handle="e" style="position:absolute; width:12px; height:12px; right:-6px; top:50%; margin-top:-6px; background:var(--gold); border-radius:2px; cursor:ew-resize;"></div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="no-image-placeholder">
+                                <i class="bi bi-image"></i>
+                                <span data-en="No image available" data-ar="لا توجد صورة متاحة">No image available</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="popup-footer">
+            <button type="submit" form="reparseForm" name="action" value="skip" class="btn btn-ghost" formnovalidate>
+                <i class="bi bi-x-circle"></i> <span data-en="Skip File" data-ar="تخطي الملف">Skip File</span>
+            </button>
+            <button type="submit" form="reparseForm" name="action" value="insert_anyway" class="btn btn-amber">
+                <i class="bi bi-database-add"></i> <span data-en="Force Insert" data-ar="فرض الإدراج">Force Insert</span>
+            </button>
+            <button type="submit" form="reparseForm" name="action" value="reparse" class="btn btn-primary" id="btn_validate_mrz_text">
+                <i class="bi bi-check-circle"></i> <span data-en="Validate MRZ Text" data-ar="التحقق من نص MRZ">Validate MRZ Text</span>
+            </button>
+        </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <script>
+    // ── Language init (this popup does not include _sidebar.html, so we
+    // read the saved language and apply data-en/data-ar/data-title-en/ar
+    // translations ourselves, matching the pattern used elsewhere) ──────
+    (function () {
+        var savedLang = 'en';
+        try { savedLang = localStorage.getItem('site_lang') || 'en'; } catch (e) {}
+        window.CURRENT_LANG = savedLang;
+
+        function applyReparseTranslations(lang) {
+            document.querySelectorAll('[data-en][data-ar]').forEach(function (el) {
+                var text = (lang === 'ar') ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+                if (text !== null) el.textContent = text;
+            });
+            document.querySelectorAll('[data-title-en][data-title-ar]').forEach(function (el) {
+                var t = (lang === 'ar') ? el.getAttribute('data-title-ar') : el.getAttribute('data-title-en');
+                if (t !== null) el.setAttribute('title', t);
+            });
+            document.documentElement.setAttribute('lang', lang);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            applyReparseTranslations(savedLang);
+        });
+    })();
+    </script>
+
+    <script>
+    // ── Page-load overlay ──────────────────────────────────────────────
+    // The overlay starts .active in HTML so the user never sees a static,
+    // unresponsive popup while the page warms up.  Once DOMContentLoaded
+    // fires the page is interactive and we hide it.  If the page
+    // immediately auto-submits, the browser navigates away before this
+    // runs — so the spinner stays visible the entire time, which is
+    // exactly what we want.
+    document.addEventListener('DOMContentLoaded', function() {
+        var ocrOverlay = document.getElementById('ocr-processing-overlay');
+        if (ocrOverlay) ocrOverlay.classList.remove('active');
+    });
+    // Also dismiss on bfcache restore (back / forward navigation).
+    window.addEventListener('pageshow', function(e) {
+        if (e.persisted) {
+            var ocrOverlay = document.getElementById('ocr-processing-overlay');
+            if (ocrOverlay) ocrOverlay.classList.remove('active');
+        }
+    });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mrzTextArea = document.getElementById('mrz_text');
+            if (mrzTextArea) {
+
+                // 1. Prevent typing beyond 44 chars per line
+                mrzTextArea.addEventListener('keydown', function(e) {
+                    if ([8, 9, 13, 37, 38, 39, 40, 46].includes(e.keyCode) || e.ctrlKey || e.metaKey) return;
+                    if (this.selectionStart !== this.selectionEnd) return;
+
+                    const lines = this.value.split('\n');
+                    let currentLine = 0;
+                    let charCount = 0;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        if (this.selectionStart <= charCount + lines[i].length) {
+                            currentLine = i; break;
+                        }
+                        charCount += lines[i].length + 1;
+                    }
+
+                    if (lines[currentLine] && lines[currentLine].length >= 44) {
+                        e.preventDefault();
+                    }
+                });
+
+                // 2. Auto-uppercase & enforce format on input
+                mrzTextArea.addEventListener('input', function(e) {
+                    let cursorPosition = this.selectionStart;
+                    let lines = this.value.toUpperCase().split(/\r?\n/);
+
+                    if (e.inputType === 'insertFromPaste' && lines.length === 1 && lines[0].length > 44) {
+                        lines = [lines[0].substring(0, 44), lines[0].substring(44, 88)];
+                    }
+
+                    if (lines.length > 2) lines = lines.slice(0, 2);
+                    lines = lines.map(line => line.substring(0, 44));
+
+                    this.value = lines.join('\n');
+                    try { this.setSelectionRange(cursorPosition, cursorPosition); } catch(err){}
+                });
+
+                // 3. Format on load
+                mrzTextArea.value = mrzTextArea.value.toUpperCase().split(/\r?\n/).map(l => l.substring(0, 44)).slice(0, 2).join('\n');
+            }
+        });
+    </script>
+
+    <script>
+    (function() {
+        var sidebar    = document.querySelector('.sidebar');
+        
+        // Early exit: This is a standalone popup and doesn't contain a sidebar element.
+        // Returning early prevents 'Cannot read properties of null (reading classList)' TypeErrors below.
+        if (!sidebar) return; 
+
+        var main       = document.querySelector('.main-content');
+        var overlay    = document.querySelector('.sidebar-overlay');
+        var toggleBtn  = document.querySelector('.sidebar-toggle-btn');
+        var userSection = document.querySelector('.sidebar-user');
+        var userMenu   = document.querySelector('.user-menu');
+
+        var SIDEBAR_W  = 260;
+        var isMobile   = function() { return window.innerWidth <= 768; };
+
+        /* ── helpers ─────────────────────────────── */
+        function setSidebarOpen(open) {
+            if (isMobile()) {
+                sidebar.classList.toggle('mobile-open', open);
+                if (overlay) overlay.classList.toggle('visible', open);
+                // toggle btn stays fixed left:16px on mobile; class just flips icon if needed
+                if (toggleBtn) toggleBtn.classList.toggle('sidebar-open', open);
+            } else {
+                sidebar.classList.toggle('collapsed', !open);
+                if (main) main.classList.toggle('sidebar-collapsed', !open);
+                if (toggleBtn) {
+                    toggleBtn.classList.toggle('sidebar-open', open);
+                }
+            }
+        }
+
+        function isSidebarOpen() {
+            if (isMobile()) return sidebar.classList.contains('mobile-open');
+            return !sidebar.classList.contains('collapsed');
+        }
+
+        /* ── initial state ────────────────────────── */
+        function applyInitialState() {
+            if (isMobile()) {
+                // always start hidden on mobile
+                sidebar.classList.remove('mobile-open', 'collapsed');
+                if (overlay) overlay.classList.remove('visible');
+                if (main) main.classList.remove('sidebar-collapsed');
+                if (toggleBtn) toggleBtn.classList.remove('sidebar-open');
+            } else {
+                // desktop: start open
+                sidebar.classList.remove('collapsed', 'mobile-open');
+                if (overlay) overlay.classList.remove('visible');
+                if (main) main.classList.remove('sidebar-collapsed');
+                if (toggleBtn) toggleBtn.classList.add('sidebar-open');
+            }
+        }
+
+        /* ── toggle click ─────────────────────────── */
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                setSidebarOpen(!isSidebarOpen());
+            });
+        }
+
+        /* ── overlay click (mobile close) ─────────── */
+        if (overlay) {
+            overlay.addEventListener('click', function() {
+                setSidebarOpen(false);
+            });
+        }
+
+        /* ── user menu: click only ────────────────── */
+        if (userSection && userMenu) {
+            var userCard = userSection.querySelector('.user-card');
+            if (userCard) {
+                userCard.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userMenu.classList.toggle('open');
+                });
+            }
+            document.addEventListener('click', function() {
+                userMenu.classList.remove('open');
+            });
+            userMenu.addEventListener('click', function(e) { e.stopPropagation(); });
+        }
+
+        window.addEventListener('resize', applyInitialState);
+        applyInitialState();
+    })();
+    </script>
+<script>
+// ── Tool-row coordinator ──────────────────────────────────────────────
+// Re-Scan, Crop Scan, and Crop Image are mutually exclusive: while one is
+// active/running, its own controls (submit/cancel) are shown and every
+// other button in the row is hidden. When the active tool finishes
+// (success, failure, or cancel) all buttons return to their normal state.
+//
+// Two kinds of buttons live in this row:
+//   - "always" buttons: visible by default (Re-Scan, Crop Scan, Crop Image,
+//     Rotate Left/Right) — hidden only while some tool is active.
+//   - "conditional" buttons: hidden by default (Validate/Cancel pairs for
+//     Crop Scan and Crop Image) — shown only while their own tool is active.
+// Resetting must restore each button to ITS OWN default, not blindly clear
+// every inline style (that would make hidden-by-default buttons appear).
+const TOOL_ROW_ALWAYS_VISIBLE_IDS = [
+    'btn_rescan', 'btn_crop_scan', 'btn_crop_image',
+    'btn_rotate_left', 'btn_rotate_right'
+];
+const TOOL_ROW_CONDITIONAL_IDS = [
+    'btn_crop_confirm', 'btn_crop_cancel',
+    'btn_crop_image_submit', 'btn_crop_image_cancel'
+];
+const TOOL_ROW_BUTTON_IDS = TOOL_ROW_ALWAYS_VISIBLE_IDS.concat(TOOL_ROW_CONDITIONAL_IDS);
+
+// IDs that stay visible while a given tool is active (its own controls)
+const TOOL_ACTIVE_VISIBLE = {
+    rescan:     ['btn_rescan'],
+    crop_scan:  ['btn_crop_confirm', 'btn_crop_cancel'],
+    crop_image: ['btn_crop_image_submit', 'btn_crop_image_cancel']
+};
+
+function setToolRowActive(toolName) {
+    const visible = toolName ? (TOOL_ACTIVE_VISIBLE[toolName] || []) : null;
+    TOOL_ROW_BUTTON_IDS.forEach(function (id) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        if (!toolName) {
+            // No tool active — restore each button to its own default:
+            // "always visible" buttons show, "conditional" buttons hide.
+            btn.style.display = TOOL_ROW_ALWAYS_VISIBLE_IDS.indexOf(id) !== -1 ? 'inline-flex' : 'none';
+        } else {
+            btn.style.display = visible.indexOf(id) !== -1 ? 'inline-flex' : 'none';
+        }
+    });
+
+    // While any scan/crop tool (Re-Scan, Crop & Scan, Crop Image) is active,
+    // the footer's "Validate MRZ Text" button is disabled — submitting the
+    // form mid-tool would validate stale MRZ text instead of waiting for the
+    // tool's own result. Re-enabled once the tool finishes (toolName=null).
+    const validateBtn = document.getElementById('btn_validate_mrz_text');
+    if (validateBtn) {
+        validateBtn.disabled = !!toolName;
+    }
+}
+
+function resetToolRow() {
+    setToolRowActive(null);
+}
+
+// Re-Scan button is always available for repeated use.
+
+// Purely Visual/DB Rotation - Zero API Cost
+function rotateImage(direction) {
+    const loader = document.getElementById('rotate_loader');
+    const img = document.getElementById('preview_image');
+    if (loader) loader.style.display = 'block';
+    if (img) img.style.opacity = '0.3';
+
+    const formData = new FormData();
+    formData.append('direction', direction);
+
+    fetch(`{{ url_for('rotate_reparse_image', invalid_id=invalid_passport.id) }}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (loader) loader.style.display = 'none';
+        if (img) img.style.opacity = '1';
+
+        if (data.success) {
+            if (img) img.src = "data:image/jpeg;base64," + data.image_b64;
+        } else {
+            var _ar = window.CURRENT_LANG === 'ar';
+            alert((_ar ? "فشل التدوير: " : "Rotation failed: ") + data.message);
+        }
+    })
+    .catch(err => {
+        if (loader) loader.style.display = 'none';
+        if (img) img.style.opacity = '1';
+        var _ar = window.CURRENT_LANG === 'ar';
+        alert(_ar ? "خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "Network error. Please try again.");
+    });
+}
+
+// Explicit OCR Trigger - Can be used repeatedly
+// ── Rescan attempt counter (shared by Re-Scan and Crop Scan) ───────────
+// 1st attempt on this passport = normal LlmB -> ProvA cascade.
+// 2nd+ attempt = skip LlmB, go straight to ProvA.
+//
+// Persisted in sessionStorage (NOT a plain JS var) because the reparse
+// form auto-reloads the page on a failed reparse_action POST -- an
+// in-memory counter would silently reset to 0 on that reload, so the
+// server-side skip_llmB branch (ocr_scan_service.py) would never see
+// True and LlmB would keep being retried (and keep failing) forever.
+// Keyed per invalid_passport.id so switching to a different passport in
+// the same browser session starts a fresh 1st-attempt count instead of
+// inheriting a previous passport's skip_llmB state.
+const _RESCAN_COUNT_KEY = 'reparse_rescan_attempt_count';
+const _RESCAN_COUNT_PASSPORT_ID_KEY = 'reparse_rescan_attempt_passport_id';
+const _CURRENT_PASSPORT_ID = '{{ invalid_passport.id }}';
+
+(function _resetRescanCountIfNewPassport() {
+    const storedId = sessionStorage.getItem(_RESCAN_COUNT_PASSPORT_ID_KEY);
+    if (storedId !== _CURRENT_PASSPORT_ID) {
+        sessionStorage.setItem(_RESCAN_COUNT_KEY, '0');
+        sessionStorage.setItem(_RESCAN_COUNT_PASSPORT_ID_KEY, _CURRENT_PASSPORT_ID);
+    }
+})();
+
+function _incrementRescanAttemptCount() {
+    const current = parseInt(sessionStorage.getItem(_RESCAN_COUNT_KEY) || '0', 10);
+    // Cycle 1 -> 2 -> 1 -> 2 ... instead of counting up forever, so every
+    // odd click retries LlmB fresh and every even click skips straight to
+    // ProvA -- rather than skip_llmB latching permanently true after the
+    // first 2nd-click.
+    const next = current >= 2 ? 1 : current + 1;
+    sessionStorage.setItem(_RESCAN_COUNT_KEY, String(next));
+    return next;
+}
+
+function rescanImage() {
+    const rescanBtn      = document.getElementById('btn_rescan');
+    const scanOverlay    = document.getElementById('scan-overlay');
+    const ocrOverlay     = document.getElementById('ocr-processing-overlay');
+
+    setToolRowActive('rescan');
+
+    // ── Persist across page reloads ──
+    // If the reparse form POST reloads the page with an error, the flag
+    // lets DOMContentLoaded know it must re-disable the button and re-run
+    // the scan automatically, keeping the UI consistent.
+    sessionStorage.setItem('reparse_rescan_pending', 'true');
+
+    // Disable button + show scan line overlay on the image
+    var _ar0 = window.CURRENT_LANG === 'ar';
+    if (rescanBtn) {
+        rescanBtn.disabled = true;
+        rescanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:0.75rem;height:0.75rem;border-width:2px;"></span> ' + (_ar0 ? 'جاري المسح...' : 'Scanning…');
+    }
+    if (scanOverlay) scanOverlay.classList.add('active');
+
+    // After one full scan-line sweep (~4 s = 2 × 2 s alternate cycle),
+    // replace the image overlay with the full-page spinner so the user
+    // knows OCR is still running in the background.
+    var _ocrOverlayTimer = setTimeout(function() {
+        if (scanOverlay) scanOverlay.classList.remove('active');
+        const ovrTitle = document.getElementById('ocr-overlay-title');
+        const ovrSub   = document.getElementById('ocr-overlay-sub');
+        var _ar = window.CURRENT_LANG === 'ar';
+        if (ovrTitle) ovrTitle.textContent = _ar ? 'جاري معالجة OCR' : 'Processing OCR';
+        if (ovrSub)   ovrSub.textContent   = _ar ? 'جاري استخراج بيانات جواز السفر — يرجى الانتظار...' : 'Extracting passport data — please wait…';
+        if (ocrOverlay)  ocrOverlay.classList.add('active');
+    }, 4000);
+
+    const loader = document.getElementById('rotate_loader');
+    const img = document.getElementById('preview_image');
+    const mrzTextArea = document.getElementById('mrz_text');
+
+    if (loader) loader.style.display = 'block';
+    if (img) img.style.opacity = '0.5';
+
+    function restoreRescanBtn(keepDisabled) {
+        // Cancel the timer in case OCR finished before 4 s
+        clearTimeout(_ocrOverlayTimer);
+        // Clear the reload-persistence flag — scan is no longer in flight
+        sessionStorage.removeItem('reparse_rescan_pending');
+        var _ar = window.CURRENT_LANG === 'ar';
+        resetToolRow();
+        if (rescanBtn) {
+            // On a completed scan (success or "no MRZ found"), keep the button
+            // disabled — the user should re-open the page to try again.
+            // On a genuine network/fetch failure, re-enable it: nothing was
+            // consumed server-side, so there's no reason to force a full page
+            // reload just to retry the same click.
+            rescanBtn.disabled = !!keepDisabled;
+            rescanBtn.innerHTML = '<i class="bi bi-upc-scan"></i> ' + (_ar ? 'إعادة المسح' : 'Re-Scan');
+        }
+        // Hide both overlays
+        if (scanOverlay) scanOverlay.classList.remove('active');
+        if (ocrOverlay)  ocrOverlay.classList.remove('active');
+        if (img) img.style.opacity = '1';
+    }
+
+    const _rescanAttemptCount = _incrementRescanAttemptCount();
+    const _skipLlmB = _rescanAttemptCount > 1;
+
+    fetch(`{{ url_for('rescan_reparse_image', invalid_id=invalid_passport.id) }}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ skip_llmB: _skipLlmB })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (loader) loader.style.display = 'none';
+        if (img) img.style.opacity = '1';
+
+        if (data.success) {
+            // ── Auto-promoted: record already moved to valid by the server ──
+            // Don't submit the reparse form — the record no longer exists as invalid.
+            if (data.auto_promoted) {
+                // Restore the button FIRST — window.close() may be blocked by the
+                // browser (it only works reliably when the window was opened by script).
+                // If the close fails, the user must not be stuck with a disabled button.
+                restoreRescanBtn(true);
+                var _ar1 = window.CURRENT_LANG === 'ar';
+                Swal.fire({
+                    icon: 'success',
+                    title: _ar1 ? 'تم التحقق!' : 'Validated!',
+                    text: data.message || (_ar1 ? 'تم نقل السجل إلى جوازات السفر الصالحة تلقائياً.' : 'Record moved to valid passports automatically.'),
+                    timer: 2000,
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                }).then(() => {
+                    // If the opener has a queue running (_reparseActive flag set on window),
+                    // just close — the queue's poller detects the close and opens the next one.
+                    // If opened standalone (no queue), reload the opener normally.
+                    if (window.opener && !window.opener.closed && !window.opener._reparseActive) {
+                        window.opener.location.reload();
+                    }
+                    window.close();
+                });
+                return;
+            }
+
+            // ── MRZ found but has validation errors — let user fix via form ──
+            if (mrzTextArea) {
+                mrzTextArea.value = data.mrz_text || "";
+
+                const originalBorder = mrzTextArea.style.borderColor;
+                mrzTextArea.style.borderColor = data.mrz_found ? "#28a745" : "#dc3545";
+                mrzTextArea.style.boxShadow = data.mrz_found ? "0 0 0 4px rgba(40, 167, 69, 0.2)" : "0 0 0 4px rgba(220, 53, 69, 0.2)";
+
+                setTimeout(() => {
+                    mrzTextArea.style.borderColor = originalBorder;
+                    mrzTextArea.style.boxShadow = "";
+
+                    if (data.mrz_found) {
+                        // Keep the full-page overlay visible but swap it to "Saving…"
+                        // so the user sees a clear in-page spinner during the form POST
+                        // navigation — much more visible than the browser tab spinner.
+                        clearTimeout(_ocrOverlayTimer);
+                        // Scan is genuinely finished here — clear the pending flag so the
+                        // reloaded page (after this auto-submit) doesn't think a scan is
+                        // still in flight and leave the button stuck disabled.
+                        sessionStorage.removeItem('reparse_rescan_pending');
+                        if (scanOverlay) scanOverlay.classList.remove('active');
+                        const ovrTitle = document.getElementById('ocr-overlay-title');
+                        const ovrSub   = document.getElementById('ocr-overlay-sub');
+                        var _ar2 = window.CURRENT_LANG === 'ar';
+                        if (ovrTitle) ovrTitle.textContent = _ar2 ? 'جاري الحفظ...' : 'Saving…';
+                        if (ovrSub)   ovrSub.textContent   = _ar2 ? 'جاري تسجيل بيانات جواز السفر — يرجى الانتظار...' : 'Recording passport data — please wait…';
+                        if (ocrOverlay) ocrOverlay.classList.add('active');
+
+                        // The scan tool is done — clear its "active" state so the
+                        // Validate MRZ Text button (disabled while a tool runs) is
+                        // re-enabled before we auto-click it below. Without this the
+                        // click on a still-disabled button is a silent no-op and the
+                        // form never auto-submits.
+                        resetToolRow();
+
+                        const reparseBtn = document.querySelector('button[value="reparse"]');
+                        if (reparseBtn) reparseBtn.click();
+                    } else {
+                        // MRZ not found — let user fix manually, restore UI normally
+                        restoreRescanBtn(true);
+                    }
+                }, 600);
+            } else {
+                restoreRescanBtn(true);
+            }
+        } else {
+            restoreRescanBtn(true);
+            var _ar3 = window.CURRENT_LANG === 'ar';
+            alert((_ar3 ? "فشل المسح: " : "Scan failed: ") + data.message);
+        }
+    })
+    .catch(err => {
+        if (loader) loader.style.display = 'none';
+        if (img) img.style.opacity = '1';
+        restoreRescanBtn(false);
+        var _ar4 = window.CURRENT_LANG === 'ar';
+        alert(_ar4 ? "خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "Network error. Please try again.");
+    });
+}
+
+// ── Re-enable rescan state after failed reparse page reload ───────────
+// When the auto-submitted reparse form reloads the page with an error,
+// this handler fires, finds the pending flag, and re-disables the button
+// + re-triggers the scan — so the UI stays consistent with what the user
+// already kicked off.
+document.addEventListener('DOMContentLoaded', function () {
+    const STORAGE_KEY = 'reparse_rescan_pending';
+    if (sessionStorage.getItem(STORAGE_KEY) === 'true') {
+        // Rescan already ran — just keep the button disabled on the reloaded page.
+        // Do NOT re-trigger rescanImage().
+        const rescanBtn = document.getElementById('btn_rescan');
+        if (rescanBtn) {
+            rescanBtn.disabled = true;
+        }
+    }
+});
+
+// ── Auto-rescan after crop save ───────────────────────────────────────
+// Uses a dedicated endpoint: Phase 4 smart crop (face detection) + v2 assembler.
+// Shares the same UI feedback flow as rescanImage() but hits a different backend.
+function rescanAfterCrop(croppedImageBase64) {
+    const rescanBtn   = document.getElementById('btn_rescan');
+    const scanOverlay = document.getElementById('scan-overlay');
+    const ocrOverlay  = document.getElementById('ocr-processing-overlay');
+
+    setToolRowActive('rescan');
+
+    var _arA = window.CURRENT_LANG === 'ar';
+    if (rescanBtn) {
+        rescanBtn.disabled = true;
+        rescanBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" style="width:0.75rem;height:0.75rem;border-width:2px;"></span> ' + (_arA ? 'جاري المسح...' : 'Scanning…');
+    }
+    if (scanOverlay) scanOverlay.classList.add('active');
+
+    var _ocrOverlayTimer = setTimeout(function() {
+        if (scanOverlay) scanOverlay.classList.remove('active');
+        const ovrTitle = document.getElementById('ocr-overlay-title');
+        const ovrSub   = document.getElementById('ocr-overlay-sub');
+        var _arB = window.CURRENT_LANG === 'ar';
+        if (ovrTitle) ovrTitle.textContent = _arB ? 'جاري معالجة OCR' : 'Processing OCR';
+        if (ovrSub)   ovrSub.textContent   = _arB ? 'جاري استخراج بيانات جواز السفر — يرجى الانتظار...' : 'Extracting passport data — please wait…';
+        if (ocrOverlay) ocrOverlay.classList.add('active');
+    }, 4000);
+
+    const loader      = document.getElementById('rotate_loader');
+    const img         = document.getElementById('preview_image');
+    const mrzTextArea = document.getElementById('mrz_text');
+
+    if (loader) loader.style.display = 'block';
+    if (img) img.style.opacity = '0.5';
+
+    function restoreBtn(keepDisabled) {
+        clearTimeout(_ocrOverlayTimer);
+        var _arC = window.CURRENT_LANG === 'ar';
+        resetToolRow();
+        if (rescanBtn) {
+            // Completed scan (success or no MRZ found) -> stay disabled until
+            // page reload. Genuine network/fetch failure -> re-enable so the
+            // user can retry immediately without reloading.
+            rescanBtn.disabled = !!keepDisabled;
+            rescanBtn.innerHTML = '<i class="bi bi-upc-scan"></i> ' + (_arC ? 'إعادة المسح' : 'Re-Scan');
+        }
+        if (scanOverlay) scanOverlay.classList.remove('active');
+        if (ocrOverlay)  ocrOverlay.classList.remove('active');
+        if (img) img.style.opacity = '1';
+    }
+
+    const _rescanAttemptCount = _incrementRescanAttemptCount();
+    const _skipLlmB = _rescanAttemptCount > 1;
+
+    fetch(`{{ url_for('rescan_after_crop', invalid_id=invalid_passport.id) }}`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(croppedImageBase64 ? { image_base64: croppedImageBase64, skip_llmB: _skipLlmB } : { skip_llmB: _skipLlmB })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (loader) loader.style.display = 'none';
+        if (img) img.style.opacity = '1';
+
+        if (data.success) {
+            if (mrzTextArea) {
+                mrzTextArea.value = data.mrz_text || "";
+
+                const originalBorder = mrzTextArea.style.borderColor;
+                mrzTextArea.style.borderColor = data.mrz_found ? "#28a745" : "#dc3545";
+                mrzTextArea.style.boxShadow = data.mrz_found ? "0 0 0 4px rgba(40, 167, 69, 0.2)" : "0 0 0 4px rgba(220, 53, 69, 0.2)";
+
+                setTimeout(() => {
+                    mrzTextArea.style.borderColor = originalBorder;
+                    mrzTextArea.style.boxShadow = "";
+
+                    if (data.mrz_found) {
+                        clearTimeout(_ocrOverlayTimer);
+                        if (scanOverlay) scanOverlay.classList.remove('active');
+                        const ovrTitle = document.getElementById('ocr-overlay-title');
+                        const ovrSub   = document.getElementById('ocr-overlay-sub');
+                        var _arD = window.CURRENT_LANG === 'ar';
+                        if (ovrTitle) ovrTitle.textContent = _arD ? 'جاري الحفظ...' : 'Saving…';
+                        if (ovrSub)   ovrSub.textContent   = _arD ? 'جاري تسجيل بيانات جواز السفر — يرجى الانتظار...' : 'Recording passport data — please wait…';
+                        if (ocrOverlay) ocrOverlay.classList.add('active');
+
+                        // Tool is done — re-enable Validate MRZ Text (disabled while
+                        // this tool was active) before auto-clicking it, otherwise
+                        // the click on a disabled button silently does nothing.
+                        resetToolRow();
+
+                        const reparseBtn = document.querySelector('button[value="reparse"]');
+                        if (reparseBtn) reparseBtn.click();
+                    } else {
+                        restoreBtn(true);
+                    }
+                }, 600);
+            } else {
+                restoreBtn(true);
+            }
+        } else {
+            restoreBtn(true);
+            var _arE = window.CURRENT_LANG === 'ar';
+            alert((_arE ? "فشل المسح: " : "Scan failed: ") + data.message);
+        }
+    })
+    .catch(err => {
+        if (loader) loader.style.display = 'none';
+        if (img) img.style.opacity = '1';
+        restoreBtn(false);
+        alert(_arF ? "خطأ في الشبكة. يرجى المحاولة مرة أخرى." : "Network error. Please try again.");
+    });
+}
+
+// ── Inline crop-select (no modal) ───────────────────────────────────────
+// User clicks "Crop Scan" -> crosshair cursor appears over the preview
+// image -> user drags to draw a free-form selection box (adjustable via
+// corner handles) -> Enter or the Validate button crops that region from
+// the actual image pixels client-side and sends it to rescan_after_crop.
+// The original image is never modified.
+let cropSelectActive = false;
+let cropBoxRect = null; // {left, top, width, height} in on-screen (overlay) px
+let cropDragState = null;
+
+function _cropLayer() { return document.getElementById('cropSelectLayer'); }
+function _cropBox()   { return document.getElementById('cropSelectBox'); }
+function _previewImg(){ return document.getElementById('preview_image'); }
+
+function _syncCropLayerToImage() {
+    const img = _previewImg();
+    const layer = _cropLayer();
+    if (!img || !layer) return;
+    layer.style.left   = img.offsetLeft + 'px';
+    layer.style.top    = img.offsetTop + 'px';
+    layer.style.width  = img.offsetWidth + 'px';
+    layer.style.height = img.offsetHeight + 'px';
+}
+
+function toggleCropSelect() {
+    if (cropSelectActive) {
+        cancelCropSelect();
+        return;
+    }
+    // Don't allow overlapping with the "Crop Image" (permanent save) tool
+    if (typeof imageCropActive !== 'undefined' && imageCropActive) {
+        cancelImageCrop();
+    }
+
+    cropSelectActive = true;
+    cropBoxRect = null;
+    _syncCropLayerToImage();
+    const layer = _cropLayer();
+    const box = _cropBox();
+    if (layer) layer.style.display = 'block';
+    if (box) box.style.display = 'none';
+
+    setToolRowActive('crop_scan');
+
+    window.addEventListener('resize', _syncCropLayerToImage);
+    document.addEventListener('keydown', _cropKeydownHandler);
+}
+
+function cancelCropSelect() {
+    cropSelectActive = false;
+    cropBoxRect = null;
+    cropDragState = null;
+    const layer = _cropLayer();
+    const box = _cropBox();
+    if (layer) layer.style.display = 'none';
+    if (box) box.style.display = 'none';
+    resetToolRow();
+    window.removeEventListener('resize', _syncCropLayerToImage);
+    document.removeEventListener('keydown', _cropKeydownHandler);
+}
+
+function _cropKeydownHandler(e) {
+    if (!cropSelectActive) return;
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        submitCropSelection();
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelCropSelect();
+    }
+}
+
+function _renderCropBox() {
+    const box = _cropBox();
+    if (!box || !cropBoxRect) return;
+    box.style.display = 'block';
+    box.style.left   = cropBoxRect.left + 'px';
+    box.style.top    = cropBoxRect.top + 'px';
+    box.style.width  = cropBoxRect.width + 'px';
+    box.style.height = cropBoxRect.height + 'px';
+}
+
+(function initCropDragHandlers() {
+    const layer = _cropLayer();
+    if (!layer) return;
+
+    layer.addEventListener('mousedown', function (e) {
+        if (!cropSelectActive) return;
+        if (e.target.classList.contains('crop-handle')) return; // handled separately
+        const layerRect = layer.getBoundingClientRect();
+        const startX = Math.max(0, Math.min(e.clientX - layerRect.left, layerRect.width));
+        const startY = Math.max(0, Math.min(e.clientY - layerRect.top, layerRect.height));
+        cropDragState = { mode: 'draw', startX, startY };
+        cropBoxRect = { left: startX, top: startY, width: 0, height: 0 };
+        _renderCropBox();
+        e.preventDefault();
+    });
+
+    document.querySelectorAll('.crop-handle').forEach(function (handle) {
+        handle.addEventListener('mousedown', function (e) {
+            if (!cropSelectActive || !cropBoxRect) return;
+            cropDragState = { mode: 'resize', handle: handle.dataset.handle, orig: Object.assign({}, cropBoxRect) };
+            e.stopPropagation();
+            e.preventDefault();
+        });
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (!cropSelectActive || !cropDragState) return;
+        const layerRect = layer.getBoundingClientRect();
+        const curX = Math.max(0, Math.min(e.clientX - layerRect.left, layerRect.width));
+        const curY = Math.max(0, Math.min(e.clientY - layerRect.top, layerRect.height));
+
+        if (cropDragState.mode === 'draw') {
+            const left = Math.min(cropDragState.startX, curX);
+            const top  = Math.min(cropDragState.startY, curY);
+            const width  = Math.abs(curX - cropDragState.startX);
+            const height = Math.abs(curY - cropDragState.startY);
+            cropBoxRect = { left, top, width, height };
+            _renderCropBox();
+        } else if (cropDragState.mode === 'resize') {
+            const o = cropDragState.orig;
+            let left = o.left, top = o.top, right = o.left + o.width, bottom = o.top + o.height;
+            const h = cropDragState.handle;
+            if (h.includes('n')) top = curY;
+            if (h.includes('s')) bottom = curY;
+            if (h.includes('w')) left = curX;
+            if (h.includes('e')) right = curX;
+            cropBoxRect = {
+                left: Math.min(left, right),
+                top: Math.min(top, bottom),
+                width: Math.abs(right - left),
+                height: Math.abs(bottom - top)
+            };
+            _renderCropBox();
+        }
+    });
+
+    document.addEventListener('mouseup', function () {
+        cropDragState = null;
+    });
+})();
+
+function submitCropSelection() {
+    if (!cropSelectActive || !cropBoxRect || cropBoxRect.width < 5 || cropBoxRect.height < 5) {
+        var _arNoSel = window.CURRENT_LANG === 'ar';
+        alert(_arNoSel ? 'يرجى تحديد منطقة أولاً.' : 'Please select an area first.');
+        return;
+    }
+
+    const img = _previewImg();
+    const scaleX = img.naturalWidth / img.offsetWidth;
+    const scaleY = img.naturalHeight / img.offsetHeight;
+
+    const sx = cropBoxRect.left * scaleX;
+    const sy = cropBoxRect.top * scaleY;
+    const sw = cropBoxRect.width * scaleX;
+    const sh = cropBoxRect.height * scaleY;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = sw;
+    canvas.height = sh;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    const croppedImageBase64 = canvas.toDataURL('image/jpeg', 0.9);
+
+    var _ar = window.CURRENT_LANG === 'ar';
+
+    Swal.fire({
+        icon: 'info',
+        title: _ar ? 'تم تحديد القص!' : 'Crop Selected!',
+        text: _ar ? 'جاري المسح التلقائي لـ MRZ...' : 'Auto-scanning MRZ...',
+        timer: 1500,
+        showConfirmButton: false,
+        allowOutsideClick: false
+    });
+
+    // Note: the crop is sent directly to rescan_after_crop as OCR input only.
+    // The original image in the database is never modified.
+    setTimeout(() => {
+        cancelCropSelect();
+        rescanAfterCrop(croppedImageBase64);
+    }, 1500);
+}
+
+// ── Crop Image (permanent save) ──────────────────────────────────────────
+// Separate from "Crop Scan" above: this tool uses Cropper.js directly on
+// the preview image. Enter updates the on-screen preview to the cropped
+// result (not yet saved). The Submit button then POSTs that crop to
+// /update_reparse_image_ajax/<id>, which permanently overwrites the stored
+// original_image. Cancel discards the pending crop and restores the
+// original image if a preview swap already happened.
+let imageCropper = null;
+let imageCropActive = false;
+let pendingCroppedBase64 = null; // set on Enter, cleared once submitted/cancelled
+let preCropImageSrc = null;      // image src before entering crop mode, for restore on cancel
+
+function toggleImageCrop() {
+    if (imageCropActive) {
+        cancelImageCrop();
+        return;
+    }
+    // Don't allow overlapping with the OCR "Crop Scan" tool
+    if (cropSelectActive) {
+        cancelCropSelect();
+    }
+
+    const img = _previewImg();
+    if (!img) return;
+
+    imageCropActive = true;
+    pendingCroppedBase64 = null;
+    preCropImageSrc = img.src;
+
+    setToolRowActive('crop_image');
+    document.getElementById('crop_image_hint').style.display = 'block';
+
+    if (imageCropper) {
+        imageCropper.destroy();
+        imageCropper = null;
+    }
+    imageCropper = new Cropper(img, {
+        viewMode: 0,
+        dragMode: 'crop',
+        autoCrop: false,
+        zoomable: false,
+        aspectRatio: NaN,
+        background: false
+    });
+    img.style.cursor = 'crosshair';
+
+    document.addEventListener('keydown', _imageCropKeydownHandler);
+}
+
+function _imageCropKeydownHandler(e) {
+    if (!imageCropActive) return;
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        previewImageCrop();
+    } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelImageCrop();
+    }
+}
+
+// Enter: crop the current selection client-side and swap it into the
+// preview image so the user can see the result before submitting.
+function previewImageCrop() {
+    if (!imageCropper) return;
+    const canvas = imageCropper.getCroppedCanvas();
+    if (!canvas) {
+        var _arNoSel = window.CURRENT_LANG === 'ar';
+        Swal.fire({ icon: 'warning', title: _arNoSel ? 'يرجى تحديد منطقة أولاً.' : 'Please select an area first.', background: '#fff' });
+        return;
+    }
+    pendingCroppedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+
+    const img = _previewImg();
+    imageCropper.destroy();
+    imageCropper = null;
+
+    // Show the cropped preview (not yet saved to the server)
+    img.src = pendingCroppedBase64;
+
+    // Re-init Cropper on the new preview so the user can keep adjusting,
+    // still not saved until Submit is pressed.
+    img.onload = function () {
+        img.onload = null;
+        imageCropper = new Cropper(img, {
+            viewMode: 0,
+            dragMode: 'crop',
+            autoCrop: false,
+            zoomable: false,
+            aspectRatio: NaN,
+            background: false
+        });
+    };
+}
+
+function submitImageCrop() {
+    // If the user pressed Submit without pressing Enter first, crop now.
+    if (imageCropper) {
+        const canvas = imageCropper.getCroppedCanvas();
+        if (canvas) {
+            pendingCroppedBase64 = canvas.toDataURL('image/jpeg', 0.9);
+        }
+    }
+
+    if (!pendingCroppedBase64) {
+        var _arNoSel = window.CURRENT_LANG === 'ar';
+        Swal.fire({ icon: 'warning', title: _arNoSel ? 'يرجى تحديد منطقة أولاً.' : 'Please select an area first.', background: '#fff' });
+        return;
+    }
+
+    const submitBtn = document.getElementById('btn_crop_image_submit');
+    const originalHTML = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" style="width:0.75rem;height:0.75rem;border-width:2px;"></span>';
+
+    fetch(`{{ url_for('update_reparse_image_ajax', invalid_id=invalid_passport.id) }}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image_base64: pendingCroppedBase64 })
+    })
+    .then(r => r.json())
+    .then(data => {
+        var _ar = window.CURRENT_LANG === 'ar';
+        if (data.success) {
+            const img = _previewImg();
+            if (img) img.src = "data:image/jpeg;base64," + data.image_b64;
+            Swal.fire({ icon: 'success', title: _ar ? 'تم حفظ الصورة المقصوصة' : 'Cropped image saved', timer: 1200, showConfirmButton: false, background: '#fff' });
+            _finishImageCrop();
+        } else {
+            Swal.fire({ icon: 'error', title: _ar ? 'خطأ' : 'Error', text: data.message || (_ar ? 'تعذر حفظ الصورة المقصوصة.' : 'Could not save cropped image.'), background: '#fff' });
+        }
+    })
+    .catch(() => {
+        var _arN = window.CURRENT_LANG === 'ar';
+        Swal.fire({ icon: 'error', title: _arN ? 'خطأ في الشبكة' : 'Network Error', text: _arN ? 'تعذر الوصول إلى الخادم.' : 'Could not reach the server.', background: '#fff' });
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHTML;
+    });
+}
+
+function cancelImageCrop() {
+    const img = _previewImg();
+    if (img && preCropImageSrc) {
+        img.onload = null;
+        img.src = preCropImageSrc;
+    }
+    _finishImageCrop();
+}
+
+function _finishImageCrop() {
+    imageCropActive = false;
+    pendingCroppedBase64 = null;
+    preCropImageSrc = null;
+
+    if (imageCropper) {
+        imageCropper.destroy();
+        imageCropper = null;
+    }
+    const img = _previewImg();
+    if (img) img.style.cursor = '';
+
+    resetToolRow();
+    document.getElementById('crop_image_hint').style.display = 'none';
+
+    document.removeEventListener('keydown', _imageCropKeydownHandler);
+}
+</script>
+
+</body>
+</html>

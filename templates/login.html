@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Passport Manager</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --navy-deep:    #060f1e;
+            --navy-mid:     #112244;
+            --navy-light:   #1a3260;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --cream:        #faf8f4;
+            --white:        #ffffff;
+            --border-light: #e8e4dc;
+            --text-dark:    #0c1a30;
+            --text-muted:   #7a8fa8;
+            --danger-bg:    #fef2f2;
+            --danger:       #be2121;
+        }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--cream);
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            background-image: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.05) 0%, transparent 70%);
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 40px 32px;
+            box-shadow: 0 10px 30px rgba(12,26,48,0.08), 0 1px 4px rgba(12,26,48,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        }
+
+        .brand-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(201,168,76,0.3);
+            color: var(--white);
+        }
+
+        .login-title {
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 8px;
+        }
+        
+        .login-subtitle {
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .form-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group-text {
+            background: var(--cream);
+            border: 1.5px solid var(--border-light);
+            border-right: none;
+            color: var(--text-muted);
+            border-radius: 8px 0 0 8px;
+        }
+
+        .form-control {
+            padding: 12px 14px;
+            border: 1.5px solid var(--border-light);
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            background-color: var(--cream);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            background-color: var(--white);
+            border-color: var(--gold);
+            outline: 0;
+            box-shadow: none;
+        }
+
+        .input-group:focus-within .input-group-text {
+            border-color: var(--gold);
+            background-color: var(--white);
+            color: var(--gold);
+        }
+        #toggleLoginPassword:hover { color: var(--gold) !important; }
+        #toggleLoginPassword:hover i { color: var(--gold) !important; }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.5px;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(12,26,48,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background: linear-gradient(135deg, var(--navy-light), #1d4080);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(12,26,48,0.28);
+            color: white;
+        }
+
+        .alert-custom {
+            font-size: 0.85rem;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border: 1px solid transparent;
+        }
+        
+        .alert-danger {
+            background-color: var(--danger-bg);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        
+        .alert-success {
+            background-color: #edfaf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="login-wrapper">
+        <div class="card">
+            
+            <img style="width:150px;margin:auto;margin-bottom: 1em;" src="{{ url_for('static', filename='log-.png') }}" alt="Company Logo" class="img-fluid">
+            <p class="login-subtitle">Sign in to PasspoSys</p>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-custom alert-dismissible fade show">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" style="padding: 14px 16px; font-size: 0.7rem;"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+                <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+
+                {# ── Normal login step (OTP removed; host handles auth) ── #}
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control" placeholder="Enter username" required autofocus>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" name="password" id="loginPassword" class="form-control" placeholder="Enter password" required style="border-right: none;">
+                        <span class="input-group-text" id="toggleLoginPassword" style="cursor:pointer; border-left:none; background:var(--cream); border:1.5px solid var(--border-light); border-left:none; border-radius:0 8px 8px 0; transition:all 0.2s;">
+                            <i class="bi bi-eye" id="loginEyeIcon" style="color:var(--text-muted);"></i>
+                        </span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-login">
+                    Sign In <i class="bi bi-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Eye toggle for password field
+        const toggleBtn = document.getElementById('toggleLoginPassword');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function () {
+                const input = document.getElementById('loginPassword');
+                const icon  = document.getElementById('loginEyeIcon');
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.className = 'bi bi-eye-slash';
+                } else {
+                    input.type = 'password';
+                    icon.className = 'bi bi-eye';
+                }
+            });
+        }
+    </script>
+</html>

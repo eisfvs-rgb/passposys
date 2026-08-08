@@ -1,0 +1,3400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Passport Processing System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            color-scheme: light;
+            --navy-deep:    #060f1e;
+            --navy-dark:    #0c1a30;
+            --navy-mid:     #112244;
+            --navy-light:   #1a3260;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --gold-pale:    #f7edce;
+            --cream:        #faf8f4;
+            --white:        #ffffff;
+            --border-light: #e8e4dc;
+            --border-gold:  rgba(201,168,76,0.35);
+            --text-dark:    #0c1a30;
+            --text-mid:     #3d5275;
+            --text-muted:   #7a8fa8;
+            --success:      #0d7a55;
+            --success-bg:   #edfaf5;
+            --warning:      #b45309;
+            --warning-bg:   #fffbeb;
+            --danger:       #be2121;
+            --danger-bg:    #fef2f2;
+            --info-bg:      #eff6ff;
+            --sidebar-w:    260px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ═══════════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════════ */
+       .sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15);overflow: hidden; }
+        .sidebar-logo {
+    
+    margin: 20px auto;
+}
+        .sidebar-nav {
+    padding: 20px 0;
+    flex: 1; /* This pushes the user section to the bottom */
+    overflow-y: auto; /* Adds scrollbar only when items overflow */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,168,76,0.2) transparent;
+}
+        .nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+        .nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+        .nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+        .nav-link-item.active i { color: var(--gold); }
+        .nav-link-item.nav-warning { color: rgba(255,200,80,0.75); }
+        .nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+        .nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+        .nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+        .nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+        .nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+        .sidebar-user {
+    padding: 18px 28px;
+    border-top: 1px solid rgba(201,168,76,0.15);
+    background: inherit; /* Ensures it masks the scrolling nav behind it */
+    flex-shrink: 0; /* Prevents this section from squishing */
+}
+        .user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+        .user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+        .user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+        .sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: block; }
+        .user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+        .user-menu a:hover { background: rgba(255,80,80,0.1); }
+
+        /* ═══════════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════════ */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 40px 44px 60px;
+            max-width: calc(100% - var(--sidebar-w));
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .page-header-text {}
+
+        .page-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            line-height: 1.2;
+        }
+
+        .page-title span {
+            color: var(--gold);
+        }
+
+        .page-title span.title-plain {
+            color: var(--navy-dark);
+        }
+
+        /* ═══════════════════════════════════════
+           DASHBOARD GRID
+        ═══════════════════════════════════════ */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 28px 24px 50px; }
+        }
+
+        /* ═══════════════════════════════════════
+           CARDS
+        ═══════════════════════════════════════ */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 16px rgba(12,26,48,0.06), 0 1px 4px rgba(12,26,48,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--navy-mid), var(--navy-light));
+        }
+
+        .card.card-gold::before {
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        }
+
+        .card.card-success::before {
+            background: linear-gradient(90deg, #0d7a55, #34d399);
+        }
+
+        .card.card-warning::before {
+            background: linear-gradient(90deg, var(--warning), #fbbf24);
+        }
+/* Clean scrollbar styling for the defaults card */
+        .card.card-success::-webkit-scrollbar { width: 6px; }
+        .card.card-success::-webkit-scrollbar-track { background: transparent; margin: 12px 0; }
+        .card.card-success::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+        /* The defaults card clips overflow (for its rounded corners / top accent
+           bar), but the Group Name suggestion dropdown is an absolutely
+           positioned child that needs to extend past the card's bottom edge.
+           Allowing vertical overflow (while keeping horizontal clipped) lets
+           the rounded corners stay intact without cutting the dropdown off. */
+        .card.card-success {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        /* Card watermark */
+        .card-watermark {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 7rem;
+            opacity: 0.03;
+            color: var(--navy-deep);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 14px;
+            margin-bottom: 24px !important;
+            margin-top: 0 !important;
+        }
+
+        .section-title .title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .title-icon-blue { background: #eff6ff; color: #2563eb; }
+        .title-icon-green { background: #ecfdf5; color: #059669; }
+        .title-icon-amber { background: #fffbeb; color: #d97706; }
+
+        .section-subtitle {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-top: -18px;
+            margin-bottom: 24px;
+            
+        }
+
+        /* ═══════════════════════════════════════
+           FORM ELEMENTS
+        ═══════════════════════════════════════ */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width { grid-column: span 2; }
+
+        .form-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        select,
+        datalist,
+        option {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-light);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-dark) !important;
+            background-color: var(--cream) !important;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--gold);
+            outline: 0;
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px rgba(201,168,76,0.12);
+        }
+
+        /* ═══════════════════════════════════════
+           BUTTONS
+        ═══════════════════════════════════════ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(12,26,48,0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--navy-light), #1d4080);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(12,26,48,0.28);
+        }
+
+        .btn-primary:disabled {
+            background: #c5cdd8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy-deep);
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(201,168,76,0.3);
+            font-weight: 700;
+        }
+
+        .btn-gold:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(201,168,76,0.4);
+            filter: brightness(1.05);
+        }
+
+        .btn-gold:disabled {
+            background: #c5cdd8;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text-dark);
+            border: 1.5px solid var(--border-light);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cream);
+            border-color: var(--gold);
+            color: var(--navy-mid);
+        }
+
+        .btn-danger {
+            background: var(--white);
+            color: var(--danger);
+            border: 1.5px solid #fca5a5;
+        }
+        .btn-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        /* ═══════════════════════════════════════
+           UPLOAD AREA
+        ═══════════════════════════════════════ */
+        .upload-area {
+            border: 2px dashed var(--border-gold);
+            border-radius: 14px;
+            padding: 52px 30px;
+            text-align: center;
+            background: linear-gradient(145deg, #fdfcf7, #f8f4ea);
+            transition: all 0.25s ease;
+            margin-bottom: 20px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 100%, rgba(201,168,76,0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(145deg, #fdf8ec, #f5edcf);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201,168,76,0.08);
+        }
+
+        .upload-area input[type="file"] { display: none; }
+
+        .upload-icon-wrap {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            box-shadow: 0 8px 24px rgba(12,26,48,0.18);
+        }
+
+        .upload-icon-wrap i {
+            font-size: 1.8rem;
+            color: var(--gold-light);
+        }
+
+        .upload-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 6px;
+        }
+
+        .upload-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        #file-selection-info {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: var(--success-bg);
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* ═══════════════════════════════════════
+           ALERTS
+        ═══════════════════════════════════════ */
+        .alert {
+            padding: 16px 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            border: 1.5px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+        .alert-danger {
+            background: var(--danger-bg);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        .alert-warning {
+            background: var(--warning-bg);
+            border-color: #fde68a;
+            color: #92400e;
+        }
+        .alert-info {
+            background: var(--info-bg);
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .alert h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert ul { margin: 0; padding-left: 22px; font-size: 0.88rem; }
+        .alert li { margin-bottom: 4px; }
+
+        /* MRZ font */
+        .mrz-display {
+            background: var(--navy-deep);
+            color: #a8d8a8;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 22px;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            line-height: 1.8;
+            border: 1px solid rgba(201,168,76,0.2);
+            overflow-x: auto;
+        }
+
+        /* ═══════════════════════════════════════
+           LOADING OVERLAY
+        ═══════════════════════════════════════ */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.88);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 0;
+            overflow-y: auto;
+        }
+
+        /* ── Passport scanner animation (replaces icon + spinner) ── */
+        .scanner {
+            position: relative;
+            width: 110px;
+            height: 110px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .scanner img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Glowing scan line sweeps top-to-bottom over the always-visible image */
+        .scanner::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--gold);
+            box-shadow: 0 0 14px rgba(201,168,76,0.9), 0 0 4px #fff;
+            animation: scanLine 2.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes scanLine {
+            from { top: 0; }
+            to   { top: calc(100% - 3px); }
+        }
+
+        .loading-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--white);
+            text-align: center;
+        }
+
+        .loading-subtext {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.45);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* ── Progress bar shimmer (always running, proves page is alive) ── */
+        @keyframes barShimmer {
+            0%   { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+        #progress-bar-fill {
+            background: linear-gradient(
+                90deg,
+                var(--gold) 0%,
+                var(--gold-light) 38%,
+                #fffbe8 50%,
+                var(--gold-light) 62%,
+                var(--gold) 100%
+            ) !important;
+            background-size: 200% auto !important;
+            animation: barShimmer 2.4s linear infinite;
+        }
+
+        /* ── Heartbeat dot (pulses independently on every poll) ── */
+        @keyframes hbPulse {
+            0%, 100% { transform: scale(1);   opacity: 0.5; }
+            50%       { transform: scale(1.7); opacity: 1;   }
+        }
+        .hb-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--gold);
+            animation: hbPulse 1.5s ease-in-out infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+            flex-shrink: 0;
+        }
+
+        /* ── Elapsed timer — always ticking, proves the page is alive ── */
+        #elapsed-timer {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.28);
+            text-align: center;
+            letter-spacing: 0.3px;
+            margin-top: -10px;
+        }
+        #elapsed-timer span {
+            color: rgba(201,168,76,0.7);
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── "Do not refresh" warning ── */
+        #no-refresh-warn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            background: rgba(190,33,33,0.18);
+            border: 1.5px solid rgba(248,113,113,0.35);
+            font-size: 0.74rem;
+            color: #fca5a5;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+            pointer-events: none;
+        }
+        #no-refresh-warn.visible { opacity: 1; pointer-events: auto; }
+        #no-refresh-warn i { font-size: 0.85rem; flex-shrink: 0; }
+
+        /* ── Stall message (fades in when bar freezes) ── */
+        #stall-msg {
+            font-size: 0.70rem;
+            color: rgba(255,255,255,0.45);
+            text-align: center;
+            white-space: nowrap;
+            margin-top: -4px;
+            opacity: 0;
+            transition: opacity 0.7s ease;
+            font-style: italic;
+            letter-spacing: 0.2px;
+        }
+        #stall-msg.visible { opacity: 1; }
+
+        /* ═══════════════════════════════════════
+           STATS MODAL
+        ═══════════════════════════════════════ */
+        .stats-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 44px 52px 40px;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,168,76,0.15);
+            width: 550px;
+            animation: modalIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.82) translateY(20px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        #stats-close-icon {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        #stats-close-icon:hover { color: var(--danger); }
+
+        .modal-check {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid #a7f3d0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin: 0 auto 18px;
+        }
+
+        .stats-modal h3 {
+            font-family: 'Playfair Display', serif;
+            margin: 0 0 6px;
+            font-size: 1.4rem;
+            color: var(--navy-dark);
+        }
+
+        .stats-modal .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            flex: 1;
+            padding: 18px 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid transparent;
+        }
+
+        .stat-card.processed {
+            background: var(--success-bg);
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        .stat-card.duplicates {
+            background: var(--info-bg);
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .stat-card.invalid {
+            background: var(--danger-bg);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .stat-card .stat-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.8;
+        }
+
+        /* ═══════════════════════════════════════
+           DROPDOWN
+        ═══════════════════════════════════════ */
+        .dropdown-hover { position: relative; }
+
+        .dropdown-hover .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            left: auto;
+            top: 100%;
+            z-index: 1050;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .dropdown-hover:hover .dropdown-menu,
+        .dropdown-hover:focus-within .dropdown-menu { display: block; }
+
+        .logout-item:hover {
+            background-color: var(--danger-bg) !important;
+            color: #b91c1c !important;
+        }
+
+        /* ═══════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            /* sidebar stays in DOM — hidden via transform, NOT display:none */
+            .main-content { margin-left: 0; max-width: 100%; padding: 20px 16px 40px; }
+        }
+
+        /* ═══════════════════════════════════════
+           ENTRY ANIMATIONS
+        ═══════════════════════════════════════ */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        .fade-up:nth-child(1) { animation-delay: 0.05s; }
+        .fade-up:nth-child(2) { animation-delay: 0.12s; }
+        .fade-up:nth-child(3) { animation-delay: 0.19s; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+
+        /* Sidebar slide transition — desktop & mobile */
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Desktop: collapsed state */
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        /* Nav scroll when content overflows */
+        .sidebar-nav {
+            overflow-y: auto;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201,168,76,0.2) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+
+        /* ── Toggle button ──
+           Desktop: fixed, sits flush on RIGHT edge of sidebar when open,
+                    moves to left:0 when sidebar is collapsed.
+           Mobile:  always top-left corner.
+        ────────────────────────────────────── */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 5px;
+            left: 0;
+            z-index: 500;
+            width: 36px;
+            height: 36px;
+            background: var(--navy-mid);
+            border: 1px solid rgba(201,168,76,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gold);
+            font-size: 1.1rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--navy-light);
+            color: var(--gold-light);
+        }
+        /* When sidebar is OPEN → button hugs its right edge */
+        .sidebar-toggle-btn.sidebar-open {
+            left: 220px;
+            top: 5px;
+            border-radius: 0;
+            border: 1px solid rgba(201,168,76,0.3);
+        }
+
+        /* ── Dark overlay (mobile only) ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.7);
+            z-index: 300;
+            backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* Main content slides with sidebar on desktop */
+        .main-content {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.sidebar-collapsed {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* User menu: click-only (hover disabled) */
+        .sidebar-user:hover .user-menu,
+        .sidebar-user:focus-within .user-menu { display: none; }
+        .user-menu.open { display: block !important; }
+
+        /* ══════════════════════════════════════
+           MOBILE  ≤ 768px
+        ══════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Sidebar is a full-height drawer — always in DOM, off-screen by default */
+            .sidebar {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 0; left: 0;
+                width: 260px;
+                height: 100vh;
+                min-height: 100vh;
+                transform: translateX(-260px);
+                z-index: 400;
+                overflow: hidden;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+                box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+            }
+            /* Desktop collapsed class must not interfere */
+            .sidebar.collapsed { transform: translateX(-260px); }
+
+            /* Nav area fills available space and scrolls if needed */
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                max-height: none;
+            }
+
+            /* Main content: full width, no margin */
+            .main-content,
+            .main-content.sidebar-collapsed {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding-top: 56px !important;
+            }
+
+            /* Toggle btn: always top-left, small, rounded */
+            .sidebar-toggle-btn,
+            .sidebar-toggle-btn.sidebar-open {
+                left: 10px !important;
+                top: 10px !important;
+                width: 34px;
+                height: 34px;
+                border-radius: 8px !important;
+                border: 1px solid rgba(201,168,76,0.35) !important;
+                border-left: 1px solid rgba(201,168,76,0.35) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+
+        /* ══ JINIX-STYLE CALENDAR PICKER (matches edit.html) ══ */
+        .cal-wrapper { position: relative; display: contents; }
+        .cal-popup {
+            display: none; position: absolute; z-index: 9999;
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 8px 40px rgba(6,15,30,0.22), 0 2px 12px rgba(6,15,30,0.12);
+            border: 1px solid rgba(201,168,76,0.18);
+            width: 300px; overflow: hidden;
+            top: calc(100% + 6px); left: 0;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .cal-popup.cal-open { display: block; animation: calFadeIn 0.15s ease; }
+        @keyframes calFadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+
+        .cal-header {
+            background: var(--navy-deep);
+            background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.1) 0%, transparent 60%);
+            padding: 12px 14px 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(201,168,76,0.18);
+        }
+        .cal-nav-btn {
+            background: none; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.7); font-size: 1.1rem;
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .cal-nav-btn:hover { background: rgba(201,168,76,0.18); color: var(--gold); }
+        .cal-header-selects { display: flex; gap: 6px; align-items: center; }
+        .cal-month-sel, .cal-year-sel {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(201,168,76,0.25);
+            color: #fff; font-size: 0.85rem; font-weight: 600;
+            border-radius: 6px; padding: 4px 8px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            appearance: none; -webkit-appearance: none;
+        }
+        .cal-month-sel { min-width: 96px; }
+        .cal-year-sel { min-width: 64px; }
+        .cal-month-sel:focus, .cal-year-sel:focus { outline: none; border-color: var(--gold); }
+        .cal-month-sel option, .cal-year-sel option { background: var(--navy-dark); color: #fff; }
+
+        .cal-grid { padding: 10px 10px 12px; }
+        .cal-dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+        .cal-dow { text-align: center; font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted); padding: 4px 0; }
+        .cal-days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .cal-day {
+            text-align: center; padding: 6px 2px; font-size: 0.82rem;
+            border-radius: 50%; cursor: pointer; color: var(--text-dark);
+            transition: all 0.12s; aspect-ratio: 1; display: flex;
+            align-items: center; justify-content: center; font-weight: 500;
+        }
+        .cal-day:hover:not(.cal-empty):not(.cal-other-month) { background: rgba(201,168,76,0.15); color: var(--navy-dark); }
+        .cal-day.cal-empty { cursor: default; }
+        .cal-day.cal-other-month { color: #ccc; cursor: pointer; }
+        .cal-day.cal-other-month:hover { background: rgba(201,168,76,0.08); color: #aaa; }
+        .cal-day.cal-today {
+            background: var(--gold); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+        }
+        .cal-day.cal-today:hover { background: var(--gold-light); }
+        .cal-day.cal-selected {
+            background: var(--navy-dark); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(12,26,48,0.25);
+        }
+        .cal-day.cal-selected.cal-today { background: var(--gold); }
+
+        .cal-footer { padding: 8px 14px 10px; border-top: 1px solid var(--border-light);
+            display: flex; justify-content: flex-end; gap: 8px; }
+        .cal-btn-today { background: none; border: 1px solid var(--gold); color: var(--gold);
+            font-size: 0.75rem; font-weight: 600; border-radius: 6px; padding: 4px 12px;
+            cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .cal-btn-today:hover { background: var(--gold); color: #fff; }
+        .cal-btn-clear { background: none; border: 1px solid var(--border-light); color: var(--text-muted);
+            font-size: 0.75rem; font-weight: 600; border-radius: 6px; padding: 4px 12px;
+            cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .cal-btn-clear:hover { border-color: var(--danger); color: var(--danger); }
+
+        </style>
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════
+         STATS MODAL
+    ═══════════════════════════════════════ -->
+   <div class="stats-overlay" id="stats-overlay">
+        <div class="stats-modal">
+            <button id="stats-close-icon" title="Close"><i class="bi bi-x-lg"></i></button>
+
+            <div class="modal-check">✅</div>
+            <h3 data-en="Processing Complete" data-ar="اكتملت المعالجة">Processing Complete</h3>
+            <p class="subtitle" data-en="Here's a summary of the uploaded passport data." data-ar="إليك ملخص لبيانات جواز السفر المرفوعة.">Here's a summary of the uploaded passport data.</p>
+
+            <div class="stats-cards">
+                <div class="stat-card processed">
+                    <div class="stat-num num" id="stat-processed">0</div>
+                    <div class="stat-label" data-en="Processed" data-ar="تمت المعالجة">Processed</div>
+                </div>
+                <div class="stat-card duplicates">
+                    <div class="stat-num num" id="stat-duplicates">0</div>
+                    <div class="stat-label" data-en="Duplicates" data-ar="المكررة">Duplicates</div>
+                </div>
+                <div class="stat-card invalid">
+                    <div class="stat-num num" id="stat-invalid">0</div>
+                    <div class="stat-label" data-en="Invalid" data-ar="غير صالح">Invalid</div>
+                </div>
+            </div>
+
+            <div style="background:#f0f4ff; border:1.5px solid #c7d2fe; border-radius:10px; padding:12px 14px; margin-bottom:20px; text-align:left;">
+                <p style="margin:0; font-size:0.78rem; color:#3730a3; line-height:1.55;">
+                    <strong data-en="Note *" data-ar="ملاحظة *">Note *</strong> — <span data-en="Data is extracted using AI and may contain errors. Please review and verify all extracted information before use." data-ar="يتم استخراج البيانات باستخدام الذكاء الاصطناعي وقد تحتوي على أخطاء. يرجى مراجعة والتحقق من جميع المعلومات المستخرجة قبل الاستخدام.">Data is extracted using AI and may contain errors.
+                    Please review and verify all extracted information before use.</span>
+                </p>
+            </div>
+
+            <div id="stats-skipped-container" style="display:none; text-align: left; background: var(--warning-bg); border: 1.5px solid #fde68a; border-radius: 10px; padding: 14px; margin-bottom: 24px; color: #92400e;">
+                <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 6px;"><i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Upload Interrupted (0 Bytes)" data-ar="تمت مقاطعة الرفع (0 بايت)">Upload Interrupted (0 Bytes)</span></div>
+                <div style="font-size: 0.8rem; margin-bottom: 6px;" data-en="The following files were dropped by the browser during transfer. Please re-upload them:" data-ar="تم إسقاط الملفات التالية بواسطة المتصفح أثناء النقل. يرجى إعادة رفعها:">The following files were dropped by the browser during transfer. Please re-upload them:</div>
+                <ul id="stats-skipped-list" style="margin: 0; padding-left: 24px; font-size: 0.85rem; font-family: var(--mono); font-weight: 600;"></ul>
+            </div>
+
+            <button id="stats-close-btn" class="btn btn-gold btn-lg" style="font-size:0.9rem;">
+                <span data-en="Continue" data-ar="متابعة">Continue</span>&nbsp;<i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+    <!-- ═══════════════════════════════════════
+         LOADING OVERLAY
+    ═══════════════════════════════════════ -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="scanner">
+            <img src="{{ url_for('static', filename='loader.png') }}" alt="Scanning passport">
+        </div>
+        <div id="loading-title" class="loading-text"
+             data-en="Processing Passports" data-ar="معالجة جوازات السفر">Processing Passports</div>
+        <div id="part-indicator" style="font-size:0.82rem;color:var(--gold);font-weight:700;text-align:center;letter-spacing:0.8px;min-height:1.3em;margin-top:-10px;"></div>
+        <div id="loading-subtitle" class="loading-subtext"
+             data-en="Extracting &amp; validating passport data — please do not close this page."
+             data-ar="جاري استخراج والتحقق من بيانات جواز السفر — يرجى عدم إغلاق هذه الصفحة.">Extracting &amp; validating passport data — please do not close this page.</div>
+
+        <!-- Phase Steps -->
+        <div id="phase-steps" style="display:flex;align-items:center;gap:0;width:340px;max-width:92vw;margin-bottom:8px;">
+
+            <!-- Step 1: Uploading -->
+            <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                <div id="phase-dot-1" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:rgba(255,255,255,0.3);transition:all 0.4s ease;position:relative;z-index:1;">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                </div>
+                <div id="phase-label-1" style="font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.25);margin-top:5px;transition:color 0.4s ease;text-align:center;"
+                     data-en="Upload" data-ar="رفع">Upload</div>
+            </div>
+
+            <!-- Connector line 1→2 -->
+            <div style="flex:1;height:2px;background:rgba(255,255,255,0.08);margin-bottom:18px;position:relative;overflow:hidden;">
+                <div id="phase-line-1" style="position:absolute;top:0;left:0;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 0.6s ease;"></div>
+            </div>
+
+            <!-- Step 2: Scan [Phase 2] stacked -->
+            <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                <div id="phase-dot-2" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:rgba(255,255,255,0.3);transition:all 0.4s ease;position:relative;z-index:1;">
+                    <i class="bi bi-layers"></i>
+                </div>
+                <div id="phase-label-2" style="font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.25);margin-top:5px;transition:color 0.4s ease;text-align:center;"
+                     data-en="Scanning" data-ar="المسح الضوئي">Scanning</div>
+            </div>
+
+            <!-- Connector line 2→3 -->
+            <div style="flex:1;height:2px;background:rgba(255,255,255,0.08);margin-bottom:18px;position:relative;overflow:hidden;">
+                <div id="phase-line-2" style="position:absolute;top:0;left:0;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 0.6s ease;"></div>
+            </div>
+
+            <!-- Step 3: Scan [Phase 3] stacked -->
+            <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                <div id="phase-dot-3" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:rgba(255,255,255,0.3);transition:all 0.4s ease;position:relative;z-index:1;">
+                    <i class="bi bi-layers-half"></i>
+                </div>
+                <div id="phase-label-3" style="font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.25);margin-top:5px;transition:color 0.4s ease;text-align:center;"
+                     data-en="Extracting" data-ar="الاستخراج">Extracting</div>
+            </div>
+
+            <!-- Connector line 3→4 -->
+            <div style="flex:1;height:2px;background:rgba(255,255,255,0.08);margin-bottom:18px;position:relative;overflow:hidden;">
+                <div id="phase-line-3" style="position:absolute;top:0;left:0;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 0.6s ease;"></div>
+            </div>
+
+            <!-- Step 4: Scan [Phase 4] individual -->
+            <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                <div id="phase-dot-4" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:rgba(255,255,255,0.3);transition:all 0.4s ease;position:relative;z-index:1;">
+                    <i class="bi bi-search"></i>
+                </div>
+                <div id="phase-label-4" style="font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.25);margin-top:5px;transition:color 0.4s ease;text-align:center;"
+                     data-en="Reviewing" data-ar="المراجعة">Reviewing</div>
+            </div>
+
+            <!-- Connector line 4→5 -->
+            <div style="flex:1;height:2px;background:rgba(255,255,255,0.08);margin-bottom:18px;position:relative;overflow:hidden;">
+                <div id="phase-line-4" style="position:absolute;top:0;left:0;height:100%;width:0%;background:linear-gradient(90deg,var(--gold),var(--gold-light));transition:width 0.6s ease;"></div>
+            </div>
+
+            <!-- Step 5: Saving -->
+            <div style="display:flex;flex-direction:column;align-items:center;flex:1;">
+                <div id="phase-dot-5" style="width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.08);border:2px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:0.75rem;color:rgba(255,255,255,0.3);transition:all 0.4s ease;position:relative;z-index:1;">
+                    <i class="bi bi-database-check"></i>
+                </div>
+                <div id="phase-label-5" style="font-size:0.55rem;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:rgba(255,255,255,0.25);margin-top:5px;transition:color 0.4s ease;text-align:center;"
+                     data-en="Save" data-ar="حفظ">Save</div>
+            </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="width:320px;max-width:90vw;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="display:flex;align-items:center;">
+                    <span class="hb-dot"></span>
+                    <span id="progress-label"
+                          data-en="Preparing..." data-ar="جارٍ التحضير..."
+                          style="font-size:0.78rem;color:rgba(255,255,255,0.5);">Preparing...</span>
+                </span>
+                <span id="progress-pct" class="num" style="font-size:0.78rem;color:var(--gold);font-weight:700;">0%</span>
+            </div>
+            <div style="background:rgba(255,255,255,0.08);border-radius:100px;height:6px;overflow:hidden;">
+                <div id="progress-bar-fill" style="height:100%;width:0%;border-radius:100px;transition:width 0.4s ease;"></div>
+            </div>
+        </div>
+
+        <!-- Elapsed timer — always counting, proves the page is alive -->
+        <div id="elapsed-timer"><span data-en="Running for" data-ar="قيد التشغيل لمدة">Running for</span> <span id="elapsed-sec" class="num">0s</span></div>
+
+        <!-- Stall message — fades in when bar hasn't moved for 4 s -->
+        <div id="stall-msg"></div>
+
+        <!-- Do-not-refresh warning — fades in after 10 s -->
+        <div id="no-refresh-warn">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span data-en="Do not refresh — processing is still running in the background."
+                  data-ar="لا تقم بتحديث الصفحة — المعالجة لا تزال قيد التشغيل في الخلفية.">
+                Do not refresh — processing is still running in the background.
+            </span>
+        </div>
+
+        <!-- Live stat counters -->
+        <div style="display:flex;gap:16px;margin-top:2px;">
+            <div style="text-align:center;">
+                <div id="live-success" class="num" style="font-size:1.3rem;font-weight:800;color:#34d399;line-height:1;">0</div>
+                <div id="label-success"
+                     data-en="Success" data-ar="ناجح"
+                     style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.35);margin-top:3px;">Success</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,0.08);"></div>
+            <div style="text-align:center;">
+                <div id="live-invalid" class="num" style="font-size:1.3rem;font-weight:800;color:#f87171;line-height:1;">0</div>
+                <div id="label-invalid"
+                     data-en="Invalid" data-ar="غير صالح"
+                     style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.35);margin-top:3px;">Invalid</div>
+            </div>
+            <div style="width:1px;background:rgba(255,255,255,0.08);"></div>
+            <div style="text-align:center;">
+                <div id="live-duplicate" class="num" style="font-size:1.3rem;font-weight:800;color:#fbbf24;line-height:1;">0</div>
+                <div id="label-duplicate"
+                     data-en="Duplicate" data-ar="مكرر"
+                     style="font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.35);margin-top:3px;">Duplicate</div>
+            </div>
+        </div>
+
+        <!-- ── Live quota warning banner (shown during processing) ── -->
+        <div id="quota-warn-banner" style="display:none;margin-top:18px;width:320px;max-width:90vw;
+             border-radius:10px;padding:12px 16px;font-size:0.82rem;line-height:1.5;text-align:center;">
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
+         SIDEBAR
+    ═══════════════════════════════════════ -->
+        <!-- ═══════════════════════════════════════
+         MAIN CONTENT
+    ═══════════════════════════════════════ -->
+    <div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+<main class="main-content">
+
+        <div class="page-header fade-up">
+            <div class="page-header-text">
+                <div class="page-eyebrow" data-en="Operations Center" data-ar="مركز العمليات">Operations Center</div>
+                <h1 class="page-title"><span class="title-plain" data-en="Passport" data-ar="جواز السفر">Passport</span> <span data-en="Processing" data-ar="المعالجة">Processing</span></h1>
+            </div>
+            {% if plan_summary is defined and plan_summary.get('is_admin_user') %}
+            <div style="text-align:right;">
+                <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.8px;color:#7a8fa8;font-weight:700;margin-bottom:4px;" data-en="Today's Uploads" data-ar="مرفوعات اليوم">Today's Uploads</div>
+                <div style="font-size:1.8rem; font-weight:800; line-height:1; color:#0c1a30;">
+                    <span class="num">{{ plan_summary.daily_used | int }}</span>
+                </div>
+                <div style="font-size:0.75rem;color:#7a8fa8;">
+                    <span style="background:#c9a84c;color:white;padding:1px 8px;border-radius:10px;font-size:0.68rem;font-weight:700;">
+                        <i class="bi bi-shield-fill-check me-1"></i><span data-en="Admin — Unlimited" data-ar="مسؤول — غير محدود">Admin — Unlimited</span>
+                    </span>
+                </div>
+            </div>
+            {% elif plan_summary is defined and plan_summary.limit %}
+            <div style="text-align:right;">
+                <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.8px;color:#7a8fa8;font-weight:700;margin-bottom:4px;" data-en="Remaining" data-ar="المتبقي">Remaining</div>
+                {%- set usage_pct = plan_summary.usage_pct | default(0) %}
+                {%- if plan_summary.is_over_limit %}
+                  {%- set _rem_color = '#be2121' %}
+                  {%- set _rem_bg = 'rgba(190,33,33,0.08)' %}
+                {%- elif usage_pct >= 90 %}
+                  {%- set _rem_color = '#b45309' %}
+                  {%- set _rem_bg = 'rgba(180,83,9,0.08)' %}
+                {%- elif usage_pct >= 50 %}
+                  {%- set _rem_color = '#0369a1' %}
+                  {%- set _rem_bg = 'rgba(3,105,161,0.08)' %}
+                {%- else %}
+                  {%- set _rem_color = '#0d7a55' %}
+                  {%- set _rem_bg = 'transparent' %}
+                {%- endif %}
+                <div style="font-size:1.8rem; font-weight:800; line-height:1; color: {{ _rem_color }}; background:{{ _rem_bg }}; padding:2px 8px; border-radius:8px; display:inline-block;">
+                    <span class="num">{{ plan_summary.remaining | int }}</span>
+                </div>
+                <div style="font-size:0.75rem;color:#7a8fa8;margin-top:2px;"><span data-en="of" data-ar="من">of</span> <span class="num">{{ plan_summary.limit | int }}</span> <span data-en="passports" data-ar="جوازات سفر">passports</span></div>
+                <div style="font-size:0.7rem;color:{{ _rem_color }};font-weight:600;margin-top:2px;"><span class="num">{{ usage_pct | int }}</span><span data-en="% used" data-ar="% مستخدم">% used</span></div>
+                {% if plan_summary.is_over_limit %}
+                <a href="{{ url_for('account') }}" style="font-size:0.72rem;color:#be2121;text-decoration:none;font-weight:600;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i><span data-en="Over limit" data-ar="تجاوز الحد">Over limit</span>
+                </a>
+                {% endif %}
+            </div>
+            {% elif plan_summary is defined and plan_summary.plan in ('trial','rate') %}
+            <div style="text-align:right;">
+                <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.8px;color:#7a8fa8;font-weight:700;margin-bottom:4px;" data-en="This Month" data-ar="هذا الشهر">This Month</div>
+                <div style="font-size:1.8rem; font-weight:800; line-height:1; color:#0c1a30;">
+                    <span class="num">{{ plan_summary.monthly_used | int }}</span>
+                </div>
+                <div style="font-size:0.75rem;color:#7a8fa8;"><span class="num">{{ plan_summary.rate_total | round(2) }}</span> SAR due</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, msg in messages %}
+              {% if category == 'limit_exceeded' %}
+              <div class="fade-up" style="background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:16px 20px;margin-bottom:14px;color:#991b1b;font-size:0.9rem;">
+                  <strong>{{ msg }}</strong>
+              </div>
+              {% elif category == 'limit_critical' %}
+              <div class="fade-up" style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:16px 20px;margin-bottom:14px;color:#92400e;font-size:0.9rem;">
+                  <strong>{{ msg }}</strong>
+              </div>
+              {% elif category == 'limit_warning' %}
+              <div class="fade-up" style="background:#eff6ff;border:1.5px solid #93c5fd;border-radius:12px;padding:16px 20px;margin-bottom:14px;color:#1e40af;font-size:0.9rem;">
+                  {{ msg }}
+              </div>
+              {% else %}
+              <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} fade-up">
+                  <h4>{{ '✅' if category == 'success' else '❌' }}&nbsp; <span data-en="System Message" data-ar="رسالة النظام">System Message</span></h4>
+                  {{ msg }}
+              </div>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% if upload_quota_trimmed %}
+        <div class="fade-up" style="background:#fffbeb;border:1.5px solid #fcd34d;border-radius:12px;padding:16px 20px;margin-bottom:14px;color:#92400e;font-size:0.9rem;">
+            <strong
+                data-en="⚠️ Upload Limit Applied:"
+                data-ar="⚠️ تم تطبيق حد الرفع:">⚠️ Upload Limit Applied:</strong>
+            <span
+                data-en="You selected more images than your remaining quota allows. Only the first {{ upload_quota_trimmed_count }} image(s) were processed. Please contact your administrator to increase your limit."
+                data-ar="لقد اخترت عدد صور أكثر مما تسمح به حصتك المتبقية. تمت معالجة أول {{ upload_quota_trimmed_count }} صورة فقط. يرجى التواصل مع المشرف لزيادة الحد.">
+                You selected more images than your remaining quota allows.
+                Only the first {{ upload_quota_trimmed_count }} image(s) were processed.
+                Please contact your administrator to increase your limit.
+            </span>
+        </div>
+        {% endif %}
+<!---->
+        {% if progress and progress.total > 0 %}
+        <div style="display: none;" class="alert alert-info fade-up">
+            <h4><i class="bi bi-hourglass-split"></i>&nbsp; <span data-en="Processing Engine Active" data-ar="محرك المعالجة نشط">Processing Engine Active</span></h4>
+            <span data-en="Currently scanning:" data-ar="جاري المسح الآن:">Currently scanning:</span> <span class="num">{{ progress.current }}</span> / <span class="num">{{ progress.total }}</span> <span data-en="files..." data-ar="ملفات...">files...</span>
+        </div>
+        {% endif %}
+
+        {% if summary %}
+        <div class="alert alert-success fade-up">
+            <h4><i class="bi bi-bar-chart-fill"></i>&nbsp; <span data-en="Processing Summary" data-ar="ملخص المعالجة">Processing Summary</span></h4>
+            <ul>
+                {% for msg in summary %}
+                <li>{{ msg }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if duplicates %}
+        <div class="alert alert-info fade-up">
+            <h4><i class="bi bi-files"></i>&nbsp; <span data-en="Duplicate Passports Skipped" data-ar="تم تخطي جوازات السفر المكررة">Duplicate Passports Skipped</span></h4>
+            <ul>
+                {% for dup in duplicates %}
+                <li><strong>{{ dup.passport_number }}</strong> (<span data-en="File:" data-ar="الملف:">File:</span> {{ dup.filename }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if errors %}
+        <div class="alert alert-danger fade-up">
+            <h4><i class="bi bi-x-circle-fill"></i>&nbsp; <span data-en="Invalid Passport Records" data-ar="سجلات جواز سفر غير صالحة">Invalid Passport Records</span></h4>
+            <p style="margin:0; font-size: 0.9rem;">
+                <strong><span class="num">{{ errors|length }}</span></strong> <span data-en="passport(s) could not be processed." data-ar="جوازات سفر لم يتم معالجتها.">passport(s) could not be processed.</span>
+                <a href="{{ url_for('view_invalid_passports') }}" style="color: inherit; font-weight: 700;" data-en="View &amp; Fix Invalid Passports →" data-ar="عرض وإصلاح جوازات السفر غير الصالحة ←">View &amp; Fix Invalid Passports →</a>
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- MRZ Correction -->
+        {% if pending_correction %}
+        <div class="card card-warning fade-up" style="margin-bottom: 28px;">
+            <h2 class="section-title">
+                <span class="title-icon title-icon-amber"><i class="bi bi-pencil-square"></i></span>
+                <span data-en="MRZ Correction Required" data-ar="مطلوب تصحيح MRZ">MRZ Correction Required</span>
+            </h2>
+            <p class="section-subtitle" style="padding-left:0;">
+                <strong data-en="File:" data-ar="الملف:">File:</strong> {{ pending_correction.filename }}
+            </p>
+
+            <div class="mrz-display">{{ pending_correction.mrz_text }}</div>
+
+            <form method="POST" action="/correct" enctype="multipart/form-data">
+                <input type="hidden" name="filename" value="{{ pending_correction.filename }}">
+                <input type="hidden" name="mrz_edit" value="{{ pending_correction.mrz_text }}">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" data-en="Doc Type" data-ar="نوع المستند">Doc Type</label>
+                        <input type="text" name="doc_type" value="{{ pending_correction.parsed.doc_type }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Country" data-ar="البلد">Country</label>
+                        <input type="text" name="country" value="{{ pending_correction.parsed.country }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Surname" data-ar="اسم العائلة">Surname</label>
+                        <input type="text" name="surname" value="{{ pending_correction.parsed.surname }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Given Names" data-ar="الأسماء الأولى">Given Names</label>
+                        <input type="text" name="given_names" value="{{ pending_correction.parsed.given_names }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Middle Name" data-ar="الاسم الأوسط">Middle Name</label>
+                        <input type="text" name="middle_name" value="{{ pending_correction.parsed.middle_name }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" data-en="Passport Number" data-ar="رقم جواز السفر">Passport Number</label>
+                        <input type="text" name="passport_number" value="{{ pending_correction.parsed.passport_number }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Nationality" data-ar="الجنسية">Nationality</label>
+                        <input type="text" name="nationality" value="{{ pending_correction.parsed.nationality }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Date of Birth (YYYY-MM-DD)" data-ar="تاريخ الميلاد (YYYY-MM-DD)">Date of Birth (YYYY-MM-DD)</label>
+                        <input type="text" name="dob" value="{{ pending_correction.parsed.dob }}" placeholder="YYYY-MM-DD" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Sex" data-ar="الجنس">Sex</label>
+                        <input type="text" name="sex" value="{{ pending_correction.parsed.sex }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" data-en="Expiry Date (YYYY-MM-DD)" data-ar="تاريخ الانتهاء (YYYY-MM-DD)">Expiry Date (YYYY-MM-DD)</label>
+                        <input type="text" name="expiry" value="{{ pending_correction.parsed.expiry }}" placeholder="YYYY-MM-DD" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                    <button type="submit" name="action" value="reparse" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> <span data-en="Validate &amp; Correct" data-ar="تحقق وصحح">Validate &amp; Correct</span>
+                    </button>
+                    <button type="submit" formaction="/skip" class="btn btn-danger">
+                        <i class="bi bi-skip-forward"></i> <span data-en="Skip File" data-ar="تخطي الملف">Skip File</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+
+            <!-- Upload Card -->
+            <div class="card card-gold fade-up">
+                <span class="card-watermark"><i class="bi bi-cloud-upload"></i></span>
+                <h2 class="section-title">
+                    <span class="title-icon title-icon-blue"><i class="bi bi-cloud-arrow-up"></i></span>
+                    <span data-en="Upload Passports" data-ar="رفع جوازات السفر">Upload Passports</span>
+                </h2>
+
+                <form id="main-upload-form" action="/" method="POST" enctype="multipart/form-data">
+
+                    <div class="upload-area" id="upload-drop-area" onclick="document.getElementById('images').click()">
+                        <div class="upload-icon-wrap">
+                            <i class="bi bi-images"></i>
+                        </div>
+                        <div class="upload-title" data-en="Click or Drag to Select Images" data-ar="انقر أو اسحب لتحديد الصور">Click or Drag to Select Images</div>
+                        <p class="upload-sub" style="margin-bottom: 0;" data-en="Supports JPG, PNG, and standard formats" data-ar="يدعم JPG، PNG، والتنسيقات القياسية">Supports JPG, PNG, and standard formats</p>
+
+                        <input type="file" id="images" name="images" multiple accept="image/*" required>
+                        <div id="file-selection-info"></div>
+                        <div id="emergency-upload-wrap"
+                             style="display:none; margin-top:10px; padding:8px 14px; border:1.5px solid rgba(190,33,33,0.35); border-radius:8px; background:rgba(190,33,33,0.05);"
+                             onclick="event.stopPropagation();">
+                            <label style="display:inline-flex; align-items:center; gap:8px; font-size:0.85rem; font-weight:600; color:var(--danger); cursor:pointer; margin:0;">
+                                <input type="checkbox" id="emergency-upload" name="emergency_upload" value="1">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span data-en="Emergency upload" data-ar="رفع طارئ">Emergency upload</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="process-btn" class="btn btn-gold btn-lg" disabled>
+                        <i class="bi bi-cpu"></i>&nbsp; <span data-en="Process Selected Images" data-ar="معالجة الصور المحددة">Process Selected Images</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Defaults Card -->
+            <div class="card card-success fade-up">
+                <span class="card-watermark"><i class="bi bi-sliders"></i></span>
+                <h2 class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                    <span style="display:flex;align-items:center;">
+                        <span class="title-icon title-icon-green"><i class="bi bi-sliders"></i></span>
+                        <span data-en="General Data Defaults" data-ar="الافتراضيات العامة للبيانات">General Data Defaults</span>
+                    </span>
+                    <div id="visa-type-toggle" style="position:relative;display:inline-flex;align-items:center;
+                            background:var(--navy-deep, #060f1e);border-radius:999px;padding:4px;cursor:pointer;
+                            user-select:none;font-family:'DM Sans',sans-serif;color:white;">
+                        <div id="visa-toggle-slider" style="position:absolute;top:4px;left:4px;bottom:4px;
+                                width:calc(50% - 4px);background:var(--gold);border-radius:999px;
+                                transition:transform 0.25s ease;z-index:1;"></div>
+                        <span data-visa="nusuk" class="visa-toggle-option active"
+                              data-en="Nusuk" data-ar="نسك"
+                              style="position:relative;z-index:2;padding:8px 18px;font-size:0.85rem;font-weight:600;
+                                     border-radius:999px;transition:color 0.2s ease;color:var(--white);white-space:nowrap;">
+                            Nusuk
+                        </span>
+                        <span data-visa="visit_visa" class="visa-toggle-option"
+                              data-en="Visit Visa" data-ar="تأشيرة زيارة"
+                              style="position:relative;z-index:2;padding:8px 18px;font-size:0.85rem;font-weight:600;
+                                     border-radius:999px;transition:color 0.2s ease;color:var(--text-muted);white-space:nowrap;">
+                            Visit Visa
+                        </span>
+                    </div>
+                    <button type="button" id="update-group-btn" style="display:none;
+                            background:var(--gold);color:var(--white);border:none;border-radius:8px;
+                            padding:8px 18px;font-size:0.85rem;font-weight:600;cursor:pointer;
+                            font-family:'DM Sans',sans-serif;white-space:nowrap;">
+                        <i class="bi bi-arrow-repeat"></i> <span data-en="Update" data-ar="تحديث">Update</span>
+                    </button>
+                </h2>
+                <p class="section-subtitle" data-en="Values saved here are automatically applied when scanning new passports." data-ar="القيم المحفوظة هنا تُطبق تلقائيًا عند مسح جوازات سفر جديدة.">
+                    Values saved here are automatically applied when scanning new passports.
+                </p>
+                <div id="update-group-status" style="display:none;font-size:0.85rem;font-weight:600;
+                     padding:8px 12px;border-radius:8px;margin-bottom:14px;"></div>
+
+                <form id="defaults-form" action="{{ url_for('save_defaults') }}" method="POST">
+
+                    <div class="form-group" style="position:relative;">
+                            <label class="form-label" data-en="Group Name" data-ar="اسم المجموعة">Group Name</label>
+                            <div style="position:relative;">
+                                <input type="text" name="group_name" id="group-name-input"
+                                value=""
+                                autocomplete="off" required
+                                data-placeholder-en="Type or select"
+                                data-placeholder-ar="اكتب أو اختر"
+                                placeholder="Type or select"
+                                style="padding-right:36px;">
+                                <span id="group-chevron"
+                                      style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text-muted);cursor:pointer;font-size:0.85rem;">
+                                    <i class="bi bi-chevron-down"></i>
+                                </span>
+                            </div>
+                            <!-- Custom dropdown list. Positioned via JS as position:fixed and
+                                 appended to <body> (see script below) so it isn't clipped by
+                                 the General Data Defaults card — the same technique already
+                                 used for the date-picker popup elsewhere on this page. -->
+                            <div id="group-name-dropdown"
+                                 style="display:none;position:fixed;z-index:9999;
+                                        background:var(--white);border:2px solid var(--gold);border-radius:8px;
+                                        box-shadow:0 8px 24px rgba(12,26,48,0.13);max-height:220px;overflow-y:auto;">
+                                {% for group in group_names %}
+                                {% set _is_emg = group_emergency_flags.get(group, False) if group_emergency_flags else False %}
+                                <div class="group-option{% if _is_emg %} group-option-emergency{% endif %}"
+                                     data-value="{{ group }}"
+                                     data-visa="{{ group_visa_types.get(group, 'nusuk') if group_visa_types else 'nusuk' }}"
+                                     data-emergency="{{ 'true' if _is_emg else 'false' }}"
+                                     style="padding:10px 14px;font-size:0.9rem;{% if _is_emg %}color:#dc3545;font-weight:600;{% else %}color:var(--text-dark);{% endif %}cursor:pointer;
+                                            font-family:'DM Sans',sans-serif;transition:background 0.15s;
+                                            border-bottom:1px solid rgba(12,26,48,0.08);">
+                                    {{ group }}{% if _is_emg %} <span style="font-size:0.7rem;background:#dc3545;color:#fff;padding:2px 7px;border-radius:10px;font-weight:700;margin-left:4px;">Emergency</span>{% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <script>
+                            (function(){
+                                var inp   = document.getElementById('group-name-input');
+                                var drop  = document.getElementById('group-name-dropdown');
+                                var chev  = document.getElementById('group-chevron');
+                                var opts  = drop.querySelectorAll('.group-option');
+                                var updateBtn    = document.getElementById('update-group-btn');
+                                var updateStatus = document.getElementById('update-group-status');
+
+                                // Move the dropdown out to <body> once, so it's never a
+                                // descendant of any clipped/overflow ancestor.
+                                document.body.appendChild(drop);
+
+                                function positionDrop(){
+                                    var rect = inp.getBoundingClientRect();
+                                    drop.style.left  = rect.left + 'px';
+                                    drop.style.top   = (rect.bottom + 4) + 'px';
+                                    drop.style.width = rect.width + 'px';
+                                }
+
+                                function showDrop(filter){
+                                    var any = false;
+                                    opts.forEach(function(o){
+                                        var match = !filter || o.dataset.value.toLowerCase().includes(filter.toLowerCase());
+                                        o.style.display = match ? '' : 'none';
+                                        if(match) any = true;
+                                    });
+                                    if(any) positionDrop();
+                                    drop.style.display = any ? 'block' : 'none';
+                                }
+                                function hideDrop(){ drop.style.display = 'none'; }
+
+                                // Keep the dropdown glued to the input while open, even if
+                                // the page scrolls or the window is resized.
+                                window.addEventListener('scroll', function(){
+                                    if(drop.style.display !== 'none') positionDrop();
+                                }, true);
+                                window.addEventListener('resize', function(){
+                                    if(drop.style.display !== 'none') positionDrop();
+                                });
+
+                                // The Update button only appears once an EXISTING group has been
+                                // picked from the list — typing a brand-new name hides it again,
+                                // since there's nothing to bulk-update yet. It's also hidden
+                                // whenever Nusuk is the selected visa type (see applyVisaType),
+                                // since Nusuk records have no general-data fields to bulk-update.
+                                function hideUpdateBtn(){
+                                    updateBtn.style.display = 'none';
+                                    updateStatus.style.display = 'none';
+                                    updateBtn.dataset.groupPicked = '0';
+                                }
+                                function showUpdateBtn(){
+                                    updateBtn.dataset.groupPicked = '1';
+                                    var hiddenVisaInput = document.getElementById('visa-type-input');
+                                    if (hiddenVisaInput && hiddenVisaInput.value === 'nusuk') return;
+                                    updateBtn.style.display = 'inline-flex';
+                                    updateBtn.style.alignItems = 'center';
+                                    updateBtn.style.gap = '6px';
+                                }
+
+                                inp.addEventListener('input', function(){
+                                    showDrop(this.value);
+                                    hideUpdateBtn();
+                                });
+                                inp.addEventListener('focus', function(){ showDrop(this.value); });
+
+                                // Listen for the Enter key on the Group Name input
+                                inp.addEventListener('keydown', function(event) {
+                                    if (event.key === 'Enter') {
+                                        event.preventDefault(); // Prevent the default browser form submission
+                                        hideDrop(); // Hide the dropdown menu if it's open
+                                        
+                                        var processBtn = document.getElementById('process-btn');
+                                        // Trigger the main process button if files are selected and the button is active
+                                        if (processBtn && !processBtn.disabled) {
+                                            processBtn.click();
+                                        }
+                                    }
+                                });
+
+                                chev.addEventListener('mousedown', function(e){
+                                    e.preventDefault();
+                                    if(drop.style.display === 'none'){
+                                        inp.focus(); showDrop('');
+                                    } else { hideDrop(); }
+                                });
+
+                                opts.forEach(function(o){
+                                    o.addEventListener('mouseenter', function(){ this.style.background='var(--gold-pale)'; });
+                                    o.addEventListener('mouseleave', function(){ this.style.background=''; });
+                                    o.addEventListener('mousedown', function(e){
+                                        e.preventDefault();
+                                        inp.value = this.dataset.value;
+                                        applyGroupInputEmergencyStyle(this.dataset.emergency === 'true');
+                                        hideDrop();
+                                        showUpdateBtn();
+                                    });
+                                });
+
+                                // ── Colors the Group Name input text red while it holds the
+                                // exact name of a group that contains emergency-uploaded
+                                // records. Typing a different / new name clears it again. ──
+                                function applyGroupInputEmergencyStyle(isEmergency){
+                                    if (isEmergency) {
+                                        inp.style.color = '#dc3545';
+                                        inp.style.fontWeight = '600';
+                                    } else {
+                                        inp.style.color = '';
+                                        inp.style.fontWeight = '';
+                                    }
+                                }
+                                inp.addEventListener('input', function(){
+                                    var _typed = this.value.trim().toLowerCase();
+                                    var _match = Array.from(opts).find(function(o){
+                                        return o.dataset.value.toLowerCase() === _typed;
+                                    });
+                                    applyGroupInputEmergencyStyle(!!(_match && _match.dataset.emergency === 'true'));
+                                });
+                                // Apply on initial page load too, in case the field is
+                                // pre-filled with a saved default that's an emergency group.
+                                (function(){
+                                    var _initTyped = inp.value.trim().toLowerCase();
+                                    var _initMatch = Array.from(opts).find(function(o){
+                                        return o.dataset.value.toLowerCase() === _initTyped;
+                                    });
+                                    applyGroupInputEmergencyStyle(!!(_initMatch && _initMatch.dataset.emergency === 'true'));
+                                })();
+
+                                document.addEventListener('click', function(e){
+                                    if(!inp.contains(e.target) && !drop.contains(e.target) && !chev.contains(e.target)) hideDrop();
+                                });
+
+                                // ── Update button: bulk-applies the current form fields to every
+                                // existing record in the selected group. Independent of the normal
+                                // "Process Selected Images" upload flow. ──
+                                updateBtn.addEventListener('click', function(){
+                                    var defaultsForm = document.getElementById('defaults-form');
+                                    if (!defaultsForm.checkValidity()) {
+                                        defaultsForm.reportValidity();
+                                        return;
+                                    }
+
+                                    updateBtn.disabled = true;
+                                    var originalLabel = updateBtn.innerHTML;
+                                    var _updatingText = (window.CURRENT_LANG === 'ar') ? 'جاري التحديث...' : 'Updating...';
+                                    updateBtn.innerHTML = '<i class="bi bi-arrow-repeat"></i> ' + _updatingText;
+
+                                    var fd = new FormData(defaultsForm);
+                                    fetch("{{ url_for('update_group_data') }}", {
+                                        method: 'POST',
+                                        body: fd
+                                    })
+                                    .then(function(res){ return res.json(); })
+                                    .then(function(data){
+                                        updateStatus.style.display = 'block';
+                                        var _successDefault = (window.CURRENT_LANG === 'ar') ? 'تم تحديث السجلات بنجاح.' : 'Records updated successfully.';
+                                        var _failDefault    = (window.CURRENT_LANG === 'ar') ? 'فشل التحديث.' : 'Update failed.';
+                                        if (data.success) {
+                                            updateStatus.style.background = '#e6f7ec';
+                                            updateStatus.style.color = '#1a7a3f';
+                                            updateStatus.textContent = data.message || _successDefault;
+                                        } else {
+                                            updateStatus.style.background = '#fdeaea';
+                                            updateStatus.style.color = '#b3261e';
+                                            updateStatus.textContent = data.message || _failDefault;
+                                        }
+                                    })
+                                    .catch(function(err){
+                                        updateStatus.style.display = 'block';
+                                        updateStatus.style.background = '#fdeaea';
+                                        updateStatus.style.color = '#b3261e';
+                                        var _failPrefix = (window.CURRENT_LANG === 'ar') ? 'فشل التحديث: ' : 'Update failed: ';
+                                        updateStatus.textContent = _failPrefix + err;
+                                    })
+                                    .finally(function(){
+                                        updateBtn.disabled = false;
+                                        updateBtn.innerHTML = originalLabel;
+                                    });
+                                });
+                            })();
+                            </script>
+                        </div>
+                        <br>
+                    <div class="form-grid">
+                        
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Issue Place" data-ar="مكان الإصدار">Issue Place</label>
+                            <input type="text" name="passport_issue_place" value="{{ (defaults.passport_issue_place if defaults else None) or '' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="City of Birth" data-ar="مدينة الميلاد">City of Birth</label>
+                            <input type="text" name="city_of_birth" value="{{ (defaults.city_of_birth if defaults else None) or '' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Marital Status" data-ar="الحالة الاجتماعية">Marital Status</label>
+                            <select name="marital_status" required>
+                                <option value="" data-en="-- Select --" data-ar="-- اختر --">-- Select --</option>
+                                {% for id, name in marital_status_options %}
+                                    <option value="{{ id }}" {% if defaults and id == defaults.marital_status %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Profession" data-ar="المهنة">Profession</label>
+                            <input type="text" name="profession" value="{{ (defaults.profession if defaults else None) or '' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Hotel Name" data-ar="اسم الفندق">Hotel Name</label>
+                            <input type="text" name="hotel_name" value="{{ (defaults.hotel_name if defaults else None) or 'Makkah' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Address" data-ar="العنوان">Address</label>
+                            <input type="text" name="address" value="{{ (defaults.address if defaults else None) or 'City' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="City" data-ar="المدينة">City</label>
+                            <input type="text" name="city" value="{{ (defaults.city if defaults else None) or 'City' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Zip / Postal Code" data-ar="الرمز البريدي">Zip / Postal Code</label>
+                            <input type="text" name="zip_postal_code" value="{{ (defaults.zip_postal_code if defaults else None) or '1234' }}" required>
+                        </div>
+
+                        <div class="form-group visa-field">
+                            <label class="form-label" data-en="Expected Arrival" data-ar="الوصول المتوقع">Expected Arrival</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-plus"></i></span>
+                                <input type="text" name="expected_arrival_display" id="defaults-arrival-display" class="form-control date-input" placeholder="dd/mm/yyyy" required
+                                       value="{% if defaults and defaults.expected_arrival %}{{ defaults.expected_arrival.strftime('%d/%m/%Y') }}{% else %}{{ today_display }}{% endif %}" maxlength="10">
+                                <input type="hidden" name="expected_arrival" id="defaults-arrival-hidden"
+                                       value="{% if defaults and defaults.expected_arrival %}{{ defaults.expected_arrival.strftime('%Y-%m-%d') }}{% else %}{{ today_iso }}{% endif %}">
+                            </div>
+                        </div>
+
+                    </div>
+                    <input type="hidden" name="visa_type" id="visa-type-input" value="nusuk">
+                    <input type="hidden" name="passport_type" value="{{ (defaults.passport_type if defaults else None) or '1' }}">
+                    
+                    </form>
+            </div>
+
+            <!-- Group Exists Choice Modal -->
+            <div class="modal fade" id="groupChoiceModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-navy" style="position:relative;">
+                            <h5 class="modal-title"><i class="bi bi-folder-symlink"></i> <span data-en="Group Already Exists" data-ar="المجموعة موجودة بالفعل">Group Already Exists</span></h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"
+                                    style="opacity:0.6;"></button>
+                        </div>
+                        <div class="modal-body modal-body-pad">
+                            <p style="font-size:0.9rem;color:var(--text-dark);margin-bottom:18px;">
+                                <span data-en="A group named" data-ar="توجد مجموعة باسم">A group named</span>
+                                &ldquo;<strong id="groupChoiceExistingName"></strong>&rdquo;
+                                <span data-en="already exists. What would you like to do?" data-ar="بالفعل. ماذا تريد أن تفعل؟">already exists. What would you like to do?</span>
+                            </p>
+
+                            <div id="groupChoiceVisaMismatch" style="display:none;margin-bottom:14px;padding:10px 14px;
+                                 background:#fdecea;border:1px solid #f5c6cb;border-radius:8px;color:#a71d2a;font-size:0.85rem;">
+                            </div>
+
+                            <div id="groupChoiceButtons" style="display:flex; flex-direction:column; gap:10px;">
+                                <button type="button" class="btn btn-primary" id="groupChoiceAddExisting">
+                                    <i class="bi bi-folder-plus"></i>
+                                    <span data-en="Add applicant to the existing group" data-ar="إضافة المتقدم إلى المجموعة الحالية">Add applicant to the existing group</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="groupChoiceCreateNew">
+                                    <i class="bi bi-plus-circle"></i>
+                                    <span data-en="Create another group" data-ar="إنشاء مجموعة أخرى">Create another group</span>
+                                </button>
+                            </div>
+
+                            <div id="groupChoiceNewNameWrap" style="display:none; margin-top:16px;">
+                                <label class="form-label-sm" data-en="New Group Name" data-ar="اسم المجموعة الجديدة">New Group Name</label>
+                                <input type="text" id="groupChoiceNewNameInput" class="form-control-styled" style="width:100%;" autocomplete="off"
+                                data-placeholder-en="Type or edit new group name"
+                                data-placeholder-ar="اكتب أو عدّل اسم المجموعة الجديدة"
+                                placeholder="Type or edit new group name">
+                            </div>
+                        </div>
+                        <div class="modal-footer modal-footer-light" id="groupChoiceNewNameFooter" style="display:none;">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="groupChoiceSubmitNew">
+                                <i class="bi bi-check-circle"></i> <span data-en="Submit" data-ar="إرسال">Submit</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                .visa-toggle-option.active { color: var(--white) !important; }
+                .form-group.visa-field.visa-hidden { display: none !important; }
+            </style>
+            <script>
+            (function(){
+                var toggle   = document.getElementById('visa-type-toggle');
+                var slider   = document.getElementById('visa-toggle-slider');
+                var options  = toggle.querySelectorAll('.visa-toggle-option');
+                var hiddenIn = document.getElementById('visa-type-input');
+                var visaFields = document.querySelectorAll('.form-group.visa-field');
+
+                // Helper to keep the Defaults card height equal to Upload card height
+                function syncCardHeights() {
+                    const uploadCard = document.querySelector('.card.card-gold');
+                    const defaultsCard = document.querySelector('.card.card-success');
+                    if (uploadCard && defaultsCard) {
+                        if (window.innerWidth > 1100) {
+                            defaultsCard.style.height = uploadCard.offsetHeight + 'px';
+                        } else {
+                            defaultsCard.style.height = 'auto'; // Stack naturally on mobile
+                        }
+                    }
+                }
+
+                function applyVisaType(type){
+                    hiddenIn.value = type;
+
+                    options.forEach(function(o){
+                        var isActive = o.dataset.visa === type;
+                        o.classList.toggle('active', isActive);
+                        o.style.color = isActive ? 'var(--white)' : 'var(--text-muted)';
+                    });
+
+                    slider.style.transform = (type === 'visit_visa') ? 'translateX(100%)' : 'translateX(0)';
+
+                    // Nusuk: hide every field except Group Name.
+                    // Visit Visa: show all fields.
+                    visaFields.forEach(function(field){
+                        field.classList.toggle('visa-hidden', type === 'nusuk');
+                        // A hidden-but-still-required field fails native form
+                        // validation invisibly, which made the Update button
+                        // (and the main Process form) appear to do nothing
+                        // while Nusuk was selected. Disable the fields' inputs
+                        // whenever their wrapper is hidden so checkValidity()
+                        // only considers the fields actually shown.
+                        var controls = field.querySelectorAll('input, select, textarea');
+                        controls.forEach(function(el){
+                            el.disabled = (type === 'nusuk');
+                        });
+                    });
+                    
+                    // DYNAMIC OVERFLOW LOGIC:
+                    // Force hidden for Nusuk, allow auto-scrolling for Visit Visa
+                    const defaultsCard = document.querySelector('.card.card-success');
+                    if (defaultsCard) {
+                        defaultsCard.style.overflowY = (type === 'nusuk') ? 'hidden' : 'auto';
+                    }
+
+                    // The "Update" bulk-apply button only makes sense for
+                    // Visit Visa general data — Nusuk records don't have any
+                    // of these fields to bulk-update, so hide the button
+                    // entirely while Nusuk is selected, even if a group is
+                    // already picked.
+                    var updateBtnEl = document.getElementById('update-group-btn');
+                    var updateStatusEl = document.getElementById('update-group-status');
+                    if (type === 'nusuk') {
+                        if (updateBtnEl) updateBtnEl.style.display = 'none';
+                        if (updateStatusEl) updateStatusEl.style.display = 'none';
+                    } else if (updateBtnEl && updateBtnEl.dataset.groupPicked === '1') {
+                        updateBtnEl.style.display = 'inline-flex';
+                        updateBtnEl.style.alignItems = 'center';
+                        updateBtnEl.style.gap = '6px';
+                    }
+                    
+                    // Sync card heights after toggling
+                    setTimeout(syncCardHeights, 10);
+                }
+
+                options.forEach(function(o){
+                    o.addEventListener('click', function(){
+                        applyVisaType(this.dataset.visa);
+                    });
+                });
+                
+                // Keep heights synced if the upload card changes size
+                const uploadCardObj = document.querySelector('.card.card-gold');
+                if (uploadCardObj && window.ResizeObserver) {
+                    new ResizeObserver(syncCardHeights).observe(uploadCardObj);
+                } else {
+                    window.addEventListener('resize', syncCardHeights);
+                    window.addEventListener('load', syncCardHeights);
+                }
+
+                // Default state on load
+                applyVisaType('nusuk');
+            })();
+            </script>
+            
+
+        </div><!-- /dashboard-grid -->
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Popup function for invalid passports
+        function openReparseWindow(invalidId) {
+            const width = 850;
+            const height = 750;
+            const left = (screen.width - width) / 2;
+            const top = (screen.height - height) / 2;
+            const windowFeatures = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+            const popup = window.open(
+                "{{ url_for('reparse_invalid', invalid_id=0) }}".replace('/0', '/' + invalidId),
+                'reparse_window_' + invalidId,
+                windowFeatures
+            );
+            if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+                alert('Popup blocked! Please allow popups for this site.');
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const uploadForm    = document.getElementById("main-upload-form");
+            const fileInput     = document.getElementById("images");
+            const processBtn    = document.getElementById("process-btn");
+            const fileInfo      = document.getElementById("file-selection-info");
+            const loaderOverlay = document.getElementById("loading-overlay");
+            const dropArea      = document.getElementById("upload-drop-area");
+            const statsOverlay  = document.getElementById("stats-overlay");
+
+            // ── 1. Handle File Selection & Enable Button ──────────────────────
+            fileInput.addEventListener("change", function() {
+                if (this.files && this.files.length > 0) {
+                    fileInfo.style.background = "";
+                    fileInfo.style.color = "";
+                    fileInfo.style.border = "";
+                    const _count2 = this.files.length;
+
+// Convert the number to Arabic numerals (e.g., ١, ٢) if the language is Arabic
+const displayCount = (window.CURRENT_LANG === 'ar') 
+    ? _count2.toLocaleString('ar-EG') 
+    : _count2;
+
+// Use displayCount instead of _count2 in the text
+const _fileLoadedText = (window.CURRENT_LANG === 'ar') 
+    ? `تم تحميل ${displayCount} ملف(ملفات) وجاهزة ✅` 
+    : `${displayCount} file(s) loaded and ready ✅`;
+
+fileInfo.innerHTML = `<i class="bi bi-check-circle-fill me-1"></i> ${_fileLoadedText}`;
+                    fileInfo.style.display = "block";
+                    var _emergencyWrap = document.getElementById('emergency-upload-wrap');
+                    if (_emergencyWrap) _emergencyWrap.style.display = "block";
+                    dropArea.style.borderColor = "var(--success)";
+                    dropArea.style.background  = "linear-gradient(145deg, #f0fdf8, #dcfce7)";
+                    processBtn.disabled = false;
+
+                    // Auto-focus Group Name so the user can type immediately
+                    var _grpInput = document.getElementById('group-name-input');
+                    if (_grpInput && !_grpInput.value.trim()) {
+                        setTimeout(function() { _grpInput.focus(); }, 80);
+                    }
+                } else {
+                    fileInfo.style.display = "none";
+                    var _emergencyWrap2 = document.getElementById('emergency-upload-wrap');
+                    if (_emergencyWrap2) _emergencyWrap2.style.display = "none";
+                    dropArea.style.borderColor = "var(--border-gold)";
+                    dropArea.style.background  = "linear-gradient(145deg, #fdfcf7, #f8f4ea)";
+                    processBtn.disabled = true;
+                }
+            });
+
+            // ── 1b. Emergency checkbox: purely informational now. The Group
+            // Name field stays fully user-editable regardless of whether the
+            // checkbox is checked — checking it no longer forces or locks
+            // the group name to a constant. ──
+            var emergencyCheckbox = document.getElementById('emergency-upload');
+
+            // Prevent default browser behavior for drag events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Add visual highlighting when dragging over the box
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                dropArea.style.borderColor = "var(--gold)";
+                dropArea.style.background = "linear-gradient(145deg, #fdf8ec, #f5edcf)";
+            }, false);
+        });
+
+        // Remove highlighting when dragged away
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => {
+                // Only revert if no files are currently selected
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    dropArea.style.borderColor = "var(--border-gold)";
+                    dropArea.style.background = "linear-gradient(145deg, #fdfcf7, #f8f4ea)";
+                }
+            }, false);
+        });
+
+        // Handle the actual drop
+        dropArea.addEventListener('drop', function(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+
+            // Assign the dropped files to the hidden input element
+            fileInput.files = files;
+
+            // Manually trigger the 'change' event so your existing UI logic runs
+            const event = new Event('change', { bubbles: true });
+            fileInput.dispatchEvent(event);
+        }, false);
+           // ── 2. Handle Form Submit (Save Defaults -> Upload Images) ─────────────────
+            const defaultsForm = document.getElementById("defaults-form");
+            const groupNameInput = document.getElementById("group-name-input");
+
+            // ── Group Exists Choice Modal wiring ──────────────────────────
+            (function(){
+                var modalEl        = document.getElementById('groupChoiceModal');
+                var btnAddExisting = document.getElementById('groupChoiceAddExisting');
+                var btnCreateNew   = document.getElementById('groupChoiceCreateNew');
+                var btnSubmitNew   = document.getElementById('groupChoiceSubmitNew');
+                var choiceButtons  = document.getElementById('groupChoiceButtons');
+                var newNameWrap    = document.getElementById('groupChoiceNewNameWrap');
+                var newNameFooter  = document.getElementById('groupChoiceNewNameFooter');
+                var newNameInput   = document.getElementById('groupChoiceNewNameInput');
+
+                function todaySuffix() {
+                    var d = new Date();
+                    var yyyy = d.getFullYear();
+                    var mm = String(d.getMonth() + 1).padStart(2, '0');
+                    var dd = String(d.getDate()).padStart(2, '0');
+                    return yyyy + '-' + mm + '-' + dd;
+                }
+
+                function resubmit() {
+                    window._groupChoiceResolved = true;
+                    var bsModal = bootstrap.Modal.getInstance(modalEl);
+                    if (bsModal) bsModal.hide();
+                    // Re-trigger the same submit path (quota check → upload).
+                    var processBtn = document.getElementById('process-btn');
+                    if (processBtn && !processBtn.disabled) {
+                        processBtn.click();
+                    }
+                }
+
+                var visaLabels = { nusuk: 'Nusuk', visit_visa: 'Visit Visa' };
+                var mismatchBox = document.getElementById('groupChoiceVisaMismatch');
+
+                // A group can only ever hold ONE visa type (server-enforced too —
+                // see _assert_group_visa_type_matches). Compare the currently
+                // selected visa type against the existing group's locked type
+                // whenever the choice modal is shown, and again right before
+                // "Add applicant to the existing group" is allowed to proceed.
+                function getMismatch() {
+                    var typedGroup = (groupNameInput.value || '').trim();
+                    var opt = Array.from(document.querySelectorAll('#group-name-dropdown .group-option'))
+                        .find(function(o){ return o.dataset.value === typedGroup; });
+                    if (!opt) return null;
+                    var existingVisa = opt.dataset.visa || 'nusuk';
+                    var selectedVisa = (document.getElementById('visa-type-input') || {}).value || 'nusuk';
+                    if (existingVisa !== selectedVisa) {
+                        return { existingVisa: existingVisa, selectedVisa: selectedVisa, group: typedGroup };
+                    }
+                    return null;
+                }
+
+                function refreshMismatchUI() {
+                    var mismatch = getMismatch();
+                    if (mismatch) {
+                        mismatchBox.textContent =
+                            'Group "' + mismatch.group + '" is already a ' + (visaLabels[mismatch.existingVisa] || mismatch.existingVisa) +
+                            ' group. You selected ' + (visaLabels[mismatch.selectedVisa] || mismatch.selectedVisa) +
+                            ' — only matching visa types can be added to the same group. Please create another group instead.';
+                        mismatchBox.style.display = 'block';
+                        btnAddExisting.disabled = true;
+                        btnAddExisting.style.opacity = '0.55';
+                        btnAddExisting.style.cursor = 'not-allowed';
+                    } else {
+                        mismatchBox.style.display = 'none';
+                        mismatchBox.textContent = '';
+                        btnAddExisting.disabled = false;
+                        btnAddExisting.style.opacity = '';
+                        btnAddExisting.style.cursor = '';
+                    }
+                    return mismatch;
+                }
+                window._refreshGroupChoiceMismatchUI = refreshMismatchUI;
+
+                // "Add applicant to the existing group" — keep the same group
+                // name as-is; the next submit inserts records into that group.
+                // Blocked entirely (button disabled + inline error) whenever the
+                // currently-selected visa type doesn't match the existing group's.
+                if (btnAddExisting) {
+                    btnAddExisting.addEventListener('click', function(){
+                        if (refreshMismatchUI()) return; // still mismatched — do not submit
+                        resubmit();
+                    });
+                }
+
+                // "Create another group" — reveal a prefilled field with the
+                // typed group name + current date suffix, so it never collides
+                // with the existing group.
+                if (btnCreateNew) {
+                    btnCreateNew.addEventListener('click', function(){
+                        var typed = (groupNameInput.value || '').trim();
+                        newNameInput.value = typed + '_' + todaySuffix();
+                        newNameInput.style.borderColor = '';
+                        choiceButtons.style.display = 'none';
+                        newNameWrap.style.display = 'block';
+                        newNameFooter.style.display = 'flex';
+                        newNameInput.focus();
+                        newNameInput.select();
+                    });
+                }
+                if (newNameInput) {
+                    newNameInput.addEventListener('input', function(){
+                        newNameInput.style.borderColor = '';
+                    });
+                }
+
+                if (btnSubmitNew) {
+                    btnSubmitNew.addEventListener('click', function(){
+                        var finalName = (newNameInput.value || '').trim();
+                        if (!finalName) {
+                            newNameInput.focus();
+                            return;
+                        }
+
+                        // Re-check the (possibly hand-edited) name against the
+                        // existing groups list. The prefilled "_YYYY-MM-DD"
+                        // suffix is only a suggestion — the user can delete it
+                        // and retype the original, colliding name. If that
+                        // happens, don't silently resubmit as a "new" group;
+                        // re-show the choice with the up-to-date name instead.
+                        var _existingGroupsNow = Array.from(document.querySelectorAll('#group-name-dropdown .group-option'))
+                            .map(function(o){ return o.dataset.value; });
+                        var _stillCollides = _existingGroupsNow.some(function(g){ return g === finalName; });
+
+                        if (_stillCollides) {
+                            newNameInput.style.borderColor = '#ef4444';
+                            document.getElementById('groupChoiceExistingName').textContent = finalName;
+                            newNameInput.focus();
+                            newNameInput.select();
+                            return; // Stay in the modal; do not resubmit.
+                        }
+                        newNameInput.style.borderColor = '';
+
+                        // Apply the new, guaranteed-unique group name, then resubmit.
+                        groupNameInput.value = finalName;
+                        resubmit();
+                    });
+                }
+
+                // If the modal is dismissed (Cancel/X) without a choice, do nothing
+                // further — the user stays on the page and can adjust the group
+                // name manually before trying again.
+            })();
+
+            if (uploadForm) {
+                uploadForm.addEventListener("submit", function(e) {
+                    // Prevent immediate image upload
+                    e.preventDefault(); 
+                    if (processBtn.disabled) return;
+
+                    // ── Single-click guard ────────────────────────────────────
+                    // Disable the button synchronously, on the very first line,
+                    // so a second click fired before any async work (quota
+                    // fetch, modal) resolves can never re-enter this handler.
+                    // Re-enabled only on branches where we're waiting for the
+                    // user to do something (validation error, group-choice
+                    // modal, over-quota block) — not once the real upload starts.
+                    if (window._uploadSubmitted) return;
+                    if (!processBtn.dataset.origHtml) {
+                        processBtn.dataset.origHtml = processBtn.innerHTML;
+                    }
+                    processBtn.disabled = true;
+                    processBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:1rem;height:1rem;border-width:0.15em;"></span>&nbsp; Processing...';
+
+                    // 🛑 Check if the Defaults Form is fully filled out (Group Name is required)
+                    if (!defaultsForm.checkValidity()) {
+                        defaultsForm.reportValidity(); // This triggers the browser's native required tooltip
+                        processBtn.disabled = false; // not a real submit attempt yet — let them retry
+                        processBtn.innerHTML = processBtn.dataset.origHtml;
+                        return; // Stop the function here so it doesn't process
+                    }
+
+                    // ── Group-exists check: if the typed group name matches an
+                    // existing group, ask the user whether to add to that same
+                    // group or create a brand-new (suffixed) group instead.
+                    // Applies to emergency uploads too now, since the group
+                    // name is a normal user choice regardless of the checkbox. ──
+                    var _isEmergencyUpload = !!(emergencyCheckbox && emergencyCheckbox.checked);
+                    if (window._groupChoiceResolved !== true) {
+                        var _typedGroup = (groupNameInput.value || '').trim();
+                        var _existingGroups = Array.from(document.querySelectorAll('#group-name-dropdown .group-option'))
+                            .map(function(o){ return o.dataset.value; });
+                        var _matchesExisting = _existingGroups.some(function(g){ return g === _typedGroup; });
+
+                        if (_matchesExisting) {
+                            var _modalEl = document.getElementById('groupChoiceModal');
+                            document.getElementById('groupChoiceExistingName').textContent = _typedGroup;
+
+                            // Reset modal to its default (choice) state each time it opens
+                            document.getElementById('groupChoiceButtons').style.display = 'flex';
+                            document.getElementById('groupChoiceNewNameWrap').style.display = 'none';
+                            document.getElementById('groupChoiceNewNameFooter').style.display = 'none';
+
+                            if (typeof window._refreshGroupChoiceMismatchUI === 'function') window._refreshGroupChoiceMismatchUI();
+
+                            var _bsModal = bootstrap.Modal.getOrCreateInstance(_modalEl);
+                            _bsModal.show();
+                            processBtn.disabled = false; // waiting on the user's choice, not uploading yet
+                            processBtn.innerHTML = processBtn.dataset.origHtml;
+                            return; // Wait for the user's choice; submit is re-triggered below.
+                        }
+                    }
+                    // Reset the one-shot flag so future submissions re-check.
+                    window._groupChoiceResolved = false;
+
+                    // ── Pre-flight quota check before showing the loader ──────
+                    // Fetch live quota and verify the selected file count fits within
+                    // the remaining allowance. If not, show the blocked overlay
+                    // immediately without ever submitting the form.
+                    const selectedCount = fileInput.files.length;
+
+                    fetch("/api/quota")
+                        .then(r => r.json())
+                        .then(function(q) {
+                            // q.limit / q.remaining already fold in the 50/day extra
+                            // allowance (if enabled) as one combined number computed
+                            // on the host, so no separate extra-mode branch is needed.
+                            if (!q.limit || q.remaining === null || selectedCount <= q.remaining) {
+                                // Point of no return — mark permanently submitted.
+                                window._uploadSubmitted = true;
+                                _doSubmit();
+                                return;
+                            }
+                            // Over quota — show blocked overlay client-side, no page reload.
+                            // Don't lock the button: the user hasn't uploaded anything yet
+                            // and needs to be able to retry (e.g. with fewer files).
+                            var blockedOverlay = document.getElementById('upload-blocked-overlay');
+                            if (blockedOverlay) {
+                                var _allowExtra = !!q.allow_extra_usage;
+                                document.getElementById('blocked-icon').innerHTML  = _allowExtra ? '&#128197;' : '&#128202;';
+                                document.getElementById('blocked-title').textContent = _allowExtra ? 'Daily Allowance Used Up' : 'Upload Limit Exceeded';
+                                document.getElementById('blocked-msg').textContent = _allowExtra
+                                    ? 'You selected ' + selectedCount + ' file(s) but only ' + q.remaining + ' remain of your combined daily limit (' + q.limit + '). A fresh 50-passport extra allowance opens automatically tomorrow.'
+                                    : 'You selected ' + selectedCount + ' file(s) but only ' + q.remaining + ' passport(s) remain of your ' + q.limit + ' limit. Contact your administrator to increase the limit.';
+                                document.getElementById('blocked-contact-btn').style.display = _allowExtra ? 'none' : 'block';
+                                document.getElementById('blocked-account-btn').style.display = 'none';
+                                blockedOverlay.style.display = 'flex';
+                            }
+                            processBtn.disabled = false; // blocked, not uploaded — let them retry
+                            processBtn.innerHTML = processBtn.dataset.origHtml;
+                        })
+                        .catch(function() {
+                            // Network error on quota check → proceed anyway, server will enforce.
+                            window._uploadSubmitted = true;
+                            _doSubmit();
+                        });
+
+                    function _doSubmit() {
+                        // Show loader overlay
+                        loaderOverlay.style.display = "flex";
+
+                    // ── Cancel beacon on page refresh / close ─────────────────────
+                    // sendBeacon fires reliably on pagehide (refresh, tab close,
+                    // navigation away). The server's /api/cancel sets the cancel flag
+                    // for this user so the processing loop rolls back the current chunk.
+                    // We use a flag so we only attach this listener once per _doSubmit.
+                    if (!window._cancelBeaconAttached) {
+                        window._cancelBeaconAttached = true;
+
+                        // ── beforeunload: native browser "Leave site?" dialog ─────────
+                        // Fires on F5, Ctrl+R, browser back, tab close, etc.
+                        // Modern browsers show their own generic message (custom text
+                        // is ignored for security), but the dialog itself is enough to
+                        // make users pause and reconsider refreshing mid-upload.
+                        // The handler is removed once processing completes normally
+                        // so it doesn't block navigation after a successful run.
+                        window._beforeUnloadHandler = function(e) {
+                            var overlay = document.getElementById('loading-overlay');
+                            if (overlay && overlay.style.display !== 'none' && overlay.style.display !== '') {
+                                e.preventDefault();
+                                // Required for legacy browsers (Chrome <119, IE)
+                                e.returnValue = '';
+                                return '';
+                            }
+                        };
+                        window.addEventListener('beforeunload', window._beforeUnloadHandler);
+
+                        // ── pagehide: sendBeacon cancel signal (fires after user confirms leave) ──
+                        window.addEventListener('pagehide', function() {
+                            var overlay = document.getElementById('loading-overlay');
+                            if (overlay && overlay.style.display !== 'none' && overlay.style.display !== '') {
+                                navigator.sendBeacon('/api/cancel', '');
+                            }
+                        });
+                    }
+                    // ─────────────────────────────────────────────────────────────
+                    processBtn.disabled = true;
+                    processBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="width:1rem;height:1rem;border-width:0.15em;"></span>&nbsp; Processing...';
+
+                    // ── Start polling /api/progress every 1 second ──────────────
+                    const totalFiles = fileInput.files.length;
+                    const progressFill  = document.getElementById("progress-bar-fill");
+                    const progressLabel = document.getElementById("progress-label");
+                    const progressPct   = document.getElementById("progress-pct");
+                    const liveSuccess   = document.getElementById("live-success");
+                    const liveInvalid   = document.getElementById("live-invalid");
+                    const liveDuplicate = document.getElementById("live-duplicate");
+
+                    // ── Quota warning banner helpers ──────────────────────────
+                    const quotaBanner = document.getElementById("quota-warn-banner");
+                    let quotaWarnShown = '';   // tracks highest level shown: ''|'warning'|'critical'|'exceeded'
+
+                    function showQuotaBanner(level, pct, remaining, limit) {
+                        const _severity = {'': 0, 'warning': 1, 'critical': 2, 'exceeded': 3};
+                        if ((_severity[level] || 0) <= (_severity[quotaWarnShown] || 0)) return; // don't downgrade
+                        quotaWarnShown = level;
+
+                        let bg, border, color, icon, msg;
+                        if (level === 'exceeded') {
+                            bg = 'rgba(190,33,33,0.18)'; border = 'rgba(248,113,113,0.5)';
+                            color = '#fca5a5'; icon = '🚫';
+                            msg = `Upload limit of <strong>${limit}</strong> reached — uploads are now <strong>blocked</strong>.`;
+                        } else if (level === 'critical') {
+                            bg = 'rgba(180,83,9,0.18)'; border = 'rgba(251,191,36,0.5)';
+                            color = '#fcd34d'; icon = '⚠️';
+                            msg = `<strong>${pct}%</strong> of your limit used — only <strong>${remaining}</strong> passport(s) remaining.`;
+                        } else {
+                            bg = 'rgba(29,78,216,0.18)'; border = 'rgba(147,197,253,0.5)';
+                            color = '#93c5fd'; icon = 'ℹ️';
+                            msg = `<strong>${pct}%</strong> of your upload limit used — <strong>${remaining}</strong> passport(s) remaining.`;
+                        }
+
+                        quotaBanner.style.cssText = `
+                            display:block; margin-top:18px; width:320px; max-width:90vw;
+                            border-radius:10px; padding:12px 16px; font-size:0.82rem;
+                            line-height:1.5; text-align:center;
+                            background:${bg}; border:1.5px solid ${border}; color:${color};`;
+                        quotaBanner.innerHTML = `${icon} ${msg}`;
+                    }
+
+                    // Check quota every 5 polls (≈5 s) at 50 / 90 / exceeded thresholds
+                    let quotaPollCount = 0;
+                    function checkQuota() {
+                        fetch("/api/quota")
+                            .then(r => r.json())
+                            .then(q => {
+                                if (!q.limit) return;  // admin / no limit
+                                const pct  = q.usage_pct;
+                                const rem  = q.remaining;
+                                const lim  = q.limit;
+                                if (q.is_over_limit)    showQuotaBanner('exceeded', pct, rem, lim);
+                                else if (pct >= 90)     showQuotaBanner('critical', pct, rem, lim);
+                                else if (pct >= 50)     showQuotaBanner('warning',  pct, rem, lim);
+                            })
+                            .catch(() => {});
+                    }
+                    // ──────────────────────────────────────────────────────────
+
+                    // ── Phase step indicator helpers ─────────────────────────
+                    // Steps: 1=Upload, 2=Scan1(Phase2), 3=Scan2(Phase3), 4=Scan3(Phase4), 5=Save
+                    var STEP_ICONS = {
+                        1: '<i class="bi bi-cloud-arrow-up"></i>',
+                        2: '<i class="bi bi-layers"></i>',
+                        3: '<i class="bi bi-layers-half"></i>',
+                        4: '<i class="bi bi-search"></i>',
+                        5: '<i class="bi bi-database-check"></i>'
+                    };
+
+                    function setPhaseStep(active) {
+                        for (var s = 1; s <= 5; s++) {
+                            var dot  = document.getElementById('phase-dot-' + s);
+                            var lbl  = document.getElementById('phase-label-' + s);
+                            var line = s < 5 ? document.getElementById('phase-line-' + s) : null;
+                            if (!dot) continue;
+
+                            if (s < active) {
+                                // Completed
+                                dot.style.background  = 'linear-gradient(135deg,var(--gold),var(--gold-light))';
+                                dot.style.borderColor = 'var(--gold)';
+                                dot.style.color       = 'var(--navy-deep)';
+                                dot.innerHTML         = '<i class="bi bi-check-lg"></i>';
+                                lbl.style.color       = 'var(--gold)';
+                                if (line) line.style.width = '100%';
+                            } else if (s === active) {
+                                // Active
+                                dot.style.background  = 'rgba(201,168,76,0.15)';
+                                dot.style.borderColor = 'var(--gold)';
+                                dot.style.color       = 'var(--gold-light)';
+                                dot.innerHTML         = STEP_ICONS[s];
+                                lbl.style.color       = 'rgba(255,255,255,0.9)';
+                                if (line) line.style.width = '50%';
+                            } else {
+                                // Pending
+                                dot.style.background  = 'rgba(255,255,255,0.08)';
+                                dot.style.borderColor = 'rgba(255,255,255,0.15)';
+                                dot.style.color       = 'rgba(255,255,255,0.3)';
+                                dot.innerHTML         = STEP_ICONS[s];
+                                lbl.style.color       = 'rgba(255,255,255,0.25)';
+                                if (line) line.style.width = '0%';
+                            }
+                        }
+                    }
+
+                    // Map backend phase string → visual step (1-5)
+                    // Step 1 = Upload, 2 = Scan1(Phase2 stacked), 3 = Scan2(Phase3 stacked),
+                    // 4 = Scan3(Phase4 individual), 5 = Save(Phase5)
+                    function phaseToStep(phase) {
+                        if (!phase) return 1;
+                        var p = phase.toLowerCase();
+                        if (p.indexOf('phase 5') !== -1 || p.indexOf('saving') !== -1) return 5;
+                        if (p.indexOf('phase 4') !== -1 || p.indexOf('individual') !== -1) return 4;
+                        if (p.indexOf('phase 3') !== -1) return 3;
+                        if (p.indexOf('phase 2') !== -1 ||
+                            p.indexOf('provB') !== -1 || p.indexOf('ocr') !== -1 ||
+                            p.indexOf('provA') !== -1 || p.indexOf('scanning') !== -1 ||
+                            p.indexOf('rescan') !== -1 || p.indexOf('fallback') !== -1 ||
+                            p.indexOf('deep') !== -1) return 2;
+                        return 1;
+                    }
+
+                    // Parse item counts embedded in the backend phase string.
+                    // '[n]'   → total-only  (used at phase start, e.g. 'Phase 3: Stacked Scanning [5]')
+                    // '[x/n]' → current/total (used per item in Phase 4, e.g. '[3/10]')
+                    function parsePhaseCount(phase) {
+                        var m = phase.match(/\[(\d+)\/(\d+)\]/);
+                        if (m) return { current: parseInt(m[1], 10), total: parseInt(m[2], 10) };
+                        m = phase.match(/\[(\d+)\]/);
+                        if (m) return { current: null, total: parseInt(m[1], 10) };
+                        return null;
+                    }
+
+                    const PHASE_LABELS    = {
+                        1: 'Phase 1: Uploading',
+                        2: 'Phase 2: Scanning',
+                        3: 'Phase 3: Scanning',
+                        4: 'Phase 4: Validating',
+                        5: 'Phase 5: Saving'
+                    };
+                    const PHASE_LABELS_AR = {
+                        1: 'المرحلة ١: الرفع',
+                        2: 'المرحلة ٢: المسح الضوئي',
+                        3: 'المرحلة ٣: المسح الضوئي',
+                        4: 'المرحلة ٤: التحقق',
+                        5: 'المرحلة ٥: الحفظ'
+                    };
+                    function setPhaseLabel(step) {
+                        var en = PHASE_LABELS[step] || 'Processing...';
+                        var ar = PHASE_LABELS_AR[step] || 'جاري المعالجة...';
+                        progressLabel.textContent = (window.CURRENT_LANG === 'ar') ? ar : en;
+                        progressLabel.setAttribute('data-en', en);
+                        progressLabel.setAttribute('data-ar', ar);
+                    }
+
+                    function setBar(pct) {
+                        var p = Math.min(Math.round(pct), 100);
+                        progressFill.style.width = p + '%';
+                        progressPct.textContent  = window.fmtNum(p) + '%';
+                    }
+
+                    // ── Elapsed timer (ticks every second — proves page is alive) ──
+                    var _elapsedSecEl   = document.getElementById('elapsed-sec');
+                    var _elapsedSec     = 0;
+                    var _elapsedTimer   = null;
+                    var _noRefreshEl    = document.getElementById('no-refresh-warn');
+                    var _noRefreshShown = false;
+
+                    function _startElapsedTimer() {
+                        _elapsedSec = 0;
+                        if (_elapsedTimer) clearInterval(_elapsedTimer);
+                        // Show the "do not refresh" warning immediately
+                        if (!_noRefreshShown && _noRefreshEl) {
+                            _noRefreshShown = true;
+                            _noRefreshEl.classList.add('visible');
+                        }
+                        _elapsedTimer = setInterval(function() {
+                            _elapsedSec++;
+                            if (_elapsedSecEl) {
+                                // Format as Xm Ys once past 60 s, plain Xs before
+                                if (_elapsedSec >= 60) {
+                                    var _m = Math.floor(_elapsedSec / 60);
+                                    var _s = _elapsedSec % 60;
+                                    _elapsedSecEl.textContent = _m + 'm ' + (_s < 10 ? '0' : '') + _s + 's';
+                                } else {
+                                    _elapsedSecEl.textContent = _elapsedSec + 's';
+                                }
+                            }
+                        }, 1000);
+                    }
+
+                    function _stopElapsedTimer() {
+                        if (_elapsedTimer) { clearInterval(_elapsedTimer); _elapsedTimer = null; }
+                        if (_noRefreshEl)  { _noRefreshEl.classList.remove('visible'); }
+                        _noRefreshShown = false;
+                    }
+                    // ─────────────────────────────────────────────────────────────
+
+                    // ── Stall detection state ─────────────────────────────────────
+                    var _lastStallPct  = -1;
+                    var _lastMovedAt   = Date.now();
+                    var _stallTimer    = null;
+                    var _stallMsgEl    = document.getElementById('stall-msg');
+                    var _stallMsgIdx   = 0;
+                    // Messages rotate every 5 s once the bar hasn't moved for 3 s.
+                    // Ordered from informative → reassuring → explicit "still running".
+                    var _STALL_MSGS    = [
+                        'Contacting OCR service — this can take up to 60 seconds per batch...',
+                        'Server is actively scanning your passport images, please wait...',
+                        'Still running in the background — do not close or refresh this page.',
+                        'Parsing document data fields, almost there...',
+                        'Processing may appear frozen but is still working normally.',
+                        'Large or complex images take longer — your data is safe.',
+                        'Verifying document authenticity with the OCR engine...',
+                        'Still running — refreshing will cancel progress on this part.',
+                    ];
+                    function _nextStallMsg() {
+                        if (!_stallMsgEl) return;
+                        _stallMsgEl.textContent = _STALL_MSGS[_stallMsgIdx % _STALL_MSGS.length];
+                        _stallMsgEl.classList.add('visible');
+                        _stallMsgIdx++;
+                    }
+                    function _clearStallMsg() {
+                        if (!_stallMsgEl) return;
+                        _stallMsgEl.classList.remove('visible');
+                        if (_stallTimer) { clearInterval(_stallTimer); _stallTimer = null; }
+                    }
+                    // ─────────────────────────────────────────────────────────────
+
+                    // ── Chunk split: up to 20 files per part ─────────────────────────
+                    const CHUNK_SIZE = 20;
+                    const allFiles   = Array.from(fileInput.files);
+                    const chunks     = [];
+                    for (var _ci = 0; _ci < allFiles.length; _ci += CHUNK_SIZE) {
+                        chunks.push(allFiles.slice(_ci, _ci + CHUNK_SIZE));
+                    }
+                    const totalParts = chunks.length;
+
+                    // Accumulated totals across all parts
+                    var totalSuccess = 0, totalInvalid = 0, totalDuplicate = 0;
+
+                    // Per-chunk mutable state (reset between parts)
+                    var curStep = 0, phaseBaseCounter = 0, phaseItemCount = 0, stepMaxPct = 0;
+
+                    function resetChunkUI() {
+                        curStep = 0; phaseBaseCounter = 0; phaseItemCount = 0; stepMaxPct = 0;
+                        _lastStallPct = -1; _lastMovedAt = Date.now();
+                        if (_stallTimer) { clearInterval(_stallTimer); _stallTimer = null; }
+                        if (_stallMsgEl) _stallMsgEl.classList.remove('visible');
+                        setPhaseStep(1); setPhaseLabel(1); setBar(0);
+                    }
+                    resetChunkUI();
+                    _startElapsedTimer();   // ← tick from the moment processing begins
+
+                    // ── Per-chunk async worker ────────────────────────────────────────
+                    async function processChunk(chunkIdx) {
+                        var chunk   = chunks[chunkIdx];
+                        var partNum = chunkIdx + 1;
+                        var partEl  = document.getElementById('part-indicator');
+
+                        // Update "Part X of N" heading
+                        if (partEl) {
+                            partEl.textContent = totalParts > 1
+                                ? 'Part ' + partNum + ' of ' + totalParts
+                                : '';
+                        }
+
+                        resetChunkUI();
+
+                        var chunkN = chunk.length;
+
+                        // ── Poll /api/progress while this chunk processes ─────────────
+                        var pollId = setInterval(function () {
+                            fetch("/api/progress")
+                                .then(function(r) { return r.json(); })
+                                .then(function(data) {
+                                    var rawTotal = data.total   || (chunkN * 3) || 3;
+                                    var N        = Math.max(Math.round(rawTotal / 3), chunkN || 1);
+                                    var rawCur   = data.current || 0;
+                                    var phase    = data.phase   || '';
+                                    var step     = phaseToStep(phase);
+
+                                    if (step !== curStep) {
+                                        curStep          = step;
+                                        phaseBaseCounter = rawCur;
+                                        stepMaxPct       = 0;
+                                        setPhaseStep(step);
+                                        setPhaseLabel(step);
+                                        setBar(0);
+                                        var parsedOnEntry = parsePhaseCount(phase);
+                                        phaseItemCount = (parsedOnEntry && parsedOnEntry.total > 0)
+                                            ? parsedOnEntry.total : N;
+                                    }
+
+                                    var pct;
+                                    if (step === 1) {
+                                        pct = Math.round((Math.min(rawCur, N) / N) * 100);
+                                    } else if (step === 2 || step === 3 || step === 4) {
+                                        var ticksSince = Math.max(rawCur - phaseBaseCounter, 0);
+                                        pct = Math.round((ticksSince / Math.max(phaseItemCount, 1)) * 100);
+                                        if (step === 4) {
+                                            var p4 = parsePhaseCount(phase);
+                                            if (p4 && p4.current !== null && p4.total > 0) {
+                                                pct = Math.round((p4.current / p4.total) * 100);
+                                            }
+                                        }
+                                        if (step === 2) {
+                                            var byDone = Math.min(
+                                                (data.success||0)+(data.invalid||0)+(data.duplicate||0), N);
+                                            pct = Math.max(pct, Math.round((byDone / N) * 100));
+                                        }
+                                        pct = Math.max(pct, stepMaxPct);
+                                    } else {
+                                        var p5 = parsePhaseCount(phase);
+                                        if (p5 && p5.current !== null && p5.total > 0) {
+                                            pct = Math.round((p5.current / p5.total) * 100);
+                                        } else {
+                                            var bySaved = Math.min(
+                                                (data.success||0)+(data.invalid||0)+(data.duplicate||0), N);
+                                            pct = Math.round((bySaved / N) * 100);
+                                        }
+                                        pct = Math.max(pct, stepMaxPct);
+                                    }
+                                    // Real progress only — never shown as 100% until the
+                                    // server actually confirms completion (see setBar(100)
+                                    // after the chunk's fetch() resolves, further below).
+                                    pct = Math.min(pct, 99);
+
+                                    stepMaxPct = Math.max(stepMaxPct, pct);
+                                    setBar(pct);
+
+                                    if (pct !== _lastStallPct) {
+                                        _lastStallPct = pct; _lastMovedAt = Date.now(); _clearStallMsg();
+                                    } else if ((Date.now() - _lastMovedAt) > 4000 && !_stallTimer) {
+                                        _nextStallMsg(); _stallTimer = setInterval(_nextStallMsg, 3000);
+                                    }
+
+                                    // Live counters: accumulated previous parts + current chunk in-progress
+                                    liveSuccess.textContent   = window.fmtNum(totalSuccess   + (data.success   || 0));
+                                    liveInvalid.textContent   = window.fmtNum(totalInvalid   + (data.invalid   || 0));
+                                    liveDuplicate.textContent = window.fmtNum(totalDuplicate + (data.duplicate || 0));
+
+                                    quotaPollCount++;
+                                    if (quotaPollCount % 5 === 0) checkQuota();
+                                })
+                                .catch(function() {});
+                        }, 1000);
+
+                        // ── Submit this chunk to the backend ──────────────────────────
+                        // Include every defaults-form field (group_name, visa_type, etc.)
+                        // plus the emergency-upload checkbox on EVERY chunk request —
+                        // previously only 'images' was sent here, so the backend never
+                        // saw emergency_upload=1 and silently ran the full cross-group
+                        // duplicate check instead of the emergency-only one.
+                        var fd = new FormData(defaultsForm);
+                        for (var _fi = 0; _fi < chunk.length; _fi++) fd.append('images', chunk[_fi]);
+                        if (emergencyCheckbox && emergencyCheckbox.checked) {
+                            fd.set('emergency_upload', '1');
+                        }
+
+                        var result = { processed: 0, duplicates: 0, invalid: 0, skipped_files: [] };
+                        try {
+                            var resp = await fetch('/', {
+                                method: 'POST',
+                                body: fd,
+                                headers: { 'X-Chunk-Upload': '1' }
+                            });
+                            if (resp.ok) result = await resp.json();
+                        } catch (e) { console.error('Chunk upload error:', e); }
+
+                        // Stop polling for this chunk
+                        clearInterval(pollId);
+                        _clearStallMsg();
+
+                        // ── Server rejected this chunk (account disabled / limit hit) ──
+                        // Without this check, a blocked response with zeroed stats would
+                        // silently fall through and the final overlay would show a false
+                        // "Processing Complete" with 0/0/0 instead of an explanation.
+                        if (result && result.blocked) {
+                            _stopElapsedTimer();
+                            if (window._beforeUnloadHandler) {
+                                window.removeEventListener('beforeunload', window._beforeUnloadHandler);
+                                window._beforeUnloadHandler = null;
+                            }
+                            loaderOverlay.style.display = 'none';
+                            var blockedOverlay = document.getElementById('upload-blocked-overlay');
+                            if (blockedOverlay) {
+                                var _allowExtra = !!result.allow_extra_usage;
+                                var _reason = result.reason || 'limit_exceeded';
+                                document.getElementById('blocked-icon').innerHTML = _reason === 'account_disabled' ? '&#128683;' : (_allowExtra ? '&#128197;' : '&#128202;');
+                                document.getElementById('blocked-title').textContent = _reason === 'account_disabled' ? 'Account Uploads Paused' : 'Upload Limit Exceeded';
+                                document.getElementById('blocked-msg').textContent = _reason === 'account_disabled'
+                                    ? 'Uploads are currently paused on your account. Please check your account page or contact your administrator.'
+                                    : 'You have reached your upload limit. Contact your administrator to increase the limit.';
+                                document.getElementById('blocked-contact-btn').style.display = (_reason === 'account_disabled' || !_allowExtra) ? 'block' : 'none';
+                                document.getElementById('blocked-account-btn').style.display = _reason === 'account_disabled' ? 'block' : 'none';
+                                blockedOverlay.style.display = 'flex';
+                            }
+                            return { stop: true };
+                        }
+
+                        // Mark all phase steps done for this chunk.
+                        // Server confirmation arrived — snap straight to 99% then 100%.
+                        setBar(99);
+                        setBar(100);
+                        setPhaseStep(6);
+
+                        // Accumulate totals (emergency-saved records count as
+                        // "processed" for display purposes — they're a
+                        // successful save, just routed to a different table)
+                        totalSuccess   += (result.processed || 0) + (result.emergency || 0);
+                        totalInvalid   += (result.invalid    || 0);
+                        totalDuplicate += (result.duplicates || 0);
+
+                        // Update live counters to final accumulated values
+                        liveSuccess.textContent   = window.fmtNum(totalSuccess);
+                        liveInvalid.textContent   = window.fmtNum(totalInvalid);
+                        liveDuplicate.textContent = window.fmtNum(totalDuplicate);
+
+                        // Brief pause so user sees completion before next part starts
+                        if (chunkIdx < totalParts - 1) {
+                            await new Promise(function(r) { setTimeout(r, 700); });
+                        }
+                    }
+
+                    // ── Main async chain ──────────────────────────────────────────────
+                    (async function() {
+                        // 1. Save defaults once before any chunk upload
+                        try {
+                            await fetch(defaultsForm.action, {
+                                method: 'POST',
+                                body: new FormData(defaultsForm)
+                            });
+                        } catch (e) { /* ignore — defaults saved best-effort */ }
+
+                        // 2. Process all chunks sequentially
+                        for (var _pi = 0; _pi < chunks.length; _pi++) {
+                            var _chunkResult = await processChunk(_pi);
+                            if (_chunkResult && _chunkResult.stop) return;
+                        }
+
+                        // 3. Hide loader and show stats overlay with combined totals
+                        _stopElapsedTimer();        // ← stop ticking now that we're done
+                        // Remove the beforeunload guard — processing is done, let the
+                        // redirect and normal navigation proceed without a dialog.
+                        if (window._beforeUnloadHandler) {
+                            window.removeEventListener('beforeunload', window._beforeUnloadHandler);
+                            window._beforeUnloadHandler = null;
+                        }
+                        loaderOverlay.style.display = 'none';
+                        document.getElementById('stat-processed').textContent  = window.fmtNum(totalSuccess);
+                        document.getElementById('stat-duplicates').textContent = window.fmtNum(totalDuplicate);
+                        document.getElementById('stat-invalid').textContent    = window.fmtNum(totalInvalid);
+                        statsOverlay.style.display = 'flex';
+
+                        // Determine redirect target
+                        var redirectUrl = '{{ url_for("results") }}';
+                        if (totalInvalid > 0 || totalDuplicate > 0) {
+                            redirectUrl = '{{ url_for("view_invalid_passports") }}';
+                        } else if (totalSuccess === 0) {
+                            redirectUrl = '/';
+                        }
+
+                        function closeStatsModal() { window.location.href = redirectUrl; }
+                        document.getElementById('stats-close-icon').addEventListener('click', closeStatsModal);
+                        var _closeBtn = document.getElementById('stats-close-btn');
+                        if (_closeBtn) _closeBtn.addEventListener('click', closeStatsModal);
+
+                        checkQuota();
+                    })();
+                    } // end _doSubmit
+                });
+
+                uploadForm.addEventListener("keydown", function(event) {
+                    if (event.key === "Enter" && !processBtn.disabled) {
+                        event.preventDefault();
+                        processBtn.click();
+                    }
+                });
+            }
+
+       // ── 3. Statistics Modal After Upload ──────────────────────────────
+            {% if upload_stats %}
+            (function() {
+                const processedCount  = {{ upload_stats.processed | default(0) }};
+                const dupCount        = {{ upload_stats.duplicates | default(0) }};
+                const invCount        = {{ upload_stats.invalid | default(0) }};
+                const skippedFiles    = {{ upload_stats.skipped_files | default([]) | tojson }};
+
+                if (loaderOverlay) loaderOverlay.style.display = "none";
+
+                document.getElementById("stat-processed").textContent  = window.fmtNum(processedCount);
+                document.getElementById("stat-duplicates").textContent = window.fmtNum(dupCount);
+                document.getElementById("stat-invalid").textContent    = window.fmtNum(invCount);
+
+                // Handle Skipped Files UI
+                if (skippedFiles && skippedFiles.length > 0) {
+                    const skipContainer = document.getElementById("stats-skipped-container");
+                    const skipList = document.getElementById("stats-skipped-list");
+                    skippedFiles.forEach(file => {
+                        const li = document.createElement("li");
+                        li.textContent = file;
+                        skipList.appendChild(li);
+                    });
+                    skipContainer.style.display = "block";
+                }
+
+                // Determine redirect target
+                let redirectUrl = "{{ url_for('results') }}";
+                if (invCount > 0 || dupCount > 0) {
+                    redirectUrl = "{{ url_for('view_invalid_passports') }}";
+                } else if (processedCount === 0 && skippedFiles.length > 0) {
+                    redirectUrl = "/"; // If everything was skipped, stay on dashboard to easily re-upload
+                }
+
+                // Show the stats modal
+                statsOverlay.style.display = "flex";
+
+                // If a usage warning exists, show it on top of the stats modal immediately.
+                const warnOverlay = document.getElementById('usage-warn-overlay');
+                if (warnOverlay) {
+                    warnOverlay.style.zIndex  = "20000";
+                    warnOverlay.style.display = "flex";
+                    const gotItBtn = warnOverlay.querySelector('button[onclick]');
+                    if (gotItBtn) {
+                        gotItBtn.removeAttribute('onclick');
+                        gotItBtn.addEventListener('click', function() {
+                            warnOverlay.style.display = "none";
+                        });
+                    }
+                }
+
+                function closeStatsModal() {
+                    window.location.href = redirectUrl;
+                }
+
+                document.getElementById("stats-close-icon").addEventListener("click", closeStatsModal);
+                document.getElementById("stats-close-btn").addEventListener("click", closeStatsModal);
+            })();
+            {% endif %}
+        });
+    </script>
+
+    <!-- UPLOAD BLOCKED TRIGGER SCRIPT -->
+    <script>
+    (function() {
+        {%- if upload_blocked %}
+        var loaderOverlay = document.getElementById('loading-overlay');
+        if (loaderOverlay) loaderOverlay.style.display = 'none';
+
+        var reason = '{{ upload_blocked_reason }}';
+        var allowExtra = {{ 'true' if upload_blocked_allow_extra else 'false' }};
+        var msgs = {
+            'account_disabled': 'Your account has been disabled by the administrator. Please contact support to restore access.',
+            'limit_exceeded':   allowExtra
+                ? 'You have used your full upload limit plus today\'s extra allowance of 50 — {{ upload_blocked_used }} of {{ upload_blocked_limit }} total. A fresh 50-passport extra allowance opens automatically tomorrow.'
+                : 'You have reached your upload limit of {{ upload_blocked_limit }} passports ({{ upload_blocked_used }} used). Contact your administrator to increase the limit.'
+        };
+        var titles = {
+            'limit_exceeded':   allowExtra ? 'Daily Allowance Used Up' : 'Upload Limit Reached',
+            'account_disabled': 'Account Disabled'
+        };
+        var icons = {
+            'limit_exceeded':   allowExtra ? '&#128197;' : '&#128202;',
+            'account_disabled': '&#128683;'
+        };
+
+        document.getElementById('blocked-icon').innerHTML    = icons[reason]  || '&#128683;';
+        document.getElementById('blocked-title').textContent = titles[reason] || 'Upload Blocked';
+        document.getElementById('blocked-msg').textContent   = msgs[reason]   || 'Uploads are currently blocked on your account.';
+
+        if (reason === 'limit_exceeded' && !allowExtra) {
+            // Only show "contact admin to enable extra usage" when extra
+            // usage ISN'T already on — if it's on and still exhausted, the
+            // real remedy is "wait for tomorrow", not contacting admin.
+            document.getElementById('blocked-contact-btn').style.display = 'block';
+            document.getElementById('blocked-account-btn').style.display = 'none';
+        } else if (reason === 'limit_exceeded' && allowExtra) {
+            document.getElementById('blocked-contact-btn').style.display = 'none';
+            document.getElementById('blocked-account-btn').style.display = 'none';
+        } else {
+            document.getElementById('blocked-account-btn').style.display = 'block';
+            document.getElementById('blocked-contact-btn').style.display = 'none';
+        }
+
+        document.getElementById('upload-blocked-overlay').style.display = 'flex';
+        {%- endif %}
+    })();
+    </script>
+
+    <!-- UPLOAD BLOCKED MODAL -->
+    <div id="upload-blocked-overlay" style="display:none;position:fixed;inset:0;background:rgba(6,15,30,0.88);backdrop-filter:blur(8px);z-index:9999;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:20px;padding:36px 32px 28px;max-width:460px;width:92%;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,0.4);position:relative;">
+
+            <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#be2121,#f87171);border-radius:20px 20px 0 0;"></div>
+
+            <div id="blocked-icon" style="font-size:2rem;margin-bottom:12px;">&#128683;</div>
+            <h3 id="blocked-title" style="font-family:'Playfair Display',serif;font-size:1.25rem;color:#0c1a30;margin-bottom:8px;">Upload Blocked</h3>
+            <p id="blocked-msg" style="color:#7a8fa8;font-size:0.88rem;margin-bottom:18px;line-height:1.55;"></p>
+
+            <div id="blocked-amount-wrap" style="display:none;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:14px;margin-bottom:18px;">
+                <div style="font-size:0.72rem;color:#be2121;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:4px;">Amount Due</div>
+                <div id="blocked-amount" style="font-size:1.8rem;font-weight:800;color:#be2121;"></div>
+                <div style="font-size:0.75rem;color:#991b1b;">SAR</div>
+            </div>
+
+            <!-- Billing/admin-disabled: go to account page -->
+            <a id="blocked-account-btn" href="{{ url_for('account') }}"
+               style="display:none;background:linear-gradient(135deg,#112244,#1a3260);color:white;padding:11px 20px;border-radius:8px;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:0.88rem;">
+                <i class="bi bi-receipt me-2"></i>View Account &amp; Bill Details
+            </a>
+
+            <!-- Limit exceeded: reveal contact details -->
+            <button id="blocked-contact-btn"
+                    onclick="document.getElementById('blocked-contact-panel').style.display='block';this.style.display='none';"
+                    style="display:none;width:100%;padding:11px 20px;background:linear-gradient(135deg,#112244,#1a3260);color:white;border:none;border-radius:8px;font-weight:700;font-size:0.88rem;cursor:pointer;font-family:inherit;margin-bottom:10px;">
+                <i class="bi bi-telephone me-2"></i>Contact Us to Enable Extra Usage
+            </button>
+
+            <!-- Contact details panel -->
+            <div id="blocked-contact-panel" style="display:none;text-align:left;background:#faf8f4;border:1.5px solid #e8e4dc;border-radius:12px;padding:18px 16px;margin-bottom:14px;">
+                <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#7a8fa8;margin-bottom:12px;">
+                    <i class="bi bi-headset me-1" style="color:#c9a84c;"></i>Billing &amp; Support Team
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:0.85rem;color:#0c1a30;">
+                    <i class="bi bi-envelope-fill" style="color:#0d6efd;font-size:1rem;flex-shrink:0;"></i>
+                    <div><div style="font-size:0.7rem;color:#7a8fa8;font-weight:600;">EMAIL</div>passposys@gmail.com</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:0.85rem;color:#0c1a30;">
+                    <i class="bi bi-telephone-fill" style="color:#198754;font-size:1rem;flex-shrink:0;"></i>
+                    <div><div style="font-size:0.7rem;color:#7a8fa8;font-weight:600;">PHONE</div>+91 9495955729</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:0.85rem;color:#0c1a30;">
+                    <i class="bi bi-whatsapp" style="color:#198754;font-size:1rem;flex-shrink:0;"></i>
+                    <div><div style="font-size:0.7rem;color:#7a8fa8;font-weight:600;">WHATSAPP</div>+91 9495955729</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;background:white;border-radius:8px;padding:10px 14px;font-size:0.85rem;color:#0c1a30;">
+                    <i class="bi bi-clock-fill" style="color:#b45309;font-size:1rem;flex-shrink:0;"></i>
+                    <div><div style="font-size:0.7rem;color:#7a8fa8;font-weight:600;">HOURS</div>Sun–Thu, 8:00 AM – 5:00 PM (AST)</div>
+                </div>
+            </div>
+
+            <button onclick="document.getElementById('upload-blocked-overlay').style.display='none';document.getElementById('blocked-contact-panel').style.display='none';document.getElementById('blocked-contact-btn').style.display='none';"
+                    style="background:none;border:1.5px solid #e8e4dc;color:#7a8fa8;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:0.85rem;width:100%;font-family:inherit;">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('upload-blocked-overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+                document.getElementById('blocked-contact-panel').style.display = 'none';
+                document.getElementById('blocked-contact-btn').style.display = 'none';
+            }
+        });
+    </script>
+
+    
+
+    
+
+    {% if usage_warning and not upload_blocked %}
+    <!-- ── Usage Warning Popup ── -->
+    <div id="usage-warn-overlay"
+         style="display:none;position:fixed;inset:0;background:rgba(6,15,30,0.82);
+                backdrop-filter:blur(8px);z-index:10000;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:20px;padding:0;max-width:460px;width:92%;
+                    box-shadow:0 30px 80px rgba(0,0,0,0.45);position:relative;overflow:hidden;
+                    animation:modalIn 0.4s cubic-bezier(0.34,1.56,0.64,1);">
+
+            {# Top accent bar — colour by level #}
+            {% if usage_warning.level == 'exceeded' %}
+            <div style="height:5px;background:linear-gradient(90deg,#be2121,#f87171);"></div>
+            {% elif usage_warning.level == 'critical' %}
+            <div style="height:5px;background:linear-gradient(90deg,#b45309,#fbbf24);"></div>
+            {% else %}
+            <div style="height:5px;background:linear-gradient(90deg,#1d4ed8,#60a5fa);"></div>
+            {% endif %}
+
+            <div style="padding:36px 36px 28px;">
+
+                {# Icon #}
+                <div style="width:56px;height:56px;border-radius:50%;display:flex;align-items:center;
+                            justify-content:center;font-size:1.6rem;margin:0 auto 18px;
+                            {% if usage_warning.level == 'exceeded' %}background:#fef2f2;border:2px solid #fecaca;
+                            {% elif usage_warning.level == 'critical' %}background:#fffbeb;border:2px solid #fde68a;
+                            {% else %}background:#eff6ff;border:2px solid #bfdbfe;{% endif %}">
+                    {% if usage_warning.level == 'exceeded' %}🚫
+                    {% elif usage_warning.level == 'critical' %}⚠️
+                    {% else %}ℹ️{% endif %}
+                </div>
+
+                {# Title #}
+                <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;
+                           color:#0c1a30;text-align:center;margin-bottom:8px;">
+                    {% if usage_warning.level == 'exceeded' %}Upload Limit Exceeded
+                    {% elif usage_warning.level == 'critical' %}Almost at Your Limit
+                    {% else %}Halfway Through Your Limit{% endif %}
+                </h3>
+
+                {# Message #}
+                <p style="font-size:0.9rem;color:#7a8fa8;text-align:center;line-height:1.6;margin-bottom:22px;">
+                    {% if usage_warning.level == 'exceeded' %}
+                        You have used <strong style="color:#be2121;"><span class="num">{{ usage_warning.used }}</span></strong> of your
+                        <strong><span class="num">{{ usage_warning.limit }}</span></strong> passport limit.
+                        Uploads are currently <strong style="color:#be2121;">blocked</strong>.
+                        Please contact your administrator.
+                    {% elif usage_warning.level == 'critical' %}
+                        Only <strong style="color:#b45309;"><span class="num">{{ usage_warning.remaining }}</span></strong> passport(s) remaining
+                        — you have used <strong style="color:#b45309;"><span class="num">{{ usage_warning.pct }}</span>%</strong>
+                        of your <span class="num">{{ usage_warning.limit }}</span> limit.
+                        Consider contacting your administrator to increase your limit.
+                    {% else %}
+                        You have used <strong style="color:#1d4ed8;"><span class="num">{{ usage_warning.pct }}</span>%</strong>
+                        of your <span class="num">{{ usage_warning.limit }}</span> passport limit.
+                        <strong><span class="num">{{ usage_warning.remaining }}</span></strong> passport(s) remaining.
+                    {% endif %}
+                </p>
+
+                {# Progress bar #}
+                <div style="background:#f1f5f9;border-radius:8px;height:10px;margin-bottom:24px;overflow:hidden;">
+                    <div style="height:100%;border-radius:8px;transition:width 0.6s;
+                                width:{{ [usage_warning.pct, 100]|min }}%;
+                                background:{% if usage_warning.level == 'exceeded' %}#be2121
+                                           {% elif usage_warning.level == 'critical' %}#b45309
+                                           {% else %}#2563eb{% endif %};">
+                    </div>
+                </div>
+
+                {# Close button #}
+                <button onclick="document.getElementById('usage-warn-overlay').style.display='none';"
+                        style="width:100%;padding:12px;border:none;border-radius:10px;font-size:0.95rem;
+                               font-weight:700;cursor:pointer;font-family:inherit;
+                               {% if usage_warning.level == 'exceeded' %}background:linear-gradient(135deg,#be2121,#ef4444);color:white;
+                               {% elif usage_warning.level == 'critical' %}background:linear-gradient(135deg,#b45309,#d97706);color:white;
+                               {% else %}background:linear-gradient(135deg,#112244,#1a3260);color:white;{% endif %}">
+                    Got it
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% if usage_warning and not upload_blocked %}
+    <script>
+    // If there is no stats modal on this page load, show the warning immediately.
+    // When a stats modal IS present, closeStatsModal() handles showing it instead.
+    document.addEventListener('DOMContentLoaded', function() {
+        var hasStats   = {{ 'true' if upload_stats else 'false' }};
+        var warnOverlay = document.getElementById('usage-warn-overlay');
+        if (!hasStats && warnOverlay) {
+            warnOverlay.style.display = 'flex';
+        }
+    });
+    </script>
+    {% endif %}
+
+    <!-- ═══════════════════════════════════════════════
+         JINIX-STYLE CALENDAR PICKER (matches edit.html)
+    ═══════════════════════════════════════════════ -->
+    <div id="calPickerPopup" class="cal-popup" role="dialog" aria-label="Date picker">
+        <div class="cal-header">
+            <button class="cal-nav-btn" id="calPrevBtn" type="button" aria-label="Previous month">&#8249;</button>
+            <div class="cal-header-selects">
+                <select class="cal-month-sel" id="calMonthSel" aria-label="Month"></select>
+                <select class="cal-year-sel"  id="calYearSel"  aria-label="Year"></select>
+            </div>
+            <button class="cal-nav-btn" id="calNextBtn" type="button" aria-label="Next month">&#8250;</button>
+        </div>
+        <div class="cal-grid">
+            <div class="cal-dow-row">
+                <span class="cal-dow">Sun</span><span class="cal-dow">Mon</span>
+                <span class="cal-dow">Tue</span><span class="cal-dow">Wed</span>
+                <span class="cal-dow">Thu</span><span class="cal-dow">Fri</span>
+                <span class="cal-dow">Sat</span>
+            </div>
+            <div class="cal-days-row" id="calDaysGrid"></div>
+        </div>
+        <div class="cal-footer">
+            <button class="cal-btn-clear" id="calClearBtn" type="button">Clear</button>
+            <button class="cal-btn-today" id="calTodayBtn" type="button">Today</button>
+        </div>
+    </div>
+
+    <script>
+    /* ── Jinix Calendar Picker ───────────────────────────────── */
+    (function () {
+        const MONTHS = ['January','February','March','April','May','June',
+                        'July','August','September','October','November','December'];
+        const popup   = document.getElementById('calPickerPopup');
+        const monthSel = document.getElementById('calMonthSel');
+        const yearSel  = document.getElementById('calYearSel');
+        const daysGrid = document.getElementById('calDaysGrid');
+        const prevBtn  = document.getElementById('calPrevBtn');
+        const nextBtn  = document.getElementById('calNextBtn');
+        const todayBtn = document.getElementById('calTodayBtn');
+        const clearBtn = document.getElementById('calClearBtn');
+
+        let curYear, curMonth;          // currently viewed month
+        let activeInput = null;         // the text input being edited
+        let activeHidden = null;        // corresponding hidden ISO input
+        let selectedISO = '';           // currently selected date (YYYY-MM-DD)
+
+        /* ── populate month/year dropdowns ── */
+        MONTHS.forEach((m, i) => {
+            const o = document.createElement('option');
+            o.value = i; o.textContent = m;
+            monthSel.appendChild(o);
+        });
+        const nowY = new Date().getFullYear();
+        for (let y = nowY - 5; y <= nowY + 20; y++) {
+            const o = document.createElement('option');
+            o.value = y; o.textContent = y;
+            yearSel.appendChild(o);
+        }
+
+        /* ── render calendar grid ── */
+        function render() {
+            monthSel.value = curMonth;
+            yearSel.value  = curYear;
+            daysGrid.innerHTML = '';
+
+            const today   = new Date();
+            const todayY  = today.getFullYear();
+            const todayM  = today.getMonth();
+            const todayD  = today.getDate();
+
+            const firstDay  = new Date(curYear, curMonth, 1).getDay();   // 0=Sun
+            const daysInMon = new Date(curYear, curMonth + 1, 0).getDate();
+            const prevDays  = new Date(curYear, curMonth, 0).getDate();
+
+            // previous month filler
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const d = prevDays - i;
+                const cell = makeCell(d, curMonth - 1, curYear, true);
+                daysGrid.appendChild(cell);
+            }
+            // current month
+            for (let d = 1; d <= daysInMon; d++) {
+                const isToday = (d === todayD && curMonth === todayM && curYear === todayY);
+                const isoStr  = isoDate(curYear, curMonth, d);
+                const cell = makeCell(d, curMonth, curYear, false, isToday, isoStr === selectedISO);
+                daysGrid.appendChild(cell);
+            }
+            // next month filler
+            const total = firstDay + daysInMon;
+            const trailing = (7 - (total % 7)) % 7;
+            for (let d = 1; d <= trailing; d++) {
+                const cell = makeCell(d, curMonth + 1, curYear, true);
+                daysGrid.appendChild(cell);
+            }
+        }
+
+        function makeCell(d, m, y, otherMonth, isToday, isSelected) {
+            const el = document.createElement('div');
+            el.className = 'cal-day';
+            if (otherMonth)  el.classList.add('cal-other-month');
+            if (isToday)     el.classList.add('cal-today');
+            if (isSelected)  el.classList.add('cal-selected');
+            el.textContent = d;
+            el.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                const realM = ((m % 12) + 12) % 12;
+                let realY = y;
+                if (m < 0)  realY--;
+                if (m > 11) realY++;
+                selectDate(realY, realM, d);
+            });
+            return el;
+        }
+
+        function isoDate(y, m, d) {
+            return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+        function isoToDisplay(iso) {
+            const [y, m, d] = iso.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function selectDate(y, m, d) {
+            selectedISO = isoDate(y, m, d);
+            if (activeInput)  activeInput.value  = isoToDisplay(selectedISO);
+            if (activeHidden) activeHidden.value = selectedISO;
+            if (activeInput)  activeInput.classList.remove('is-invalid');
+            // trigger change so dependent fields (e.g. auto departure date) update
+            if (activeInput)  activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+            closeCalendar();
+        }
+
+        function openCalendar(inputEl, hiddenEl) {
+            activeInput  = inputEl;
+            activeHidden = hiddenEl;
+
+            // parse existing value
+            selectedISO = '';
+            if (hiddenEl && hiddenEl.value && hiddenEl.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                selectedISO = hiddenEl.value;
+            }
+            const d = selectedISO ? new Date(selectedISO + 'T00:00:00') : new Date();
+            curYear  = d.getFullYear();
+            curMonth = d.getMonth();
+
+            // position popup below input
+            const rect = inputEl.getBoundingClientRect();
+            const scrollTop  = window.scrollY || document.documentElement.scrollTop;
+            const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+            const popupW = 300;
+            popup.style.top  = (rect.bottom + scrollTop + 4) + 'px';
+            popup.style.position = 'absolute';
+            // flip to right-align when popup would overflow the viewport right edge
+            let leftPos;
+            if (rect.left + popupW > window.innerWidth - 8) {
+                // align popup's right edge with input's right edge
+                leftPos = rect.right + scrollLeft - popupW;
+                if (leftPos < scrollLeft) leftPos = scrollLeft + 4; // clamp to left
+            } else {
+                leftPos = rect.left + scrollLeft;
+            }
+            popup.style.left = leftPos + 'px';
+            // move popup to body so it isn't clipped by overflow:hidden parents
+            document.body.appendChild(popup);
+
+            render();
+            popup.classList.add('cal-open');
+        }
+
+        function closeCalendar() {
+            popup.classList.remove('cal-open');
+            activeInput  = null;
+            activeHidden = null;
+        }
+
+        /* ── nav ── */
+        prevBtn.addEventListener('click', function () { curMonth--; if (curMonth < 0)  { curMonth = 11; curYear--; } render(); });
+        nextBtn.addEventListener('click', function () { curMonth++; if (curMonth > 11) { curMonth = 0;  curYear++; } render(); });
+        monthSel.addEventListener('change', function () { curMonth = +this.value; render(); });
+        yearSel.addEventListener('change',  function () { curYear  = +this.value; render(); });
+        todayBtn.addEventListener('click', function () {
+            const t = new Date();
+            selectDate(t.getFullYear(), t.getMonth(), t.getDate());
+        });
+        clearBtn.addEventListener('click', function () {
+            selectedISO = '';
+            if (activeInput)  { activeInput.value = ''; activeInput.classList.remove('is-invalid'); }
+            if (activeHidden) activeHidden.value = '';
+            closeCalendar();
+        });
+
+        /* ── close on outside click ── */
+        document.addEventListener('mousedown', function (e) {
+            if (!popup.contains(e.target) && e.target !== activeInput) {
+                closeCalendar();
+            }
+        });
+        /* ── close on Esc ── */
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeCalendar();
+        });
+
+        /* ── attach to all .date-input fields (excludes .date-input-static, which is auto-only) ── */
+        function attachCalendar() {
+            document.querySelectorAll('.date-input').forEach(function (inp) {
+                if (inp.dataset.calAttached) return;
+                inp.dataset.calAttached = '1';
+                inp.setAttribute('autocomplete', 'off');
+                inp.setAttribute('readonly', 'readonly');   // force picker only (no manual typo)
+                inp.style.cursor = 'pointer';
+
+                const grp    = inp.closest('.input-group');
+                const hidden = grp ? grp.querySelector('input[type="hidden"]') : null;
+                const icon   = grp ? grp.querySelector('.input-group-text') : null;
+
+                function open() { openCalendar(inp, hidden); }
+                inp.addEventListener('click', open);
+                if (icon) icon.addEventListener('click', open);
+                if (icon) icon.style.cursor = 'pointer';
+            });
+        }
+        attachCalendar();
+        // re-attach if dynamically added rows appear
+        const obs = new MutationObserver(attachCalendar);
+        obs.observe(document.body, { childList: true, subtree: true });
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+{% include "db_admin/_layout_top.html" %}
+
+<h2>Run SQL query</h2>
+
+<div class="card">
+<form method="post">
+  <textarea name="sql" placeholder="SELECT * FROM passports LIMIT 50;">{{ sql }}</textarea>
+  <div style="margin-top:10px;display:flex;align-items:center;gap:8px;">
+    <label style="font-size:13px;">
+      <input type="checkbox" name="confirm_write" {% if confirm_write %}checked{% endif %}>
+      I understand this statement may modify or delete data
+    </label>
+  </div>
+  <div style="margin-top:14px;">
+    <button class="btn btn-primary" type="submit">Run</button>
+  </div>
+</form>
+</div>
+
+{% if error %}
+  <div class="flash flash-error" style="margin-top:20px;">{{ error }}</div>
+{% endif %}
+
+{% if affected is not none %}
+  <div class="flash flash-success" style="margin-top:20px;">{{ affected }} row(s) affected.</div>
+{% endif %}
+
+{% if columns is not none %}
+<div style="overflow:auto;margin-top:20px;">
+<table>
+  <thead><tr>{% for c in columns %}<th>{{ c }}</th>{% endfor %}</tr></thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>{% for c in columns %}<td>{{ row[c] if row[c] is not none else '' }}</td>{% endfor %}</tr>
+    {% else %}
+    <tr><td colspan="{{ columns|length if columns else 1 }}" class="muted">No rows returned.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+
+{% include "db_admin/_layout_bottom.html" %}

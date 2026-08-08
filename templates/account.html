@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="My Account — Passport Manager" data-ar="حسابي — مدير جوازات السفر">My Account — Passport Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: light;
+            --navy-deep:    #060f1e;
+            --navy-dark:    #0c1a30;
+            --navy-mid:     #112244;
+            --navy-light:   #1a3260;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --gold-pale:    #f7edce;
+            --cream:        #faf8f4;
+            --white:        #ffffff;
+            --border-light: #e8e4dc;
+            --border-gold:  rgba(201,168,76,0.35);
+            --text-dark:    #0c1a30;
+            --text-mid:     #3d5275;
+            --text-muted:   #7a8fa8;
+            --success:      #0d7a55;
+            --success-bg:   #edfaf5;
+            --warning:      #b45309;
+            --warning-bg:   #fffbeb;
+            --danger:       #be2121;
+            --danger-bg:    #fef2f2;
+            --info-bg:      #eff6ff;
+            --sidebar-w:    260px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background-color: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ═══════════════════════════════════════
+           SIDEBAR
+        ═══════════════════════════════════════ */
+        .sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15); overflow: visible; }
+        .sidebar-logo {
+    
+    margin: 20px auto;
+}
+        .sidebar-nav {
+    padding: 20px 0;
+    flex: 1; /* This pushes the user section to the bottom */
+    overflow-y: auto; /* Adds scrollbar only when items overflow */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,168,76,0.2) transparent;
+}
+        .nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+        .nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+        .nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+        .nav-link-item.active i { color: var(--gold); }
+        .nav-link-item.nav-warning { color: rgba(255,200,80,0.75); }
+        .nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+        .nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+        .nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+        .nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+        .nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+        .sidebar-user {
+    padding: 18px 28px;
+    border-top: 1px solid rgba(201,168,76,0.15);
+    background: inherit;
+    flex-shrink: 0;
+    position: relative; /* anchor for .user-menu absolute positioning */
+}
+        .user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+        .user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+        .user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+        .sidebar-user:focus-within .user-menu { display: block; }
+        .user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+        .user-menu a:hover { background: rgba(255,80,80,0.1); }
+        
+
+        /* ═══════════════════════════════════════
+           MAIN CONTENT
+        ═══════════════════════════════════════ */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            flex: 1;
+            padding: 40px 44px 60px;
+            max-width: calc(100% - var(--sidebar-w));
+        }
+
+        .page-header {
+            margin-bottom: 36px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .page-header-text {}
+
+        .page-eyebrow {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+
+        .page-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            line-height: 1.2;
+        }
+
+        .page-title span {
+            color: var(--gold);
+        }
+
+        /* ═══════════════════════════════════════
+           DASHBOARD GRID
+        ═══════════════════════════════════════ */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.25fr;
+            gap: 28px;
+            align-items: start;
+        }
+
+        @media (max-width: 1100px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .main-content { padding: 28px 24px 50px; }
+        }
+
+        /* ═══════════════════════════════════════
+           CARDS
+        ═══════════════════════════════════════ */
+        .card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 2px 16px rgba(12,26,48,0.06), 0 1px 4px rgba(12,26,48,0.04);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--navy-mid), var(--navy-light));
+        }
+
+        .card.card-gold::before {
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        }
+
+        .card.card-success::before {
+            background: linear-gradient(90deg, #0d7a55, #34d399);
+        }
+
+        .card.card-warning::before {
+            background: linear-gradient(90deg, var(--warning), #fbbf24);
+        }
+
+        /* Card watermark */
+        .card-watermark {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 7rem;
+            opacity: 0.03;
+            color: var(--navy-deep);
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 14px;
+            margin-bottom: 24px !important;
+            margin-top: 0 !important;
+        }
+
+        .section-title .title-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        .title-icon-blue { background: #eff6ff; color: #2563eb; }
+        .title-icon-green { background: #ecfdf5; color: #059669; }
+        .title-icon-amber { background: #fffbeb; color: #d97706; }
+
+        .section-subtitle {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            margin-top: -18px;
+            margin-bottom: 24px;
+            padding-left: 42px;
+        }
+
+        /* ═══════════════════════════════════════
+           FORM ELEMENTS
+        ═══════════════════════════════════════ */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group.full-width { grid-column: span 2; }
+
+        .form-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="email"],
+        select,
+        datalist,
+        option {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--border-light);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.9rem;
+            color: var(--text-dark) !important;
+            background-color: var(--cream) !important;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--gold);
+            outline: 0;
+            background-color: var(--white) !important;
+            box-shadow: 0 0 0 4px rgba(201,168,76,0.12);
+        }
+
+        /* ═══════════════════════════════════════
+           BUTTONS
+        ═══════════════════════════════════════ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: 1.5px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            font-family: 'DM Sans', sans-serif;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(12,26,48,0.2);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: linear-gradient(135deg, var(--navy-light), #1d4080);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(12,26,48,0.28);
+        }
+
+        .btn-primary:disabled {
+            background: #c5cdd8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            color: var(--navy-deep);
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(201,168,76,0.3);
+            font-weight: 700;
+        }
+
+        .btn-gold:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(201,168,76,0.4);
+            filter: brightness(1.05);
+        }
+
+        .btn-gold:disabled {
+            background: #c5cdd8;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--text-dark);
+            border: 1.5px solid var(--border-light);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cream);
+            border-color: var(--gold);
+            color: var(--navy-mid);
+        }
+
+        .btn-danger {
+            background: var(--white);
+            color: var(--danger);
+            border: 1.5px solid #fca5a5;
+        }
+        .btn-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+
+        .btn-lg {
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        /* ═══════════════════════════════════════
+           UPLOAD AREA
+        ═══════════════════════════════════════ */
+        .upload-area {
+            border: 2px dashed var(--border-gold);
+            border-radius: 14px;
+            padding: 52px 30px;
+            text-align: center;
+            background: linear-gradient(145deg, #fdfcf7, #f8f4ea);
+            transition: all 0.25s ease;
+            margin-bottom: 20px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 100%, rgba(201,168,76,0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .upload-area:hover {
+            background: linear-gradient(145deg, #fdf8ec, #f5edcf);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(201,168,76,0.08);
+        }
+
+        .upload-area input[type="file"] { display: none; }
+
+        .upload-icon-wrap {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--navy-mid), var(--navy-light));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            box-shadow: 0 8px 24px rgba(12,26,48,0.18);
+        }
+
+        .upload-icon-wrap i {
+            font-size: 1.8rem;
+            color: var(--gold-light);
+        }
+
+        .upload-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--navy-dark);
+            margin-bottom: 6px;
+        }
+
+        .upload-sub {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        #file-selection-info {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 16px;
+            background: var(--success-bg);
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        /* ═══════════════════════════════════════
+           ALERTS
+        ═══════════════════════════════════════ */
+        .alert {
+            padding: 16px 22px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            border: 1.5px solid transparent;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .alert-success {
+            background: var(--success-bg);
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+        .alert-danger {
+            background: var(--danger-bg);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        .alert-warning {
+            background: var(--warning-bg);
+            border-color: #fde68a;
+            color: #92400e;
+        }
+        .alert-info {
+            background: var(--info-bg);
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .alert h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert ul { margin: 0; padding-left: 22px; font-size: 0.88rem; }
+        .alert li { margin-bottom: 4px; }
+
+        /* MRZ font */
+        .mrz-display {
+            background: var(--navy-deep);
+            color: #a8d8a8;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 22px;
+            font-family: 'DM Mono', monospace;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            line-height: 1.8;
+            border: 1px solid rgba(201,168,76,0.2);
+            overflow-x: auto;
+        }
+
+        /* ═══════════════════════════════════════
+           LOADING OVERLAY
+        ═══════════════════════════════════════ */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.88);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .loading-ring {
+            width: 64px;
+            height: 64px;
+            position: relative;
+        }
+
+        .loading-ring::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border: 4px solid rgba(201,168,76,0.15);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-logo {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            box-shadow: 0 4px 20px rgba(201,168,76,0.4);
+        }
+
+        .loading-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--white);
+            text-align: center;
+        }
+
+        .loading-subtext {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.45);
+            text-align: center;
+            max-width: 320px;
+        }
+
+        /* ═══════════════════════════════════════
+           STATS MODAL
+        ═══════════════════════════════════════ */
+        .stats-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.85);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stats-modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 44px 52px 40px;
+            text-align: center;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(201,168,76,0.15);
+            min-width: 400px;
+            animation: modalIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.82) translateY(20px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        #stats-close-icon {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: color 0.2s;
+            padding: 4px;
+            line-height: 1;
+        }
+
+        #stats-close-icon:hover { color: var(--danger); }
+
+        .modal-check {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 2px solid #a7f3d0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin: 0 auto 18px;
+        }
+
+        .stats-modal h3 {
+            font-family: 'Playfair Display', serif;
+            margin: 0 0 6px;
+            font-size: 1.4rem;
+            color: var(--navy-dark);
+        }
+
+        .stats-modal .subtitle {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            flex: 1;
+            padding: 18px 12px 16px;
+            border-radius: 12px;
+            border: 1.5px solid transparent;
+        }
+
+        .stat-card.processed {
+            background: var(--success-bg);
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        .stat-card.duplicates {
+            background: var(--info-bg);
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .stat-card.invalid {
+            background: var(--danger-bg);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .stat-card .stat-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            opacity: 0.8;
+        }
+
+        /* ═══════════════════════════════════════
+           DROPDOWN
+        ═══════════════════════════════════════ */
+        .dropdown-hover { position: relative; }
+
+        .dropdown-hover .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            left: auto;
+            top: 100%;
+            z-index: 1050;
+            padding: 0;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .dropdown-hover:hover .dropdown-menu,
+        .dropdown-hover:focus-within .dropdown-menu { display: block; }
+
+        .logout-item:hover {
+            background-color: var(--danger-bg) !important;
+            color: #b91c1c !important;
+        }
+
+        /* ═══════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════ */
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            /* sidebar stays in DOM — hidden via transform, NOT display:none */
+            .main-content { margin-left: 0; max-width: 100%; padding: 20px 16px 40px; }
+        }
+
+        /* ═══════════════════════════════════════
+           ENTRY ANIMATIONS
+        ═══════════════════════════════════════ */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        .fade-up:nth-child(1) { animation-delay: 0.05s; }
+        .fade-up:nth-child(2) { animation-delay: 0.12s; }
+        .fade-up:nth-child(3) { animation-delay: 0.19s; }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+    
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+
+        /* Sidebar slide transition — desktop & mobile */
+        .sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Desktop: collapsed state */
+        .sidebar.collapsed {
+            transform: translateX(-260px);
+        }
+
+        /* Nav scroll when content overflows */
+        .sidebar-nav {
+            overflow-y: auto;
+            flex: 1;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(201,168,76,0.2) transparent;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+
+        /* ── Toggle button ──
+           Desktop: fixed, sits flush on RIGHT edge of sidebar when open,
+                    moves to left:0 when sidebar is collapsed.
+           Mobile:  always top-left corner.
+        ────────────────────────────────────── */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 5px;
+            left: 0;
+            z-index: 500;
+            width: 36px;
+            height: 36px;
+            background: var(--navy-mid);
+            border: 1px solid rgba(201,168,76,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gold);
+            font-size: 1.1rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+            box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle-btn:hover {
+            background: var(--navy-light);
+            color: var(--gold-light);
+        }
+        /* When sidebar is OPEN → button hugs its right edge */
+        .sidebar-toggle-btn.sidebar-open {
+    left: 224px; /* 260px width - 36px button = 224px */
+    top: 5px;
+    border-radius: 8px; /* Matches the closed state styling */
+    border: 1px solid rgba(201,168,76,0.3);
+}
+
+        /* ── Dark overlay (mobile only) ── */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(6,15,30,0.7);
+            z-index: 300;
+            backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.visible { display: block; }
+
+        /* Main content slides with sidebar on desktop */
+        .main-content {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                        max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .main-content.sidebar-collapsed {
+            margin-left: 0 !important;
+            max-width: 100% !important;
+        }
+
+        /* User menu: click-only (hover disabled) */
+        /* user-menu shown by JS .open class only — hover disabled */
+        .user-menu.open { display: block !important; }
+
+        /* ══════════════════════════════════════
+           MOBILE  ≤ 768px
+        ══════════════════════════════════════ */
+        @media (max-width: 768px) {
+
+            /* Sidebar is a full-height drawer — always in DOM, off-screen by default */
+            .sidebar {
+                display: flex !important;
+                flex-direction: column;
+                position: fixed;
+                top: 0; left: 0;
+                width: 260px;
+                height: 100vh;
+                min-height: 100vh;
+                transform: translateX(-260px);
+                z-index: 400;
+                overflow: hidden;
+            }
+            .sidebar.mobile-open {
+                transform: translateX(0) !important;
+                box-shadow: 8px 0 32px rgba(0,0,0,0.5);
+            }
+            /* Desktop collapsed class must not interfere */
+            .sidebar.collapsed { transform: translateX(-260px); }
+
+            /* Nav area fills available space and scrolls if needed */
+            .sidebar-nav {
+                flex: 1;
+                overflow-y: auto;
+                max-height: none;
+            }
+
+            /* Main content: full width, no margin */
+            .main-content,
+            .main-content.sidebar-collapsed {
+                margin-left: 0 !important;
+                max-width: 100% !important;
+                padding-top: 56px !important;
+            }
+
+            /* Toggle btn: always top-left, small, rounded */
+            .sidebar-toggle-btn,
+            .sidebar-toggle-btn.sidebar-open {
+                left: 10px !important;
+                top: 10px !important;
+                width: 34px;
+                height: 34px;
+                border-radius: 8px !important;
+                border: 1px solid rgba(201,168,76,0.35) !important;
+                border-left: 1px solid rgba(201,168,76,0.35) !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+
+        
+
+        /* ═══ ACCOUNT PAGE EXTRAS ════════════════ */
+        .acct-tabs {
+            display: flex; gap: 4px;
+            border-bottom: 2px solid var(--border-light);
+            margin-bottom: 28px;
+        }
+        .acct-tab {
+            padding: 10px 22px; font-weight: 600; font-size: 0.88rem;
+            color: var(--text-muted); cursor: pointer; border: none;
+            background: none; border-bottom: 3px solid transparent;
+            margin-bottom: -2px; font-family: 'DM Sans', sans-serif;
+            transition: color 0.2s;
+        }
+        .acct-tab.active { color: var(--navy-dark); border-bottom-color: var(--gold); }
+        .acct-tab:hover { color: var(--navy-dark); }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+            gap: 18px; margin-bottom: 28px;
+        }
+        .kpi-card {
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 14px; padding: 22px 20px;
+            box-shadow: 0 2px 8px rgba(12,26,48,0.05);
+            position: relative; overflow: hidden;
+        }
+        .kpi-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background: linear-gradient(90deg, var(--kpi-color,var(--navy-mid)), var(--kpi-color2,var(--navy-light)));
+        }
+        .kpi-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+                      letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; }
+        .kpi-value { font-size: 2rem; font-weight: 800; line-height: 1; color: var(--navy-dark); }
+        .kpi-sub { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+
+        .usage-bar-wrap { margin: 8px 0 4px; }
+        .usage-bar { height: 8px; border-radius: 4px; background: var(--border-light); overflow: hidden; }
+        .usage-bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s; }
+
+        /* Daily log table */
+        .log-table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+        .log-table th {
+            background: var(--cream); font-size: 0.7rem; text-transform: uppercase;
+            letter-spacing: 0.8px; color: var(--text-muted); font-weight: 700;
+            padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border-light);
+        }
+        .log-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; color: var(--navy-dark); }
+        .log-table tr:last-child td { border-bottom: none; }
+        .log-table tr:hover td { background: var(--cream); }
+
+        /* Bill card */
+        .bill-card {
+            background: var(--white); border: 1px solid var(--border-light);
+            border-radius: 14px; overflow: hidden; margin-bottom: 18px;
+        }
+        .bill-header {
+            background: var(--navy-dark); color: white;
+            padding: 16px 22px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .bill-month { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; }
+        .bill-total { font-size: 1.25rem; font-weight: 800; color: var(--gold-light); }
+        .bill-body { padding: 18px 22px; }
+        .bill-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem;
+        }
+        .bill-row:last-child { border-bottom: none; font-weight: 700; font-size: 0.92rem; }
+        .bill-row .lbl { color: var(--text-mid); }
+        .bill-row .val { font-weight: 600; color: var(--navy-dark); }
+
+        /* over-limit warning */
+        .limit-alert {
+            background: var(--warning-bg); border: 1.5px solid #fde68a;
+            border-radius: 12px; padding: 18px 22px; margin-bottom: 22px;
+            font-size: 0.88rem; color: #92400e;
+        }
+        .contact-reveal {
+            background: var(--white); border: 1.5px solid var(--border-light);
+            border-radius: 12px; padding: 22px; margin-top: 18px; display: none;
+        }
+        .contact-reveal.open { display: block; }
+        .c-detail {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--cream); border-radius: 8px;
+            padding: 10px 14px; margin-bottom: 8px; font-size: 0.85rem;
+        }
+        .expired-banner {
+            background: var(--danger-bg); border: 1.5px solid #fecaca;
+            border-radius: 12px; padding: 18px 22px; margin-bottom: 22px;
+            color: #991b1b; font-size: 0.9rem;
+        }
+
+        /* ══ JINIX-STYLE CALENDAR PICKER ══ */
+        .cal-popup {
+            display: none; position: absolute; z-index: 9999;
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 8px 40px rgba(6,15,30,0.22), 0 2px 12px rgba(6,15,30,0.12);
+            border: 1px solid rgba(201,168,76,0.18);
+            width: 300px;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .cal-popup.cal-open { display: block; animation: calFadeIn 0.15s ease; }
+        @keyframes calFadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+        .cal-header {
+            background: var(--navy-deep);
+            background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.1) 0%, transparent 60%);
+            padding: 12px 14px 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(201,168,76,0.18);
+        }
+        .cal-nav-btn {
+            background: none; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.7); font-size: 1.1rem;
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .cal-nav-btn:hover { background: rgba(201,168,76,0.18); color: var(--gold); }
+        .cal-header-selects { display: flex; gap: 6px; align-items: center; }
+        .cal-month-sel, .cal-year-sel {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(201,168,76,0.25);
+            color: #fff; font-size: 0.85rem; font-weight: 600;
+            border-radius: 6px; padding: 4px 8px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            appearance: none; -webkit-appearance: none;
+        }
+        .cal-month-sel { min-width: 96px; }
+        .cal-year-sel  { min-width: 64px; }
+        .cal-month-sel:focus, .cal-year-sel:focus { outline: none; border-color: var(--gold); }
+        .cal-month-sel option, .cal-year-sel option { background: var(--navy-dark,#0c1a30); color: #fff; }
+        .cal-grid { padding: 10px 10px 12px; }
+        .cal-dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+        .cal-dow { text-align: center; font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted,#7a8fa8); padding: 4px 0; }
+        .cal-days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .cal-day {
+            text-align: center; font-size: 0.82rem;
+            border-radius: 50%; cursor: pointer; color: var(--navy-dark,#0c1a30);
+            transition: all 0.12s; aspect-ratio: 1; display: flex;
+            align-items: center; justify-content: center; font-weight: 500;
+        }
+        .cal-day:hover:not(.cal-other-month) { background: rgba(201,168,76,0.15); }
+        .cal-day.cal-other-month { color: #ccc; }
+        .cal-day.cal-other-month:hover { background: rgba(201,168,76,0.08); color: #aaa; }
+        .cal-day.cal-today {
+            background: var(--gold,#c9a84c); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+        }
+        .cal-day.cal-selected {
+            background: var(--navy-deep,#060f1e); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(6,15,30,0.25);
+        }
+        .cal-day.cal-selected.cal-today { background: var(--gold,#c9a84c); }
+        .cal-footer { padding: 8px 14px 10px; border-top: 1px solid #e8e4dc;
+            display: flex; justify-content: flex-end; gap: 8px; }
+        .cal-btn-today { background: none; border: 1px solid var(--gold,#c9a84c); color: var(--gold,#c9a84c);
+            font-size: 0.75rem; font-weight: 600; border-radius: 6px; padding: 4px 12px;
+            cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .cal-btn-today:hover { background: var(--gold,#c9a84c); color: #fff; }
+        .cal-btn-clear { background: none; border: 1px solid #e8e4dc; color: #7a8fa8;
+            font-size: 0.75rem; font-weight: 600; border-radius: 6px; padding: 4px 12px;
+            cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .cal-btn-clear:hover { border-color: #be2121; color: #be2121; }
+        /* filter date inputs */
+        .cal-filter-input {
+            font-size: 0.8rem; padding: 5px 9px;
+            border: 1px solid var(--border-light,#e8e4dc); border-radius: 7px;
+            color: var(--navy-dark,#0c1a30); background: var(--cream,#faf8f4);
+            flex: 1; cursor: pointer; font-family: 'DM Sans', sans-serif;
+            min-width: 0;
+        }
+        .cal-filter-input:focus { outline: none; border-color: var(--gold,#c9a84c);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+        </style>
+</head>
+<body>
+
+    <!-- MAIN -->
+    <div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+<main class="main-content">
+
+        <div class="page-header fade-up">
+            <div class="page-header-text">
+                <div class="page-eyebrow" data-en="Account" data-ar="الحساب">Account</div>
+                <h1 class="page-title"><span data-en="My" data-ar="حسابي" style="color:var(--navy-dark);">My</span> <span data-en="Account" data-ar="">Account</span></h1>
+            </div>
+            
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}{% for cat, msg in messages %}
+            <div class="alert alert-{{ 'success' if cat == 'success' else 'danger' }}"><h4><span class="flash-text" data-orig-msg="{{ msg }}">{{ msg }}</span></h4></div>
+          {% endfor %}{% endif %}
+        {% endwith %}
+
+        {%- if plan_summary.account_level == 'admin_disabled' %}
+        <div class="expired-banner fade-up">
+            <strong><i class="bi bi-slash-circle me-2"></i><span data-en="Account Disabled." data-ar="الحساب معطل.">Account Disabled.</span></strong>
+            <span data-en="Your account has been disabled by the administrator. You can still view your data but cannot upload passports. Contact support to restore access." data-ar="تم تعطيل حسابك من قبل المسؤول. لا يزال بإمكانك عرض بياناتك ولكن لا يمكنك رفع جوازات سفر. اتصل بالدعم لاستعادة الوصول.">Your account has been disabled by the administrator. You can still view your data but cannot upload passports. Contact support to restore access.</span>
+        </div>
+        {%- elif plan_summary.account_level == 'view_only' %}
+        <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:18px 22px;margin-bottom:22px;color:#92400e;font-size:0.9rem;" class="fade-up">
+            <strong><i class="bi bi-pause-circle me-2"></i><span data-en="Uploads Paused — Payment Required." data-ar="الرفع متوقف — الدفع مطلوب.">Uploads Paused — Payment Required.</span></strong>
+            <span data-en="Your billing period has ended. You have" data-ar="انتهت فترة الفوترة الخاصة بك. لديك">Your billing period has ended. You have</span> <strong><span class="num">{{ plan_summary.days_until_blocked }}</span></strong> <span data-en="day(s) remaining to settle your bill before login access is also suspended." data-ar="يوم (أيام) متبقية لتسوية فاتورتك قبل تعليق الوصول إلى تسجيل الدخول أيضًا.">day(s) remaining to settle your bill before login access is also suspended.</span>
+            <a href="#" onclick="switchTab('billing', document.querySelectorAll('.acct-tab')[1]); return false;" style="font-weight:700;margin-left:8px;color:#92400e;" data-en="View Bill →" data-ar="عرض الفاتورة ←">View Bill →</a>
+        </div>
+        {%- elif plan_summary.details.trial_expired %}
+        <div class="expired-banner fade-up">
+            <strong><i class="bi bi-exclamation-octagon-fill me-2"></i><span data-en="Trial Expired." data-ar="انتهت الفترة التجريبية.">Trial Expired.</span></strong>
+            <span data-en="Your free trial has ended. Uploads are currently paused. Please contact us to choose a plan and continue." data-ar="انتهت نسختك التجريبية المجانية. عمليات الرفع متوقفة حاليًا. يرجى الاتصال بنا لاختيار خطة والمتابعة.">Your free trial has ended. Uploads are currently paused. Please contact us to choose a plan and continue.</span>
+            <a href="{{ url_for('account') }}" style="font-weight:700;margin-left:8px;" data-en="View Plans →" data-ar="عرض الخطط ←">View Plans →</a>
+        </div>
+        {%- endif %}
+
+        <!-- TABS -->
+        <div class="acct-tabs fade-up">
+            <button class="acct-tab active" onclick="switchTab('overview', this)">
+                <i class="bi bi-bar-chart-line me-1"></i> <span data-en="Overview" data-ar="نظرة عامة">Overview</span>
+            </button>
+            <button class="acct-tab" onclick="switchTab('billing', this)">
+                <i class="bi bi-receipt me-1"></i> <span data-en="Bill" data-ar="الفاتورة">Bill</span>
+            </button>
+
+        </div>
+
+        <!-- ══════════ TAB: OVERVIEW ══════════ -->
+        <div id="tab-overview" class="tab-pane active">
+
+            <!-- KPI row -->
+            <div class="kpi-grid">
+
+                <div class="kpi-card" style="--kpi-color:{{ plan_summary.details.color }}; --kpi-color2:{{ plan_summary.details.color }}">
+                    <div class="kpi-label" data-en="Current Plan" data-ar="الخطة الحالية">Current Plan</div>
+                    <div style="margin-top:4px;">
+                        <span style="background:{{ plan_summary.details.color }}; color:white; padding:4px 14px; border-radius:20px; font-size:0.9rem; font-weight:700;" data-en="{{ plan_summary.details.name }}" data-ar="{{ plan_summary.details.name | replace('Free Trial', 'تجربة مجانية') | replace('Basic Rate', 'السعر الأساسي') | replace('Unlimited', 'غير محدود') | replace('Premium', 'مميز') | replace('Subscription', 'اشتراك') }}">{{ plan_summary.details.name }}</span>
+                    </div>
+                    <div class="kpi-sub" style="margin-top:8px;" data-en="{{ plan_summary.details.label }}" data-ar="{{ plan_summary.details.label | replace('Trial active', 'التجربة نشطة') | replace('Pay per use', 'الدفع لكل استخدام') | replace('Subscription', 'اشتراك') | replace('Per Passport', 'لكل جواز سفر') | replace(' — ', ' — ') }}">{{ plan_summary.details.label }}</div>
+                    {%- if plan_summary.details.plan_expires_date %}
+                    <div class="kpi-sub" style="margin-top:4px; color:#b45309;">
+                        <span data-en="Expires:" data-ar="تنتهي في:">Expires:</span> <span class="num">{{ plan_summary.details.plan_expires_date }}</span>
+                    </div>
+                    {%- endif %}
+                </div>
+
+                <div class="kpi-card" style="--kpi-color:#112244; --kpi-color2:#1a3260">
+                    <div class="kpi-label" data-en="Uploaded This Period" data-ar="مرفوعات هذه الفترة">Uploaded This Period</div>
+                    <div class="kpi-value num">{{ plan_summary.monthly_used | int }}</div>
+                    <div class="kpi-sub" data-en="passports" data-ar="جوازات السفر">passports</div>
+                </div>
+
+                {%- if plan_summary.limit %}
+                <div class="kpi-card" style="--kpi-color:{{ '#be2121' if plan_summary.is_over_limit else '#0d7a55' }}; --kpi-color2:{{ '#be2121' if plan_summary.is_over_limit else '#34d399' }}">
+                    <div class="kpi-label" data-en="Remaining" data-ar="المتبقي">Remaining</div>
+                    <div class="kpi-value num" style="color:{{ '#be2121' if plan_summary.is_over_limit else '#0d7a55' }}">
+                        {{ plan_summary.remaining | int }}
+                    </div>
+                    <div class="kpi-sub"><span data-en="of" data-ar="من">of</span> <span class="num">{{ plan_summary.limit | int }}</span> <span data-en="limit" data-ar="حد">limit</span></div>
+                    <div class="usage-bar-wrap">
+                        <div class="usage-bar">
+                            {%- set pct = [[((plan_summary.monthly_used / plan_summary.limit) * 100) | int, 100] | min, 0] | max %}
+                            <div class="usage-bar-fill" style="width:{{ pct }}%; background:{{ '#be2121' if pct >= 100 else '#0d7a55' }};"></div>
+                        </div>
+                    </div>
+                    <div style="font-size:0.7rem;color:var(--text-muted);"><span class="num">{{ pct }}</span><span data-en="% used" data-ar="% مستخدم">% used</span></div>
+                </div>
+                {%- elif plan_summary.plan in ('trial','rate','subscription') %}
+                <div class="kpi-card" style="--kpi-color:#0d6efd; --kpi-color2:#60a5fa">
+                    <div class="kpi-label" data-en="Estimated Cost" data-ar="التكلفة التقديرية">Estimated Cost</div>
+                    <div class="kpi-value num">{{ plan_summary.rate_total | round(2) }}</div>
+                    <div class="kpi-sub"><span data-en="SAR @" data-ar="ريال @">SAR @</span> <span class="num">0.5</span> <span data-en="SAR/passport" data-ar="ريال/جواز">SAR/passport</span></div>
+                </div>
+                {%- else %}
+                <div class="kpi-card" style="--kpi-color:#6f42c1; --kpi-color2:#a78bfa">
+                    <div class="kpi-label" data-en="Usage Status" data-ar="حالة الاستخدام">Usage Status</div>
+                    <div class="kpi-value" style="color:#6f42c1">∞</div>
+                    <div class="kpi-sub" data-en="Unlimited plan" data-ar="خطة غير محدودة">Unlimited plan</div>
+                </div>
+                {%- endif %}
+
+                
+
+            </div>
+
+            {%- if plan_summary.is_over_limit or (plan_summary.plan == 'trial' and plan_summary.monthly_used >= (plan_summary.limit or 50)) %}
+            <div class="limit-alert fade-up">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size:1.3rem;margin-top:1px;"></i>
+                    <div style="flex:1;">
+                        <strong>
+                            {%- if plan_summary.plan == 'trial' %}<span data-en="Trial Limit Reached" data-ar="تم الوصول إلى حد التجربة">Trial Limit Reached</span>{%- else %}<span data-en="Limit Exceeded" data-ar="تم تجاوز الحد">Limit Exceeded</span>{%- endif %}
+                        <span style="font-size:0.85rem;">
+    <span data-en="You have used" data-ar="لقد استخدمت">You have used</span> <strong><span class="num">{{ plan_summary.monthly_used }}</span></strong> <span data-en="of your" data-ar="من">of your</span>
+    <strong><span class="num">{{ plan_summary.limit }}</span></strong> <span data-en="passport limit." data-ar="حد جوازات السفر الخاص بك.">passport limit.</span>
+</span>
+                        <div style="margin-top:10px;">
+                            <button class="btn btn-secondary" style="font-size:0.82rem;padding:6px 14px;"
+                                    onclick="document.getElementById('contactReveal').classList.toggle('open')">
+                                <i class="bi bi-telephone me-1"></i> <span data-en="Contact Us" data-ar="اتصل بنا">Contact Us</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="contactReveal" class="contact-reveal fade-up">
+                <h6 style="font-weight:700;margin-bottom:14px;"><i class="bi bi-headset me-2" style="color:var(--gold)"></i><span data-en="Billing Team" data-ar="فريق الفوترة">Billing Team</span></h6>
+                <div class="c-detail"><i class="bi bi-envelope-fill" style="color:#0d6efd"></i><div><strong data-en="Email" data-ar="البريد الإلكتروني">Email</strong><br>passposys@gmail.com</div></div>
+                <div class="c-detail"><i class="bi bi-telephone-fill" style="color:#198754"></i><div><strong data-en="Phone" data-ar="الهاتف">Phone</strong><br><span class="num" dir="ltr">+91 9495955729</span></div></div>
+                <div class="c-detail"><i class="bi bi-whatsapp" style="color:#198754"></i><div><strong data-en="WhatsApp" data-ar="واتساب">WhatsApp</strong><br><span class="num" dir="ltr">+91 9495955729</span></div></div>
+                <div class="c-detail"><i class="bi bi-clock-fill" style="color:#b45309"></i><div><strong data-en="Hours" data-ar="ساعات العمل">Hours</strong><br><span class="num">24</span> <span data-en="Hours" data-ar="ساعة">Hours</span></div></div>
+                <button class="btn btn-secondary mt-2" style="font-size:0.82rem;" onclick="document.getElementById('contactReveal').classList.remove('open')" data-en="Close" data-ar="إغلاق">Close</button>
+            </div>
+            {%- endif %}
+
+            <!-- Usage Log (Daily / Total tabs) -->
+            <div class="card card-gold">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 class="section-title" style="border:none;padding:0;margin:0 !important;">
+                        <span class="title-icon title-icon-amber"><i class="bi bi-calendar3"></i></span>
+                        <span data-en="Upload Log" data-ar="سجل الرفع">Upload Log</span>
+                    </h2>
+                </div>
+
+                <!-- Sub-tabs: Today's Usage / Total Usage -->
+                <div class="usage-subtabs" style="display:flex;gap:0;border-bottom:2px solid var(--border-light);margin-bottom:16px;">
+                    <button class="usage-subtab active" id="subtab-daily-btn" onclick="switchUsageTab('daily')" style="padding:8px 20px;font-size:0.84rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--navy-dark);border-bottom:2px solid var(--gold);margin-bottom:-2px;transition:all 0.2s;">
+                        <i class="bi bi-sun me-1"></i> <span data-en="Today's Usage" data-ar="استخدام اليوم">Today's Usage</span>
+                    </button>
+                    <button class="usage-subtab" id="subtab-total-btn" onclick="switchUsageTab('total')" style="padding:8px 20px;font-size:0.84rem;font-weight:600;border:none;background:none;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;">
+                        <i class="bi bi-bar-chart-line me-1"></i> <span data-en="Total Usage" data-ar="إجمالي الاستخدام">Total Usage</span>
+                    </button>
+                </div>
+
+                <!-- Embed all daily_stats rows as JSON for JS -->
+                <script>
+                const _allRows = [
+                    {%- for row in daily_stats %}
+                    {%- set row_total = row.upload_count + (row.duplicate_count or 0) + (row.invalid_count or 0) %}
+                    {
+                        date: "{{ row.log_date.strftime('%Y-%m-%d') if row.log_date else '' }}",
+                        dateDisplay: "{{ row.log_date.strftime('%d-%m-%Y') if row.log_date else '—' }}",
+                        success: {{ row.upload_count }},
+                        duplicate: {{ row.duplicate_count or 0 }},
+                        invalid: {{ row.invalid_count or 0 }},
+                        total: {{ row_total }},
+                        runningTotal: {{ row.running_total if row.running_total is defined else row_total }}
+                        {%- if plan_summary.plan in ('trial','rate','subscription') %},
+                        cost: {{ (row_total * plan_summary.details.rate_per_passport) | round(2) }}
+                        {%- endif %}
+                    }{% if not loop.last %},{% endif %}
+                    {%- endfor %}
+                ];
+                const _isRatePlan = {{ 'true' if plan_summary.plan in ('trial','rate','subscription') else 'false' }};
+                
+
+</script>
+
+                <!-- ── DAILY USAGE PANE ── -->
+                <div id="usage-pane-daily">
+                    {%- set ns = namespace(t_success=0, t_dup=0, t_invalid=0, t_total=0, t_date='') %}
+                    {%- set today_str = today.strftime('%Y-%m-%d') if today is defined else '' %}
+                    {%- for row in daily_stats %}
+                        {%- if row.log_date and row.log_date.strftime('%Y-%m-%d') == today_str %}
+                            {%- set ns.t_success = row.upload_count %}
+                            {%- set ns.t_dup = row.duplicate_count or 0 %}
+                            {%- set ns.t_invalid = row.invalid_count or 0 %}
+                            {%- set ns.t_total = row.upload_count + (row.duplicate_count or 0) + (row.invalid_count or 0) %}
+                            {%- set ns.t_date = row.log_date.strftime('%d-%m-%Y') %}
+                        {%- endif %}
+                    {%- endfor %}
+
+                    <!-- Today's stat cards (server-rendered) -->
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#0d7a55;" class="num">{{ ns.t_total }}</div>
+                            <div style="font-size:0.72rem;color:#065f46;font-weight:600;margin-top:2px;" data-en="Total Uploads" data-ar="إجمالي المرفوعات">Total Uploads</div>
+                        </div>
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#0d7a55;" class="num">{{ ns.t_success }}</div>
+                            <div style="font-size:0.72rem;color:#065f46;font-weight:600;margin-top:2px;" data-en="Success" data-ar="ناجح">Success</div>
+                        </div>
+                        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#1e40af;" class="num">{{ ns.t_dup }}</div>
+                            <div style="font-size:0.72rem;color:#1e3a8a;font-weight:600;margin-top:2px;" data-en="Duplicates" data-ar="مكرر">Duplicates</div>
+                        </div>
+                        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#991b1b;" class="num">{{ ns.t_invalid }}</div>
+                            <div style="font-size:0.72rem;color:#7f1d1d;font-weight:600;margin-top:2px;" data-en="Invalid" data-ar="غير صالح">Invalid</div>
+                        </div>
+                    </div>
+
+                    <!-- Today's single-row table -->
+                    {%- if ns.t_total > 0 %}
+                    <div style="overflow-x:auto;">
+                        <table class="log-table" style="min-width: 500px;">
+                            <thead>
+                                <tr>
+                                    <th data-en="Date" data-ar="التاريخ">Date</th>
+                                    <th data-en="Success" data-ar="ناجح">Success</th>
+                                    <th><span style="color:#1e40af;" data-en="Duplicates" data-ar="مكرر">Duplicates</span></th>
+                                    <th><span style="color:#991b1b;" data-en="Invalid" data-ar="غير صالح">Invalid</span></th>
+                                    <th data-en="Total" data-ar="المجموع">Total</th>
+                                    {%- if plan_summary.plan in ('trial','rate','subscription') %}<th data-en="Cost (SAR)" data-ar="التكلفة (ريال)">Cost (SAR)</th>{%- endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="num">{{ ns.t_date }}</td>
+                                    <td><strong class="num">{{ ns.t_success }}</strong></td>
+                                    <td>
+                                        {%- if ns.t_dup > 0 %}
+                                        <span style="background:#eff6ff;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:0.78rem;font-weight:700;" class="num">{{ ns.t_dup }}</span>
+                                        {%- else %}<span style="color:var(--text-muted);">—</span>{%- endif %}
+                                    </td>
+                                    <td>
+                                        {%- if ns.t_invalid > 0 %}
+                                        <span style="background:#fef2f2;color:#991b1b;padding:2px 8px;border-radius:10px;font-size:0.78rem;font-weight:700;" class="num">{{ ns.t_invalid }}</span>
+                                        {%- else %}<span style="color:var(--text-muted);">—</span>{%- endif %}
+                                    </td>
+                                    <td style="color:var(--text-muted);font-size:0.8rem;" class="num">{{ ns.t_total }}</td>
+                                    {%- if plan_summary.plan in ('trial','rate','subscription') %}
+                                    <td><span class="num">{{ (ns.t_total * plan_summary.details.rate_per_passport) | round(2) }}</span> <span data-en="SAR" data-ar="ريال">SAR</span></td>
+                                    {%- endif %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {%- else %}
+                    <div style="text-align:center;padding:28px 20px;color:var(--text-muted);">
+                        <i class="bi bi-inbox" style="font-size:1.6rem;opacity:0.3;display:block;margin-bottom:6px;"></i>
+                        <span data-en="No uploads today" data-ar="لا توجد مرفوعات اليوم">No uploads today</span>
+                    </div>
+                    {%- endif %}
+                </div>
+
+                <!-- ── TOTAL USAGE PANE ── -->
+                <div id="usage-pane-total" style="display:none;">
+                    <!-- Filter row -->
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;">
+                        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:180px;">
+                            <label style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap;" data-en="Single date" data-ar="تاريخ محدد">Single date</label>
+                            <input type="text" id="total-filter-single-display" class="cal-filter-input" data-placeholder-en="dd/mm/yyyy" data-placeholder-ar="يوم/شهر/سنة" placeholder="dd/mm/yyyy" readonly>
+                            <input type="hidden" id="total-filter-single">
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:240px;">
+                            <label style="font-size:0.78rem;color:var(--text-muted);white-space:nowrap;" data-en="Range" data-ar="النطاق">Range</label>
+                            <input type="text" id="total-filter-from-display" class="cal-filter-input" data-placeholder-en="dd/mm/yyyy" data-placeholder-ar="يوم/شهر/سنة" placeholder="dd/mm/yyyy" readonly>
+                            <input type="hidden" id="total-filter-from">
+                            <span style="font-size:0.78rem;color:var(--text-muted);" data-en="to" data-ar="إلى">to</span>
+                            <input type="text" id="total-filter-to-display" class="cal-filter-input" data-placeholder-en="dd/mm/yyyy" data-placeholder-ar="يوم/شهر/سنة" placeholder="dd/mm/yyyy" readonly>
+                            <input type="hidden" id="total-filter-to">
+                        </div>
+                        <button onclick="clearTotalFilter()" style="font-size:0.78rem;padding:5px 12px;border:1px solid var(--border-light);border-radius:7px;background:white;color:var(--text-muted);cursor:pointer;">
+                            <i class="bi bi-x-circle me-1"></i><span data-en="Clear" data-ar="مسح">Clear</span>
+                        </button>
+                    </div>
+
+                    <!-- Total stat cards -->
+                    <div id="total-stat-cards" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#0d7a55;" class="num" id="tsc-total">—</div>
+                            <div style="font-size:0.72rem;color:#065f46;font-weight:600;margin-top:2px;" data-en="Total Uploads" data-ar="إجمالي المرفوعات">Total Uploads</div>
+                        </div>
+                        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#0d7a55;" class="num" id="tsc-success">—</div>
+                            <div style="font-size:0.72rem;color:#065f46;font-weight:600;margin-top:2px;" data-en="Success" data-ar="ناجح">Success</div>
+                        </div>
+                        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#1e40af;" class="num" id="tsc-dup">—</div>
+                            <div style="font-size:0.72rem;color:#1e3a8a;font-weight:600;margin-top:2px;" data-en="Duplicates" data-ar="مكرر">Duplicates</div>
+                        </div>
+                        <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;text-align:center;">
+                            <div style="font-size:1.4rem;font-weight:800;color:#991b1b;" class="num" id="tsc-invalid">—</div>
+                            <div style="font-size:0.72rem;color:#7f1d1d;font-weight:600;margin-top:2px;" data-en="Invalid" data-ar="غير صالح">Invalid</div>
+                        </div>
+                    </div>
+
+                    <!-- Total table (cumulative running total) -->
+                    <div id="total-table-wrap" style="overflow-x:auto;">
+                        <table class="log-table" id="total-log-table" style="min-width: 600px;">
+                            <thead>
+                                <tr>
+                                    <th data-en="Date" data-ar="التاريخ">Date</th>
+                                    <th data-en="Success" data-ar="ناجح">Success</th>
+                                    <th><span style="color:#1e40af;" data-en="Duplicates" data-ar="مكرر">Duplicates</span></th>
+                                    <th><span style="color:#991b1b;" data-en="Invalid" data-ar="غير صالح">Invalid</span></th>
+                                    <th data-en="Daily Total" data-ar="الإجمالي اليومي">Daily Total</th>
+                                    <th data-en="Running Total" data-ar="الإجمالي التراكمي">Running Total</th>
+                                    {%- if plan_summary.plan in ('trial','rate','subscription') %}<th data-en="Cost (SAR)" data-ar="التكلفة (ريال)">Cost (SAR)</th>{%- endif %}
+                                </tr>
+                            </thead>
+                            <tbody id="total-tbody"></tbody>
+                        </table>
+                        <div id="total-empty" style="display:none;text-align:center;padding:28px 20px;color:var(--text-muted);">
+                            <i class="bi bi-search" style="font-size:1.6rem;opacity:0.3;display:block;margin-bottom:6px;"></i>
+                            <span data-en="No records match the filter" data-ar="لا توجد سجلات تطابق عامل التصفية">No records match the filter</span>
+                        </div>
+                    </div>
+                    <div id="total-pagination"></div>
+                </div>
+
+
+            </div>
+
+            <script>
+            (function() {
+                // ── helpers ──
+                function badge(val, bg, color) {
+                    if (!val) return '<span style="color:var(--text-muted);">—</span>';
+                    return '<span style="background:'+bg+';color:'+color+';padding:2px 8px;border-radius:10px;font-size:0.78rem;font-weight:700;" class="num">'+val+'</span>';
+                }
+                function filterRows(single, from, to) {
+                    return _allRows.filter(function(r) {
+                        if (!r.date) return true;
+                        if (single) return r.date === single;
+                        var ok = true;
+                        if (from) ok = ok && r.date >= from;
+                        if (to)   ok = ok && r.date <= to;
+                        return ok;
+                    });
+                }
+                function sumStats(rows) {
+                    var s={total:0,success:0,dup:0,invalid:0};
+                    rows.forEach(function(r){ s.total+=r.total; s.success+=r.success; s.dup+=r.duplicate; s.invalid+=r.invalid; });
+                    return s;
+                }
+
+                // ── total pane (paginated) ──
+                var _pageSize   = 10;
+                var _curPage    = 1;
+                var _filteredRows = _allRows.slice();
+
+                function buildRunMap(rows) {
+                    var reversed = rows.slice().reverse();
+                    var runMap = {}, running = 0;
+                    reversed.forEach(function(r) { running += r.total; runMap[r.date] = running; });
+                    return runMap;
+                }
+
+                function renderPagination(total, cur) {
+                    var pages = Math.ceil(total / _pageSize) || 1;
+                    var el = document.getElementById('total-pagination');
+                    var _ar = window.CURRENT_LANG === 'ar';
+                    if (!el) return;
+                    if (pages <= 1) { el.innerHTML = ''; return; }
+                    var html = '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:12px;">';
+                    html += '<button onclick="gotoPage('+Math.max(1,cur-1)+')" '+(cur===1?'disabled':'')+' style="padding:4px 10px;border-radius:6px;border:1px solid var(--border-light);background:#fff;cursor:pointer;font-size:0.8rem;">&#8249;</button>';
+                    for (var p = 1; p <= pages; p++) {
+                        var active = p === cur;
+                        html += '<button onclick="gotoPage('+p+')" style="padding:4px 10px;border-radius:6px;border:1px solid '+(active?'var(--gold)':'var(--border-light)')+';background:'+(active?'var(--gold)':'#fff')+';color:'+(active?'var(--navy-deep)':'inherit')+';font-weight:'+(active?'700':'400')+';cursor:pointer;font-size:0.8rem;" class="num">'+p+'</button>';
+                    }
+                    html += '<button onclick="gotoPage('+Math.min(pages,cur+1)+')" '+(cur===pages?'disabled':'')+' style="padding:4px 10px;border-radius:6px;border:1px solid var(--border-light);background:#fff;cursor:pointer;font-size:0.8rem;">&#8250;</button>';
+                    var pageStr = _ar ? 'صفحة' : 'Page';
+                    var ofStr = _ar ? 'من' : 'of';
+                    var recStr = _ar ? 'سجلات' : 'records';
+                    html += '<span style="font-size:0.78rem;color:var(--text-muted);margin-left:4px;">'+pageStr+' <span class="num">'+cur+'</span> '+ofStr+' <span class="num">'+pages+'</span> (<span class="num">'+total+'</span> '+recStr+')</span>';
+                    html += '</div>';
+                    el.innerHTML = html;
+                    if (window.fmtNum) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+                }
+
+                function renderTotal(rows) {
+                    _filteredRows = rows;
+                    _curPage = 1;
+                    renderPage();
+                }
+
+                function renderPage() {
+                    var rows  = _filteredRows;
+                    var tbody = document.getElementById('total-tbody');
+                    var empty = document.getElementById('total-empty');
+                    var wrap  = document.getElementById('total-table-wrap');
+                    var _ar = window.CURRENT_LANG === 'ar';
+                    tbody.innerHTML = '';
+                    if (!rows.length) {
+                        wrap.querySelector('table').style.display = 'none';
+                        empty.style.display = 'block';
+                        renderPagination(0, 1);
+                    } else {
+                        wrap.querySelector('table').style.display = '';
+                        empty.style.display = 'none';
+                        var runMap = buildRunMap(rows);
+                        var start  = (_curPage - 1) * _pageSize;
+                        var slice  = rows.slice(start, start + _pageSize);
+                        slice.forEach(function(r) {
+                            var tr = document.createElement('tr');
+                            var cells = '<td class="num">'+r.dateDisplay+'</td>'
+                                +'<td><strong class="num">'+r.success+'</strong></td>'
+                                +'<td>'+badge(r.duplicate,'#eff6ff','#1e40af')+'</td>'
+                                +'<td>'+badge(r.invalid,'#fef2f2','#991b1b')+'</td>'
+                                +'<td style="color:var(--text-muted);font-size:0.8rem;" class="num">'+r.total+'</td>'
+                                +'<td style="font-weight:700;color:var(--navy-dark);" class="num">'+(runMap[r.date]||r.runningTotal)+'</td>';
+                            if (_isRatePlan) cells += '<td><span class="num">'+(r.cost||0).toFixed(2)+'</span> '+(_ar ? 'ريال' : 'SAR')+'</td>';
+                            tr.innerHTML = cells;
+                            tbody.appendChild(tr);
+                        });
+                        renderPagination(rows.length, _curPage);
+                    }
+                    var s = sumStats(rows);
+                    document.getElementById('tsc-total').textContent   = s.total;
+                    document.getElementById('tsc-success').textContent = s.success;
+                    document.getElementById('tsc-dup').textContent     = s.dup;
+                    document.getElementById('tsc-invalid').textContent = s.invalid;
+                    if (window.fmtNum) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+                }
+
+                window.gotoPage = function(p) {
+                    var pages = Math.ceil(_filteredRows.length / _pageSize) || 1;
+                    _curPage = Math.min(Math.max(1, p), pages);
+                    renderPage();
+                };
+
+                // ── filter appliers ──
+                window.applyTotalFilter = function() {
+                    var s = document.getElementById('total-filter-single').value;
+                    var f = document.getElementById('total-filter-from').value;
+                    var t = document.getElementById('total-filter-to').value;
+                    renderTotal(filterRows(s,f,t));
+                };
+                window.clearTotalFilter = function() {
+                    ['total-filter-single','total-filter-from','total-filter-to'].forEach(function(id){
+                        document.getElementById(id).value='';
+                        var d=document.getElementById(id+'-display'); if(d) d.value='';
+                    });
+                    renderTotal(_allRows);
+                };
+
+                // ── sub-tab switcher ──
+                window.switchUsageTab = function(tab) {
+                    var daily = document.getElementById('usage-pane-daily');
+                    var total = document.getElementById('usage-pane-total');
+                    var btnD  = document.getElementById('subtab-daily-btn');
+                    var btnT  = document.getElementById('subtab-total-btn');
+                    if (tab === 'daily') {
+                        daily.style.display=''; total.style.display='none';
+                        btnD.style.color='var(--navy-dark)'; btnD.style.borderBottomColor='var(--gold)';
+                        btnT.style.color='var(--text-muted)'; btnT.style.borderBottomColor='transparent';
+                    } else {
+                        daily.style.display='none'; total.style.display='';
+                        btnT.style.color='var(--navy-dark)'; btnT.style.borderBottomColor='var(--gold)';
+                        btnD.style.color='var(--text-muted)'; btnD.style.borderBottomColor='transparent';
+                        renderTotal(_allRows);
+                    }
+                };
+
+                // Hook into the global applyLanguage from _sidebar.html
+                const originalApplyLanguage = window.applyLanguage;
+                if (originalApplyLanguage) {
+                    window.applyLanguage = function(lang) {
+                        originalApplyLanguage(lang);
+                        renderPage(); // Re-render table to translate static parts like SAR currency and pagination text
+                    };
+                }
+
+                // ── initial render ──
+                renderTotal(_allRows);
+            })();
+            </script>
+
+        </div><!-- /tab overview -->
+
+        <!-- ══════════ TAB: BILLING HISTORY ══════════ -->
+        <div id="tab-billing" class="tab-pane">
+
+            <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:22px;" data-en="When you reach your upload limit, new uploads are automatically paused. Your billing record is generated at that point. Contact your administrator to renew or increase your limit to resume uploading." data-ar="عند وصولك إلى حد الرفع الخاص بك، يتم إيقاف عمليات الرفع الجديدة مؤقتًا بشكل تلقائي. يتم إنشاء سجل الفواتير الخاص بك في تلك المرحلة. اتصل بالمسؤول لتجديد أو زيادة الحد الخاص بك لاستئناف الرفع.">
+                When you reach your upload limit, new uploads are automatically paused. Your billing record is generated at that point. Contact your administrator to renew or increase your limit to resume uploading.
+            </p>
+
+            {%- if billing_history %}
+                {%- set bill = billing_history[0] %}
+                <div class="bill-card fade-up">
+                    <div class="bill-header">
+                        <div>
+                            <div class="bill-month">
+                                <span data-en="Limit:" data-ar="الحد:">Limit:</span> <span class="num">{{ bill.limit_passports }}</span> <span data-en="passports" data-ar="جوازات السفر">passports</span>
+                            </div>
+                            <div style="font-size:0.72rem;opacity:0.55;margin-top:2px;">
+                                <span data-en="Recorded:" data-ar="تاريخ التسجيل:">Recorded:</span> <span class="num">{{ bill.generated_at.strftime('%d %b %Y') if bill.generated_at else '—' }}</span>
+                            </div>
+                        </div>
+                        <div class="bill-total"><span class="num">{{ bill.total_price | round(2) }}</span> <span data-en="SAR" data-ar="ريال">SAR</span></div>
+                    </div>
+                    <div class="bill-body">
+                        <div class="bill-row">
+                            <span class="lbl" data-en="Upload limit" data-ar="حد الرفع">Upload limit</span>
+                            <span class="val"><span class="num">{{ bill.limit_passports }}</span> <span data-en="passports" data-ar="جوازات">passports</span></span>
+                        </div>
+                        <div class="bill-row">
+                            <span class="lbl" data-en="Passports uploaded" data-ar="جوازات السفر المرفوعة">Passports uploaded</span>
+                            <span class="val num">{{ bill.total_passports }}</span>
+                        </div>
+                        <div class="bill-row" style="border-top:2px solid var(--border-light);margin-top:4px;padding-top:10px;">
+                            <span class="lbl" data-en="Total Due" data-ar="الإجمالي المستحق">Total Due</span>
+                            <span class="val" style="font-size:1.05rem;color:var(--navy-dark);"><span class="num">{{ bill.total_price | round(2) }}</span> <span data-en="SAR" data-ar="ريال">SAR</span></span>
+                        </div>
+                        <div style="font-size:0.72rem;color:var(--text-muted);margin-top:10px;">
+                            <span data-en="Last updated:" data-ar="آخر تحديث:">Last updated:</span> <span class="num">{{ bill.generated_at.strftime('%d %b %Y, %H:%M') if bill.generated_at else '—' }}</span>
+                        </div>
+                    </div>
+                </div>
+            {%- else %}
+            <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+                <i class="bi bi-receipt" style="font-size:2.5rem;opacity:0.3;display:block;margin-bottom:10px;"></i>
+                <span data-en="No billing records yet. A record will be generated when your upload limit is reached." data-ar="لا توجد سجلات فواتير حتى الآن. سيتم إنشاء سجل عند الوصول إلى حد الرفع الخاص بك.">No billing records yet. A record will be generated when your upload limit is reached.</span>
+            </div>
+            {%- endif %}
+
+        </div><!-- /tab billing -->
+
+    </main>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        function switchTab(name, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.acct-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            btn.classList.add('active');
+        }
+    </script>
+    
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JINIX-STYLE CALENDAR PICKER  —  account page
+═══════════════════════════════════════════════════════════════ -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    /* ── Build popup DOM ──────────────────────────────────────── */
+    var popup = document.createElement('div');
+    popup.id  = 'acctCalPopup';
+    popup.className = 'cal-popup';
+    popup.innerHTML =
+        '<div class="cal-header">' +
+          '<button class="cal-nav-btn" id="acctCalPrev" type="button">&#8249;</button>' +
+          '<div class="cal-header-selects">' +
+            '<select class="cal-month-sel" id="acctCalMonth"></select>' +
+            '<select class="cal-year-sel num"  id="acctCalYear"></select>' +
+          '</div>' +
+          '<button class="cal-nav-btn" id="acctCalNext" type="button">&#8250;</button>' +
+        '</div>' +
+        '<div class="cal-grid">' +
+          '<div class="cal-dow-row">' +
+            '<span class="cal-dow" data-en="Sun" data-ar="أحد">Sun</span><span class="cal-dow" data-en="Mon" data-ar="إثنين">Mon</span>' +
+            '<span class="cal-dow" data-en="Tue" data-ar="ثلاثاء">Tue</span><span class="cal-dow" data-en="Wed" data-ar="أربعاء">Wed</span>' +
+            '<span class="cal-dow" data-en="Thu" data-ar="خميس">Thu</span><span class="cal-dow" data-en="Fri" data-ar="جمعة">Fri</span>' +
+            '<span class="cal-dow" data-en="Sat" data-ar="سبت">Sat</span>' +
+          '</div>' +
+          '<div class="cal-days-row" id="acctCalDays"></div>' +
+        '</div>' +
+        '<div class="cal-footer">' +
+          '<button class="cal-btn-clear" id="acctCalClear" type="button" data-en="Clear" data-ar="مسح">Clear</button>' +
+          '<button class="cal-btn-today" id="acctCalToday" type="button" data-en="Today" data-ar="اليوم">Today</button>' +
+        '</div>';
+    document.body.appendChild(popup);
+
+    /* ── Month / year dropdowns ───────────────────────────────── */
+    var MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    
+    var monthSel = document.getElementById('acctCalMonth');
+    var yearSel  = document.getElementById('acctCalYear');
+    var daysGrid = document.getElementById('acctCalDays');
+
+    function populateMonths() {
+        var isAr = window.CURRENT_LANG === 'ar';
+        var arr = isAr ? MONTHS_AR : MONTHS_EN;
+        monthSel.innerHTML = '';
+        arr.forEach(function(m, i) {
+            var o = document.createElement('option');
+            o.value = i; o.textContent = m;
+            monthSel.appendChild(o);
+        });
+        if(curMonth !== undefined) monthSel.value = curMonth;
+    }
+
+    var nowY = new Date().getFullYear();
+    for (var y = nowY - 10; y <= nowY + 5; y++) {
+        var o = document.createElement('option');
+        o.value = y; 
+        o.className = "num"; // For AR digits
+        o.textContent = y;
+        yearSel.appendChild(o);
+    }
+
+    // Update months when language changes
+    const originalApplyLanguageCal = window.applyLanguage;
+    if (originalApplyLanguageCal) {
+        window.applyLanguage = function(lang) {
+            originalApplyLanguageCal(lang);
+            populateMonths();
+        };
+    }
+    // Initial population
+    populateMonths();
+
+    /* ── State ────────────────────────────────────────────────── */
+    var curYear, curMonth;
+    var activeDisplay = null, activeHidden = null;
+    var selectedISO   = '';
+
+    /* ── Helpers ──────────────────────────────────────────────── */
+    function isoDate(y, m, d) {
+        return y + '-' + String(m + 1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    }
+    function isoToDisplay(s) {
+        var p = s.split('-');
+        return p[2] + '/' + p[1] + '/' + p[0];
+    }
+
+    /* ── Render grid ──────────────────────────────────────────── */
+    function render() {
+        monthSel.value = curMonth;
+        yearSel.value  = curYear;
+        daysGrid.innerHTML = '';
+
+        var t  = new Date(), ty = t.getFullYear(), tm = t.getMonth(), td = t.getDate();
+        var first = new Date(curYear, curMonth, 1).getDay();
+        var dim   = new Date(curYear, curMonth + 1, 0).getDate();
+        var prev  = new Date(curYear, curMonth,     0).getDate();
+
+        for (var i = first - 1; i >= 0; i--) addCell(prev - i, curMonth - 1, curYear, true);
+        for (var d = 1; d <= dim; d++) {
+            addCell(d, curMonth, curYear, false,
+                (d === td && curMonth === tm && curYear === ty),
+                isoDate(curYear, curMonth, d) === selectedISO);
+        }
+        var trail = (7 - ((first + dim) % 7)) % 7;
+        for (var d2 = 1; d2 <= trail; d2++) addCell(d2, curMonth + 1, curYear, true);
+        
+        // Translate numbers in the newly rendered grid
+        if (window.fmtNum) window.translateStaticStrings(window.CURRENT_LANG || 'en');
+    }
+
+    function addCell(d, m, y, other, isToday, isSel) {
+        var el = document.createElement('div');
+        el.className = 'cal-day num';
+        if (other)   el.classList.add('cal-other-month');
+        if (isToday) el.classList.add('cal-today');
+        if (isSel)   el.classList.add('cal-selected');
+        el.textContent = d;
+        el.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            var rm = ((m % 12) + 12) % 12;
+            var ry = y + (m < 0 ? -1 : m > 11 ? 1 : 0);
+            selectedISO = isoDate(ry, rm, d);
+            
+            // Format display value with AR digits if necessary
+            var displayVal = isoToDisplay(selectedISO);
+            if (window.CURRENT_LANG === 'ar' && window.fmtNum) {
+                displayVal = window.fmtNum(displayVal);
+            }
+            if (activeDisplay) activeDisplay.value = displayVal;
+            if (activeHidden)  activeHidden.value  = selectedISO;
+            /* trigger the filter */
+            if (typeof window.applyTotalFilter === 'function') window.applyTotalFilter();
+            closeCalendar();
+        });
+        daysGrid.appendChild(el);
+    }
+
+    /* ── Open / close ─────────────────────────────────────────── */
+    function openCalendar(dispEl, hiddenEl) {
+        activeDisplay = dispEl;
+        activeHidden  = hiddenEl;
+        selectedISO   = (hiddenEl && /^\d{4}-\d{2}-\d{2}$/.test(hiddenEl.value))
+                        ? hiddenEl.value : '';
+        var base = selectedISO ? new Date(selectedISO + 'T00:00:00') : new Date();
+        curYear  = base.getFullYear();
+        curMonth = base.getMonth();
+
+        var rect       = dispEl.getBoundingClientRect();
+        var scrollTop  = window.scrollY || document.documentElement.scrollTop;
+        var scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+
+        popup.style.position = 'absolute';
+        popup.style.top  = (rect.bottom + scrollTop  + 4) + 'px';
+        popup.style.left = (rect.left   + scrollLeft)     + 'px';
+
+        /* move to body so no parent overflow:hidden can clip it */
+        document.body.appendChild(popup);
+
+        render();
+        popup.classList.add('cal-open');
+
+        /* nudge left if it overflows the right edge */
+        requestAnimationFrame(function() {
+            var pr = popup.getBoundingClientRect();
+            if (pr.right > window.innerWidth - 8) {
+                popup.style.left = (window.innerWidth - pr.width - 8 + scrollLeft) + 'px';
+            }
+        });
+    }
+
+    function closeCalendar() {
+        popup.classList.remove('cal-open');
+        activeDisplay = null;
+        activeHidden  = null;
+    }
+
+    /* ── Nav buttons & selects ────────────────────────────────── */
+    document.getElementById('acctCalPrev').onclick = function() {
+        curMonth--; if (curMonth < 0)  { curMonth = 11; curYear--; } render();
+    };
+    document.getElementById('acctCalNext').onclick = function() {
+        curMonth++; if (curMonth > 11) { curMonth = 0;  curYear++; } render();
+    };
+    monthSel.onchange = function() { curMonth = +this.value; render(); };
+    yearSel.onchange  = function() { curYear  = +this.value; render(); };
+
+    document.getElementById('acctCalToday').onclick = function() {
+        var t = new Date();
+        selectedISO = isoDate(t.getFullYear(), t.getMonth(), t.getDate());
+        
+        var displayVal = isoToDisplay(selectedISO);
+        if (window.CURRENT_LANG === 'ar' && window.fmtNum) {
+            displayVal = window.fmtNum(displayVal);
+        }
+        
+        if (activeDisplay) activeDisplay.value = displayVal;
+        if (activeHidden)  activeHidden.value  = selectedISO;
+        if (typeof window.applyTotalFilter === 'function') window.applyTotalFilter();
+        closeCalendar();
+    };
+    document.getElementById('acctCalClear').onclick = function() {
+        selectedISO = '';
+        if (activeDisplay) activeDisplay.value = '';
+        if (activeHidden)  activeHidden.value  = '';
+        if (typeof window.applyTotalFilter === 'function') window.applyTotalFilter();
+        closeCalendar();
+    };
+
+    /* ── Outside-click & Esc ──────────────────────────────────── */
+    document.addEventListener('mousedown', function(e) {
+        if (!popup.contains(e.target) && e.target !== activeDisplay) closeCalendar();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeCalendar();
+    });
+
+    /* ── Attach to the three filter inputs ───────────────────── */
+    var pairs = [
+        ['total-filter-single-display', 'total-filter-single'],
+        ['total-filter-from-display',   'total-filter-from'],
+        ['total-filter-to-display',     'total-filter-to']
+    ];
+    pairs.forEach(function(p) {
+        var disp = document.getElementById(p[0]);
+        var hidd = document.getElementById(p[1]);
+        if (disp && hidd) {
+            disp.style.cursor = 'pointer';
+            disp.addEventListener('click', function() { openCalendar(disp, hidd); });
+        }
+    });
+});
+</script>
+</body>
+</html>

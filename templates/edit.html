@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="Edit Record — {{ passport.passport_number }}" data-ar="تعديل السجل — {{ passport.passport_number }}">Edit Record — {{ passport.passport_number }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            color-scheme: light;
+            --navy-deep: #060f1e; --navy-dark: #0c1a30; --navy-mid: #112244; --navy-light: #1a3260;
+            --gold: #c9a84c; --gold-light: #e8c97a; --cream: #faf8f4; --white: #ffffff;
+            --border-light: #e8e4dc; --border-focus: rgba(201,168,76,0.5);
+            --text-dark: #0c1a30; --text-mid: #3d5275; --text-muted: #7a8fa8;
+            --success: #0d7a55; --success-bg: #edfaf5; --danger: #be2121; --danger-bg: #fef2f2;
+            --sidebar-w: 260px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--cream); color: var(--text-dark); display: flex; min-height: 100vh; }
+
+        /* ══ SIDEBAR ══ */
+        .sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15);overflow: hidden; }
+        .sidebar-logo { margin: 20px auto; }
+        .logo-icon { width: 44px; height: 44px; background: linear-gradient(135deg, var(--gold), var(--gold-light)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin-bottom: 14px; box-shadow: 0 4px 14px rgba(201,168,76,0.3); }
+        .sidebar-nav { padding: 20px 0; flex: 1; }
+        .nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+        .nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+        .nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+        .nav-link-item.active i { color: var(--gold); }
+        .nav-link-item.nav-warning { color: rgba(255,200,80,0.75); }
+        .nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+        .nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+        .nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+        .nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+        .sidebar-context { padding: 14px 20px; margin: 10px 12px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 8px; }
+        .sidebar-context .ctx-label { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gold); margin-bottom: 4px; }
+        .sidebar-context .ctx-value { font-size: 0.82rem; font-weight: 700; color: var(--white); font-family: 'DM Mono', monospace; }
+        .sidebar-user { padding: 18px 28px; border-top: 1px solid rgba(201,168,76,0.15); position: relative; }
+        .user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+        .user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+        .user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+        .sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: block; }
+        .user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+        .user-menu a:hover { background: rgba(255,80,80,0.1); }
+
+        /* ══ MAIN ══ */
+        .main-content { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100% - var(--sidebar-w)); padding-bottom: 80px; }
+
+        /* ══ PAGE HEADER ══ */
+        .page-header { background: var(--white);margin-left:1.8em; border-bottom: 1px solid var(--border-light); padding: 18px 36px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 12px rgba(12,26,48,0.06); display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+        .page-header-left .eyebrow { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); margin-bottom: 3px; }
+        .page-header-left .page-title { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--navy-dark); display: flex; align-items: center; gap: 10px; }
+        .page-header-left .page-title span { font-family: 'DM Mono', monospace; color: var(--navy-mid); font-size: 1rem; background: var(--cream); border: 1px solid var(--border-light); padding: 2px 10px; border-radius: 6px; }
+        .header-actions { display: flex; gap: 8px; }
+
+        /* ══ FORM CONTENT ══ */
+        .form-content { padding: 32px 36px; }
+
+        /* ══ CARDS ══ */
+        .form-card { background: var(--white); border: 1px solid var(--border-light); border-radius: 14px; box-shadow: 0 2px 10px rgba(12,26,48,0.05); padding: 26px; margin-bottom: 24px; }
+        .form-card-accent { border-left: 4px solid var(--gold); }
+        .form-card-mrz { background: var(--cream); border-color: rgba(201,168,76,0.3); }
+
+        .section-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--navy-dark); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; padding-bottom: 12px; border-bottom: 1px solid var(--border-light); }
+        .section-title i { color: var(--gold); font-size: 1.1rem; }
+
+        /* ══ IMAGE BOXES ══ */
+        .img-preview-box { background: var(--cream); border: 2px dashed var(--border-light); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; transition: border-color 0.2s; }
+        .img-preview-box:hover { border-color: var(--gold); }
+        .main-img-box { height: 340px; }
+        .main-img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .face-img-box { height: 200px; width: 150px; margin: 0 auto 16px auto; border-style: solid; border-color: var(--border-light); border-radius: 10px; background: var(--white); }
+        .face-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ══ FORM ELEMENTS ══ */
+        .form-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+
+        /* ══ JINIX-STYLE CALENDAR PICKER ══ */
+        .cal-wrapper { position: relative; display: contents; }
+        .cal-popup {
+            display: none; position: absolute; z-index: 9999;
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 8px 40px rgba(6,15,30,0.22), 0 2px 12px rgba(6,15,30,0.12);
+            border: 1px solid rgba(201,168,76,0.18);
+            width: 300px; overflow: hidden;
+            top: calc(100% + 6px); left: 0;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .cal-popup.cal-open { display: block; animation: calFadeIn 0.15s ease; }
+        @keyframes calFadeIn { from { opacity:0; transform: translateY(-6px); } to { opacity:1; transform: translateY(0); } }
+
+        .cal-header {
+            background: var(--navy-deep);
+            background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.1) 0%, transparent 60%);
+            padding: 12px 14px 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(201,168,76,0.18);
+        }
+        .cal-nav-btn {
+            background: none; border: none; cursor: pointer;
+            color: rgba(255,255,255,0.7); font-size: 1.1rem;
+            width: 28px; height: 28px; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .cal-nav-btn:hover { background: rgba(201,168,76,0.18); color: var(--gold); }
+        .cal-header-selects { display: flex; gap: 6px; align-items: center; }
+        .cal-month-sel, .cal-year-sel {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(201,168,76,0.25);
+            color: #fff; font-size: 0.85rem; font-weight: 600;
+            border-radius: 6px; padding: 4px 8px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
+            appearance: none; -webkit-appearance: none;
+        }
+        .cal-month-sel { min-width: 96px; }
+        .cal-year-sel { min-width: 64px; }
+        .cal-month-sel:focus, .cal-year-sel:focus { outline: none; border-color: var(--gold); }
+        .cal-month-sel option, .cal-year-sel option { background: var(--navy-dark); color: #fff; }
+
+        .cal-grid { padding: 10px 10px 12px; }
+        .cal-dow-row { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+        .cal-dow { text-align: center; font-size: 0.68rem; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-muted); padding: 4px 0; }
+        .cal-days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .cal-day {
+            text-align: center; padding: 6px 2px; font-size: 0.82rem;
+            border-radius: 50%; cursor: pointer; color: var(--text-dark);
+            transition: all 0.12s; aspect-ratio: 1; display: flex;
+            align-items: center; justify-content: center; font-weight: 500;
+        }
+        .cal-day:hover:not(.cal-empty):not(.cal-other-month) { background: rgba(201,168,76,0.15); color: var(--navy-dark); }
+        .cal-day.cal-empty { cursor: default; }
+        .cal-day.cal-other-month { color: #ccc; cursor: pointer; }
+        .cal-day.cal-other-month:hover { background: rgba(201,168,76,0.08); color: #aaa; }
+        .cal-day.cal-today {
+            background: var(--gold); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(201,168,76,0.4);
+        }
+        .cal-day.cal-today:hover { background: var(--gold-light); }
+        .cal-day.cal-selected {
+            background: var(--navy-dark); color: #fff; font-weight: 700;
+            box-shadow: 0 2px 8px rgba(12,26,48,0.25);
+        }
+        .cal-day.cal-selected.cal-today { background: var(--gold); }
+
+        .cal-footer { padding: 8px 14px 10px; border-top: 1px solid var(--border-light);
+            display: flex; justify-content: flex-end; gap: 8px; }
+        .cal-btn-today { background: none; border: 1px solid var(--gold); color: var(--gold);
+            font-size: 0.75rem; font-weight: 600; border-radius: 6px; padding: 4px 12px;
+            cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .cal-btn-today:hover { background: var(--gold); color: #fff; }
+        .cal-btn-clear { background: none; border: 1px solid var(--border-light); color: var(--text-muted);
+            font-size: 0.75rem; font-weight: 600; border-radius: 6px; padding: 4px 12px;
+            cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; }
+        .cal-btn-clear:hover { border-color: var(--danger); color: var(--danger); }
+
+        input[type="text"], input[type="date"], input[type="email"], select, datalist, option {
+            width: 100%; padding: 10px 13px; border: 1.5px solid var(--border-light); border-radius: 8px;
+            font-family: 'DM Sans', inherit; font-size: 0.88rem; color: var(--text-dark);
+            background: var(--cream); transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--gold); background: var(--white); outline: none;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+        }
+        input[readonly] { background: #f1f0eb !important; cursor: not-allowed; color: var(--text-muted) !important; }
+        .is-invalid { border-color: var(--danger) !important; }
+        .input-group-text { background: var(--cream); border: 1.5px solid var(--border-light); border-right: none; color: var(--gold); font-size: 0.9rem; }
+        .input-group input { border-left: none !important; }
+        .input-group input:focus { border-left: none !important; }
+
+        /* ══ MRZ TEXTAREA ══ */
+        .mrz-textarea {
+            width: 100%; font-family: 'DM Mono', monospace; font-size: 1rem; letter-spacing: 2.5px;
+            resize: none; overflow-x: hidden; background: var(--navy-deep) !important;
+            color: #a8d8a8 !important; border: 1.5px solid rgba(201,168,76,0.3); border-radius: 10px;
+            text-transform: uppercase; padding: 14px 16px; line-height: 1.9;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .mrz-textarea:focus { border-color: var(--gold); box-shadow: 0 0 0 4px rgba(201,168,76,0.12); outline: none; }
+        .mrz-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 8px; display: flex; align-items: center; gap: 6px; }
+        .mrz-hint i { color: var(--gold); }
+
+        /* ══ BUTTONS ══ */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 9px 18px; font-size: 0.85rem; font-weight: 600; border-radius: 8px; border: 1.5px solid transparent; cursor: pointer; transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif; }
+        .btn-primary { background: linear-gradient(135deg, var(--navy-mid), var(--navy-light)); color: white; box-shadow: 0 3px 10px rgba(12,26,48,0.2); }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); color: white; }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy-deep); font-weight: 700; box-shadow: 0 3px 10px rgba(201,168,76,0.25); }
+        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        .btn-secondary { background: var(--white); color: var(--text-dark); border-color: var(--border-light); }
+        .btn-secondary:hover { background: var(--cream); border-color: var(--gold); color: var(--navy-mid); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #991b1b; color: white; }
+        .btn-amber-outline { background: transparent; color: #b45309; border-color: #fcd34d; }
+        .btn-amber-outline:hover { background: #fffbeb; border-color: #f59e0b; }
+
+        /* ══ BOTTOM ACTION BAR ══ */
+        .bottom-action-bar {
+            position: sticky; bottom: 0;
+            background: var(--white); border-top: 1px solid var(--border-light);
+            padding: 16px 36px;
+            display: flex; justify-content: space-between; align-items: center; gap: 16px;
+            box-shadow: 0 -4px 20px rgba(12,26,48,0.08);
+            z-index: 50;
+        }
+
+        /* ══ REPARSE STATUS ══ */
+        .reparse-alert { padding: 10px 14px; border-radius: 8px; font-size: 0.82rem; margin-top: 10px; border: 1.5px solid; }
+        .reparse-success { background: var(--success-bg); border-color: #a7f3d0; color: #065f46; }
+        .reparse-danger { background: var(--danger-bg); border-color: #fecaca; color: #991b1b; }
+        .reparse-warning { background: #fffbeb; border-color: #fde68a; color: #b45309; }
+
+        /* ══ FILE UPLOAD CONFIRM ══ */
+        .file-confirm { background: var(--success-bg); border: 1.5px solid #a7f3d0; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; color: #065f46; margin-top: 8px; display: flex; align-items: center; justify-content: space-between; }
+
+        /* ══ ALERTS ══ */
+        .alert { padding: 13px 18px; border-radius: 10px; margin-bottom: 18px; border: 1.5px solid transparent; font-size: 0.88rem; display: flex; align-items: center; gap: 10px; }
+        .alert-success { background: var(--success-bg); border-color: #a7f3d0; color: #065f46; }
+        .alert-danger { background: var(--danger-bg); border-color: #fecaca; color: #991b1b; }
+
+        /* ══ BACK TO TOP ══ */
+        .back-to-top { position: fixed; bottom: 90px; right: 28px; background: linear-gradient(135deg, var(--navy-mid), var(--navy-light)); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(12,26,48,0.25); opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1000; cursor: pointer; border: none; font-size: 1.1rem; }
+        .back-to-top.show { opacity: 1; visibility: visible; }
+        .back-to-top:hover { transform: translateY(-3px); }
+
+        /* ══ MODAL ══ */
+        .modal-content { border: none; border-radius: 14px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+        .modal-header-danger { background: var(--danger); color: white; padding: 18px 24px; }
+        .modal-header-danger .modal-title { font-family: 'Playfair Display', serif; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        .modal-header-danger .btn-close { filter: brightness(0) invert(1); }
+        .modal-body-pad { padding: 24px; }
+        .modal-footer-light { background: var(--cream); border-top: 1px solid var(--border-light); padding: 14px 24px; }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .main-content { margin-left: 0; max-width: 100%; }
+            .form-content { padding: 16px; }
+            .page-header, .bottom-action-bar { padding-left: 16px; padding-right: 16px; }
+        }
+    
+        /* ═══════════════════════════════════════
+           SIDEBAR TOGGLE & RESPONSIVE
+        ═══════════════════════════════════════ */
+        .sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.collapsed { transform: translateX(-260px); }
+        .sidebar-nav { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: rgba(201,168,76,0.2) transparent; }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+        .sidebar-toggle-btn {
+            position: fixed; top: 14px; left: 0; z-index: 500; width: 36px; height: 36px;
+            background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.3); border-left: none;
+            border-radius: 0 8px 8px 0; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--gold); font-size: 1.1rem;
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+        }
+        .sidebar-toggle-btn:hover { background: var(--navy-light); color: var(--gold-light); }
+        .sidebar-toggle-btn.sidebar-open { left: 260px; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(6,15,30,0.7); z-index: 300; backdrop-filter: blur(3px); }
+        .sidebar-overlay.visible { display: block; }
+        .main-content { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; }
+        .sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: none; }
+        .user-menu.open { display: block !important; }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: flex !important; flex-direction: column; position: fixed;
+                top: 0; left: 0; width: 260px; height: 100vh; min-height: 100vh;
+                transform: translateX(-260px); z-index: 400; overflow: hidden;
+            }
+            .sidebar.mobile-open { transform: translateX(0) !important; box-shadow: 8px 0 32px rgba(0,0,0,0.5); }
+            .sidebar.collapsed { transform: translateX(-260px); }
+            .sidebar-nav { flex: 1; overflow-y: auto; max-height: none; }
+            .main-content, .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; padding-top: 56px !important; }
+            .sidebar-toggle-btn, .sidebar-toggle-btn.sidebar-open {
+                left: 10px !important; top: 10px !important; width: 34px; height: 34px;
+                border-radius: 8px !important; border: 1px solid rgba(201,168,76,0.35) !important;
+                border-left: 1px solid rgba(201,168,76,0.35) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            }
+        }
+        .nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+    </style>
+</head>
+<body>
+<div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+
+    <div class="main-content">
+
+        <div class="page-header">
+            <div class="page-header-left">
+                <div class="eyebrow" data-en="Editing Record" data-ar="تعديل السجل">Editing Record</div>
+                <div class="page-title">
+                    <i class="bi bi-pencil-square" style="color:var(--gold);"></i>
+                    <span data-en="Passport" data-ar="جواز السفر" style="border:none; background:none; padding:0; font-family:inherit; color:inherit; font-size:inherit;">Passport</span> <span>{{ passport.passport_number }}</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('results') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> <span data-en="Back to Results" data-ar="العودة للنتائج">Back to Results</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="form-content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}{% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+                    <i class="bi bi-info-circle-fill"></i> {{ message }}
+                </div>
+              {% endfor %}{% endif %}
+            {% endwith %}
+
+            <form id="editForm" method="POST" action="{{ url_for('update_passport', passport_id=passport.id) }}" enctype="multipart/form-data">
+                <input type="hidden" name="passport_id" value="{{ passport.id }}">
+                <input type="hidden" name="mrz_text" id="hiddenMrzText" value="{{ passport.mrz_text }}">
+                <input type="file" id="hiddenFaceInput" name="new_face_image" accept="image/*" style="display:none;">
+
+                <div class="row g-4 mb-0">
+                    <div class="col-lg-8">
+                        <div class="form-card">
+                            <div class="section-title"><i class="bi bi-card-image"></i> <span data-en="Scanned Document" data-ar="المستند الممسوح ضوئياً">Scanned Document</span></div>
+                            <div class="img-preview-box main-img-box">
+                                <img src="{{ url_for('db_passport_image', passport_id=passport.id) }}?cb={{ range(1, 9999999) | random }}" alt="Passport"
+                                     onerror="this.src='https://via.placeholder.com/800x400?text=No+Document+Image'">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="form-card" style="height:calc(100% - 0px);">
+                            <div class="section-title"><i class="bi bi-person-bounding-box"></i> <span data-en="Face Portrait" data-ar="صورة الوجه">Face Portrait</span></div>
+                            <div class="text-center">
+                                <div class="img-preview-box face-img-box">
+                                    <img id="currentFaceImage"
+                                         src="{{ url_for('db_face_image', passport_id=passport.id) }}?cb={{ range(1, 9999999) | random }}"
+                                         alt="Face"
+                                         onerror="this.src='https://via.placeholder.com/150x200?text=No+Face'">
+                                </div>
+                                <label for="faceImageUpload" class="btn btn-secondary w-100" style="cursor:pointer;">
+                                    <i class="bi bi-cloud-upload"></i> <span data-en="Upload New Face" data-ar="رفع صورة وجه جديدة">Upload New Face</span>
+                                </label>
+                                <input type="file" id="faceImageUpload" accept="image/*" class="d-none">
+                                <div id="selectedFileDisplay" class="file-confirm" style="display:none;">
+                                    <span><i class="bi bi-check-circle me-1"></i> <span id="selectedFileName"></span></span>
+                                    <i class="bi bi-x-circle" style="cursor:pointer;" onclick="clearFileSelection()"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card form-card-mrz mt-4">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom: 1px solid rgba(201,168,76,0.2);">
+                        <div class="section-title" style="border:none; padding:0; margin:0;">
+                            <i class="bi bi-upc-scan"></i> <span data-en="Machine Readable Zone (MRZ)" data-ar="منطقة القراءة الآلية (MRZ)">Machine Readable Zone (MRZ)</span>
+                        </div>
+                        <button type="button" id="reparseBtn" class="btn btn-amber-outline">
+                            <i class="bi bi-arrow-clockwise"></i> <span data-en="Reparse MRZ" data-ar="إعادة تحليل MRZ">Reparse MRZ</span>
+                        </button>
+                    </div>
+                    <textarea class="mrz-textarea" id="mrzText" rows="2" wrap="off">{{ passport.mrz_text }}</textarea>
+                    <div class="mrz-hint">
+                        <i class="bi bi-info-circle"></i> 
+                        <span data-en="Edit text above, then click 'Reparse MRZ' to extract and overwrite the fields below." data-ar="قم بتعديل النص أعلاه، ثم انقر على 'إعادة تحليل MRZ' لاستخراج الحقول أدناه والكتابة فوقها.">Edit text above, then click "Reparse MRZ" to extract and overwrite the fields below.</span>
+                    </div>
+                    <div id="reparseStatus" style="display:none;"></div>
+                </div>
+
+                <div class="form-card form-card-accent mt-4">
+                    <div class="section-title"><i class="bi bi-person-vcard"></i> <span data-en="Main Passport Details" data-ar="التفاصيل الأساسية لجواز السفر">Main Passport Details</span></div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Passport Number" data-ar="رقم جواز السفر">Passport Number</label>
+                            <input type="text" name="passport_number" value="{{ passport.passport_number }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Last Name" data-ar="اسم العائلة">Last Name</label>
+                            <input type="text" name="surname" value="{{ passport.surname }}" required>
+                        </div>
+                        
+                        {% if passport.middle_name %}
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Middle Name" data-ar="الاسم الأوسط">Middle Name</label>
+                            <input type="text" name="middle_name" value="{{ passport.middle_name }}">
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="First Name" data-ar="الاسم الأول">First Name</label>
+                            <input type="text" name="given_names" value="{{ passport.given_names }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" data-en="Country Code" data-ar="رمز البلد">Country Code</label>
+                            <input type="text" name="country" value="{{ passport.country }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" data-en="Nationality (MRZ)" data-ar="الجنسية (MRZ)">Nationality (MRZ)</label>
+                            <input type="text" name="nationality" value="{{ passport.nationality }}" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" data-en="Sex" data-ar="الجنس">Sex</label>
+                            <select name="sex">
+                                <option value="M" {% if passport.sex == 'M' %}selected{% endif %} data-en="Male" data-ar="ذكر">Male</option>
+                                <option value="F" {% if passport.sex == 'F' %}selected{% endif %} data-en="Female" data-ar="أنثى">Female</option>
+                                <option value="X" {% if passport.sex == 'X' %}selected{% endif %} data-en="Other" data-ar="أخرى">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3"></div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Date of Birth" data-ar="تاريخ الميلاد">Date of Birth</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
+                                <input type="text" name="dob_display" class="form-control date-input" placeholder="dd/mm/yyyy"
+                                       value="{% if passport.dob %}{{ passport.dob.strftime('%d/%m/%Y') if passport.dob.__class__.__name__ in ['date','datetime'] else passport.dob }}{% endif %}" maxlength="10">
+                                <input type="hidden" name="dob" id="dob_hidden"
+                                       value="{% if passport.dob %}{{ passport.dob.strftime('%Y-%m-%d') if passport.dob.__class__.__name__ in ['date','datetime'] else passport.dob }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Expiry Date" data-ar="تاريخ الانتهاء">Expiry Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-x"></i></span>
+                                <input type="text" name="expiry_display" class="form-control date-input" placeholder="dd/mm/yyyy"
+                                       value="{% if passport.expiry %}{{ passport.expiry.strftime('%d/%m/%Y') if passport.expiry.__class__.__name__ in ['date','datetime'] else passport.expiry }}{% endif %}" maxlength="10">
+                                <input type="hidden" name="expiry" id="expiry_hidden"
+                                       value="{% if passport.expiry %}{{ passport.expiry.strftime('%Y-%m-%d') if passport.expiry.__class__.__name__ in ['date','datetime'] else passport.expiry }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-card mt-4">
+                    <div class="section-title"><i class="bi bi-sliders"></i> <span data-en="General Automation Data" data-ar="بيانات الأتمتة العامة">General Automation Data</span></div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Group Name" data-ar="اسم المجموعة">Group Name</label>
+                            <input type="text" name="group_name" value="{{ passport.group_name }}" list="group-name-list" autocomplete="off" data-placeholder-en="Type or select..." data-placeholder-ar="اكتب أو اختر...">
+                            <datalist id="group-name-list">{% for group in group_names %}<option value="{{ group }}">{% endfor %}</datalist>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Nationality (System)" data-ar="الجنسية (النظام)">Nationality (System)</label>
+                            <select name="nationality_id">
+                                {% for id, name in nationality_options %}<option value="{{ id }}" {% if id == passport.nationality_id %}selected{% endif %}>{{ name }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Marital Status" data-ar="الحالة الاجتماعية">Marital Status</label>
+                            <select name="marital_status">
+                                {% for id, status in marital_status_options %}<option value="{{ id }}" {% if id == passport.marital_status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="City of Birth" data-ar="مدينة الميلاد">City of Birth</label>
+                            <input type="text" name="city_of_birth" value="{{ passport.city_of_birth or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="City" data-ar="المدينة">City</label>
+                            <input type="text" name="city" value="{{ passport.city or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Zip / Postal Code" data-ar="الرمز البريدي">Zip / Postal Code</label>
+                            <input type="text" name="zip_postal_code" value="{{ passport.zip_postal_code or '' }}">
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label" data-en="Address" data-ar="العنوان">Address</label>
+                            <input type="text" name="address" value="{{ passport.address or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Passport Type" data-ar="نوع جواز السفر">Passport Type</label>
+                            <select name="passport_type">
+                                <option value="1" {% if passport.passport_type == 1 %}selected{% endif %} data-en="Regular Passport" data-ar="جواز سفر عادي">Regular Passport</option>
+                                <option value="2" {% if passport.passport_type == 2 %}selected{% endif %} data-en="Other" data-ar="أخرى">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Passport Issue Place" data-ar="مكان إصدار جواز السفر">Passport Issue Place</label>
+                            <input type="text" name="passport_issue_place" value="{{ passport.passport_issue_place or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Passport Issue Date" data-ar="تاريخ الإصدار">Passport Issue Date</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-check"></i></span>
+                                <input type="text" name="passport_issue_date_display" class="form-control date-input" placeholder="dd/mm/yyyy"
+                                       value="{% if passport.passport_issue_date %}{{ passport.passport_issue_date.strftime('%d/%m/%Y') if passport.passport_issue_date.__class__.__name__ in ['date','datetime'] else passport.passport_issue_date }}{% endif %}" maxlength="10">
+                                <input type="hidden" name="passport_issue_date" id="passport_issue_date_hidden"
+                                       value="{% if passport.passport_issue_date %}{{ passport.passport_issue_date.strftime('%Y-%m-%d') if passport.passport_issue_date.__class__.__name__ in ['date','datetime'] else passport.passport_issue_date }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Expected Arrival" data-ar="الوصول المتوقع">Expected Arrival</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-plus"></i></span>
+                                <input type="text" name="expected_arrival_display" class="form-control date-input" placeholder="dd/mm/yyyy"
+                                       value="{% if passport.expected_arrival %}{{ passport.expected_arrival.strftime('%d/%m/%Y') if passport.expected_arrival.__class__.__name__ in ['date','datetime'] else passport.expected_arrival }}{% endif %}" maxlength="10">
+                                <input type="hidden" name="expected_arrival" id="expected_arrival_hidden"
+                                       value="{% if passport.expected_arrival %}{{ passport.expected_arrival.strftime('%Y-%m-%d') if passport.expected_arrival.__class__.__name__ in ['date','datetime'] else passport.expected_arrival }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Expected Departure" data-ar="المغادرة المتوقعة">Expected Departure</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar-minus"></i></span>
+                                <input type="text" name="expected_departure_display" class="form-control date-input" placeholder="dd/mm/yyyy"
+                                       value="{% if passport.expected_departure %}{{ passport.expected_departure.strftime('%d/%m/%Y') if passport.expected_departure.__class__.__name__ in ['date','datetime'] else passport.expected_departure }}{% endif %}" maxlength="10">
+                                <input type="hidden" name="expected_departure" id="expected_departure_hidden"
+                                       value="{% if passport.expected_departure %}{{ passport.expected_departure.strftime('%Y-%m-%d') if passport.expected_departure.__class__.__name__ in ['date','datetime'] else passport.expected_departure }}{% endif %}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" data-en="Hotel Name" data-ar="اسم الفندق">Hotel Name</label>
+                            <input type="text" name="hotel_name" value="{{ passport.hotel_name or '' }}">
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+
+            <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header modal-header-danger">
+                            <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Confirm Deletion" data-ar="تأكيد الحذف">Confirm Deletion</span></h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body modal-body-pad">
+                            <p style="font-weight:600; margin-bottom:8px;" data-en="Are you sure you want to delete this passport record?" data-ar="هل أنت متأكد أنك تريد حذف سجل جواز السفر هذا؟">Are you sure you want to delete this passport record?</p>
+                            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:14px;"><span data-en="Passport Number:" data-ar="رقم جواز السفر:">Passport Number:</span> <strong style="color:var(--text-dark);">{{ passport.passport_number }}</strong></p>
+                            <div style="background:var(--danger-bg); border:1.5px solid #fecaca; border-radius:8px; padding:10px 14px; font-size:0.85rem; font-weight:700; color:var(--danger); text-align:center;" data-en="This action cannot be undone!" data-ar="لا يمكن التراجع عن هذا الإجراء!">
+                                This action cannot be undone!
+                            </div>
+                        </div>
+                        <div class="modal-footer modal-footer-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                            <form action="{{ url_for('delete_passport', passport_id=passport.id) }}" method="POST" style="margin:0;">
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash-fill"></i> <span data-en="Yes, Delete" data-ar="نعم، احذف">Yes, Delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-action-bar">
+            <button style="visibility:hidden" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                <i class="bi bi-trash-fill"></i> <span data-en="Delete Record" data-ar="حذف السجل">Delete Record</span>
+            </button>
+            <div style="display:flex; gap:10px;">
+                <a href="javascript:history.back()" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> <span data-en="Back" data-ar="رجوع">Back</span>
+                </a>
+                <button type="submit" form="editForm" class="btn btn-gold" id="bottomSaveBtn" style="padding:10px 32px;">
+                    <i class="bi bi-save-fill"></i> <span data-en="Save Updates" data-ar="حفظ التحديثات">Save Updates</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button id="backToTopBtn" class="back-to-top"><i class="bi bi-arrow-up"></i></button>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // Helper for Backend Translation Errors
+            function translateErrorMsg(err) {
+                const _ar = window.CURRENT_LANG === 'ar';
+                if (!_ar) return err;
+
+                if (err === "MRZ must contain exactly 2 lines") return "يجب أن يحتوي MRZ على 2 أسطر بالضبط";
+                if (err === "Line 1 must start with 'P' (Passport document type)") return "يجب أن يبدأ السطر 1 بحرف 'P' (نوع مستند جواز السفر)";
+                if (err === "Name field contains no readable characters") return "حقل الاسم لا يحتوي على أحرف مقروءة";
+                if (err === "Invalid name format: More than 2 consecutive separators (<<<) detected") return "تنسيق الاسم غير صالح: تم اكتشاف أكثر من 2 فواصل متتالية (<<<)";
+                if (err === "Name field must contain '<<' between surname and given names") return "يجب أن يحتوي حقل الاسم على '<<' بين اسم العائلة والأسماء الأولى";
+                if (err === "Invalid MRZ: Surname contains digits — likely an OCR misread.") return "MRZ غير صالح: اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR.";
+                if (err === "Invalid MRZ: Given names contain digits — likely an OCR misread.") return "MRZ غير صالح: الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR.";
+                if (err === "Surname contains internal filler (<) — likely a misread letter.") return "اسم العائلة يحتوي على حرف تعبئة داخلي (<) — يُرجح أنه حرف مقروء بشكل خاطئ.";
+                if (err.startsWith("Surname field is empty.")) return "حقل اسم العائلة فارغ. إذا كان هذا جواز سفر هندي، استخدم validate_and_parse_mrz_ind().";
+                if (err === "Passport number check digit failed") return "فشل رقم التحقق لجواز السفر";
+                if (err === "Date of birth check digit failed") return "فشل رقم التحقق لتاريخ الميلاد";
+                if (err === "Expiry date check digit failed") return "فشل رقم التحقق لتاريخ الانتهاء";
+                if (err === "Name field is entirely empty.") return "حقل الاسم فارغ تماماً.";
+                if (err === "Name field must contain '<<' as the surname/given-name separator.") return "يجب أن يحتوي حقل الاسم على '<<' كفاصل بين اسم العائلة والأسماء الأولى.";
+                if (err === "Surname contains digits — likely an OCR misread.") return "اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR.";
+                if (err.startsWith("Surname contains more than one internal separator")) return "اسم العائلة يحتوي على أكثر من فاصل داخلي واحد (<). يُسمح فقط بأسماء العائلة المركبة من كلمتين.";
+                if (err === "Given-name section is empty — at least one name token is required.") return "قسم الأسماء الأولى فارغ — مطلوب جزء واحد على الأقل من الاسم.";
+                if (err.startsWith("Unexpected '<<' inside the given-name section")) return "وجود '<<' غير متوقع داخل قسم الأسماء الأولى. تحقق من أخطاء OCR.";
+                if (err === "Given names contain digits — likely an OCR misread.") return "الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR.";
+                if (err === "Both surname and given-name sections are empty.") return "كل من قسمي اسم العائلة والأسماء الأولى فارغان.";
+                if (err === "MRZ must contain at least 2 lines") return "يجب أن يحتوي MRZ على 2 أسطر على الأقل";
+                if (err === "No parsed data available.") return "لا تتوفر بيانات تم تحليلها.";
+                if (err === "Cannot validate issue date: Missing or invalid expiry date.") return "لا يمكن التحقق من تاريخ الإصدار: تاريخ الانتهاء مفقود أو غير صالح.";
+                
+                if (err.startsWith("Each MRZ line must be exactly 44 characters")) return err.replace("Each MRZ line must be exactly 44 characters (Line 1: ", "يجب أن يكون كل سطر في MRZ 44 حرفاً بالضبط (السطر 1: ").replace(", Line 2: ", "، السطر 2: ");
+                if (err.startsWith("Invalid issuing country code")) return err.replace("Invalid issuing country code", "رمز بلد الإصدار غير صالح");
+                if (err.startsWith("Invalid nationality code")) return err.replace("Invalid nationality code", "رمز الجنسية غير صالح");
+                if (err.startsWith("Invalid MRZ: Surname exceeds 15 characters")) return err.replace("Invalid MRZ: Surname exceeds 15 characters (length: ", "MRZ غير صالح: اسم العائلة يتجاوز 15 حرفاً (الطول: ");
+                if (err.startsWith("Sex must be M, F, or <")) return err.replace("Sex must be M, F, or < (found '", "يجب أن يكون الجنس M أو F أو < (تم العثور على '");
+                if (err.startsWith("DOB must be YYMMDD")) return err.replace("DOB must be YYMMDD (found '", "يجب أن يكون تاريخ الميلاد بتنسيق YYMMDD (تم العثور على '");
+                if (err.startsWith("Expiry must be YYMMDD")) return err.replace("Expiry must be YYMMDD (found '", "يجب أن يكون تاريخ الانتهاء بتنسيق YYMMDD (تم العثور على '");
+
+                return err;
+            }
+
+            // ---------------------------------------------------------
+            // REAL-TIME MRZ GENERATOR
+            // ---------------------------------------------------------
+            function calculateIcaoCheckDigit(str) {
+                const weights = [7, 3, 1];
+                let total = 0;
+                for (let i = 0; i < str.length; i++) {
+                    let char = str[i].toUpperCase();
+                    let val = 0;
+                    if (char === '<') val = 0;
+                    else if (char >= '0' && char <= '9') val = parseInt(char);
+                    else if (char >= 'A' && char <= 'Z') val = char.charCodeAt(0) - 55;
+                    else val = 0;
+                    total += val * weights[i % 3];
+                }
+                return (total % 10).toString();
+            }
+
+            function cleanMrzPart(str, length) {
+                if (!str) str = '';
+                return (str.toUpperCase().replace(/[^A-Z0-9<]/g, '<').padEnd(length, '<')).substring(0, length);
+            }
+
+            function updateMrzLive() {
+                const mrzTA = document.getElementById('mrzText');
+                if (!mrzTA) return;
+                
+                let lines = mrzTA.value.split('\n');
+                let l1 = (lines[0] || '').padEnd(44, '<').substring(0, 44);
+                let l2 = (lines[1] || '').padEnd(44, '<').substring(0, 44);
+
+                const country = document.querySelector('[name="country"]')?.value || 'XXX';
+                const surname = document.querySelector('[name="surname"]')?.value || '';
+                const given = document.querySelector('[name="given_names"]')?.value || '';
+                const middleInput = document.querySelector('[name="middle_name"]');
+                const middle = middleInput ? middleInput.value : '';
+                const pptNo = document.querySelector('[name="passport_number"]')?.value || '';
+                const nat = document.querySelector('[name="nationality"]')?.value || 'XXX';
+                const sex = document.querySelector('[name="sex"]')?.value || '<';
+                
+                const getYYMMDD = (fieldId) => {
+                    const val = document.querySelector(`[name="${fieldId}"]`)?.value || '';
+                    if (val.length === 10) {
+                        return val.substring(8, 10) + val.substring(3, 5) + val.substring(0, 2);
+                    }
+                    return '<<<<<<';
+                };
+                
+                const dob = getYYMMDD('dob_display');
+                const exp = getYYMMDD('expiry_display');
+
+                let nameStr = surname.trim().replace(/\s+/g, '<') + '<<' + given.trim().replace(/\s+/g, '<');
+                if (middle) nameStr += '<' + middle.trim().replace(/\s+/g, '<');
+                
+                l1 = 'P<' + cleanMrzPart(country, 3) + cleanMrzPart(nameStr, 39);
+
+                let pptClean = cleanMrzPart(pptNo, 9);
+                let pptCd = calculateIcaoCheckDigit(pptClean);
+                let natClean = cleanMrzPart(nat, 3);
+                let dobClean = cleanMrzPart(dob, 6);
+                let dobCd = calculateIcaoCheckDigit(dobClean);
+                let expClean = cleanMrzPart(exp, 6);
+                let expCd = calculateIcaoCheckDigit(expClean);
+                let sexClean = sex.charAt(0).toUpperCase();
+                if (sexClean !== 'M' && sexClean !== 'F') sexClean = '<';
+                
+                let optData = l2.substring(28, 42); 
+                let optCd = l2.substring(42, 43);
+                
+                l2 = pptClean + pptCd + natClean + dobClean + dobCd + sexClean + expClean + expCd + optData + optCd;
+                
+                let compositeStr = l2.substring(0, 10) + l2.substring(13, 20) + l2.substring(21, 43);
+                let compositeCd = calculateIcaoCheckDigit(compositeStr);
+                
+                l2 = l2.substring(0, 43) + compositeCd;
+
+                mrzTA.value = l1 + '\n' + l2;
+            }
+
+            const fieldsToWatch = [
+                '[name="country"]', '[name="surname"]', '[name="given_names"]', 
+                '[name="middle_name"]', '[name="passport_number"]', '[name="nationality"]', 
+                '[name="sex"]', '[name="dob_display"]', '[name="expiry_display"]'
+            ];
+            
+            fieldsToWatch.forEach(selector => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    el.addEventListener('input', updateMrzLive);
+                    el.addEventListener('change', updateMrzLive);
+                }
+            });
+            
+            const backToTopBtn = document.getElementById('backToTopBtn');
+            window.addEventListener('scroll', () => backToTopBtn.classList.toggle('show', window.pageYOffset > 300));
+            backToTopBtn.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+
+            // Face Image Upload
+            const faceImageUpload = document.getElementById('faceImageUpload');
+            const selectedFileDisplay = document.getElementById('selectedFileDisplay');
+            const selectedFileName = document.getElementById('selectedFileName');
+            const hiddenFaceInput = document.getElementById('hiddenFaceInput');
+            if (faceImageUpload) {
+                faceImageUpload.addEventListener('change', function(e) {
+                    if (e.target.files?.[0]) {
+                        const file = e.target.files[0];
+                        if (!file.type.match('image.*')) { alert('Please select a valid image.'); this.value = ''; selectedFileDisplay.style.display = 'none'; return; }
+                        selectedFileName.textContent = file.name;
+                        selectedFileDisplay.style.display = 'flex';
+                        const dt = new DataTransfer(); dt.items.add(file); hiddenFaceInput.files = dt.files;
+                    } else { selectedFileDisplay.style.display = 'none'; hiddenFaceInput.value = ''; }
+                });
+            }
+            window.clearFileSelection = function() {
+                if (faceImageUpload) faceImageUpload.value = '';
+                if (selectedFileDisplay) selectedFileDisplay.style.display = 'none';
+                if (hiddenFaceInput) hiddenFaceInput.value = '';
+            };
+
+            // Date formatting
+            document.querySelectorAll('.date-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    let v = this.value.replace(/\D/g,'');
+                    if (v.length > 2) v = v.substring(0,2) + '/' + v.substring(2);
+                    if (v.length > 5) v = v.substring(0,5) + '/' + v.substring(5,9);
+                    this.value = v;
+                    if (v.length === 10) { const h = this.closest('.input-group')?.querySelector('input[type="hidden"]'); if (h) h.value = convertToISO(v); }
+                });
+                input.addEventListener('blur', function() {
+                    if (this.value && this.value.length === 10) {
+                        const h = this.closest('.input-group')?.querySelector('input[type="hidden"]');
+                        const iso = convertToISO(this.value);
+                        if (isValidDate(iso)) { if(h) h.value = iso; this.classList.remove('is-invalid'); }
+                        else { this.classList.add('is-invalid'); if(h) h.value = ''; }
+                    } else if (this.value) { this.classList.add('is-invalid'); }
+                });
+            });
+
+            function convertToISO(d) { const p = d.split('/'); if(p.length===3) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`; return ''; }
+            function isValidDate(s) { if(!s.match(/^\d{4}-\d{2}-\d{2}$/)) return false; const d = new Date(s); return d instanceof Date && !isNaN(d) && d.toISOString().slice(0,10) === s; }
+
+            // Form submit AJAX
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const _ar = window.CURRENT_LANG === 'ar';
+                    let isValid = true;
+                    document.querySelectorAll('.date-input').forEach(input => {
+                        const h = input.closest('.input-group')?.querySelector('input[type="hidden"]');
+                        if (input.value && input.value.length === 10 && h && !h.value) {
+                            const iso = convertToISO(input.value);
+                            if (isValidDate(iso)) h.value = iso;
+                            else { input.classList.add('is-invalid'); isValid = false; }
+                        }
+                    });
+                    if (!isValid) { 
+                        alert(_ar ? 'يرجى تصحيح التواريخ غير الصالحة.' : 'Please correct invalid dates.'); 
+                        return; 
+                    }
+                    const btn = document.getElementById('bottomSaveBtn');
+                    const og = btn.innerHTML;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> ' + (_ar ? 'جاري الحفظ...' : 'Saving...'); 
+                    btn.disabled = true;
+                    try {
+                        await fetch(this.action, { method:'POST', body: new FormData(this) });
+                        window.location.href = window.location.href;
+                    } catch { 
+                        alert(_ar ? 'حدث خطأ أثناء الحفظ.' : 'An error occurred while saving.'); 
+                        btn.innerHTML = og; btn.disabled = false; 
+                    }
+                });
+            }
+
+            // MRZ Reparse
+            const reparseBtn = document.getElementById('reparseBtn');
+            if (reparseBtn) {
+                reparseBtn.addEventListener('click', function() {
+                    const _ar = window.CURRENT_LANG === 'ar';
+                    const mrzText = document.getElementById('mrzText').value.trim();
+                    if (!mrzText) { 
+                        showReparseStatus('warning', _ar ? 'يرجى إدخال نص MRZ لإعادة التحليل' : 'Please enter MRZ text to reparse'); 
+                        return; 
+                    }
+                    this.disabled = true; 
+                    this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> ' + (_ar ? 'جاري المعالجة...' : 'Processing...');
+                    
+                    fetch('/reparse_mrz_ajax', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: new URLSearchParams({'mrz_text':mrzText}) })
+                    .then(r => r.json()).then(data => {
+                        if (data.success) {
+                            updateFormFields(data.parsed);
+                            showReparseStatus('success', `<i class="bi bi-check-circle-fill me-1"></i> ${_ar ? 'تمت إعادة تحليل MRZ بنجاح!' : 'MRZ reparsed successfully!'}`);
+                            document.getElementById('hiddenMrzText').value = mrzText;
+                        } else { 
+                            const failMsg = _ar ? 'فشل التحليل: ' : 'Parsing failed: ';
+                            const errorsText = data.errors.map(err => translateErrorMsg(err)).join('; ');
+                            showReparseStatus('danger', `<i class="bi bi-exclamation-triangle-fill me-1"></i> ${failMsg}${errorsText}`); 
+                        }
+                    }).catch(() => showReparseStatus('danger', _ar ? 'حدث خطأ.' : 'An error occurred.'))
+                    .finally(() => { 
+                        this.disabled = false; 
+                        this.innerHTML = '<i class="bi bi-arrow-clockwise"></i> ' + (_ar ? 'إعادة تحليل MRZ' : 'Reparse MRZ'); 
+                    });
+                });
+            }
+
+            function showReparseStatus(type, msg) {
+                const d = document.getElementById('reparseStatus');
+                if (!d) return;
+                d.className = 'reparse-alert reparse-' + type;
+                d.style.display = 'block'; d.innerHTML = msg;
+                if (type === 'success') setTimeout(() => d.style.display = 'none', 5000);
+            }
+
+            function updateFormFields(parsed) {
+                ['passport_number','surname','given_names','middle_name','country','nationality'].forEach(f => setVal(f, parsed[f]));
+                if (parsed.dob) updateDateField('dob', parsed.dob);
+                if (parsed.expiry) updateDateField('expiry', parsed.expiry);
+                setVal('sex', parsed.sex);
+                if (parsed.nationality) {
+                    const map = {{ NATIONALITY_CODE_MAP | tojson }};
+                    const id = map[parsed.nationality];
+                    if (id) document.querySelector('select[name="nationality_id"]').value = id;
+                }
+            }
+            function updateDateField(prefix, val) {
+                const disp = formatDateForDisplay(val);
+                const df = document.querySelector(`input[name="${prefix}_display"]`);
+                if (df) { df.value = disp; df.classList.remove('is-invalid'); }
+                const hf = document.getElementById(`${prefix}_hidden`);
+                if (hf) hf.value = convertToISO(disp);
+            }
+            function setVal(id, val) { const f = document.querySelector(`[name="${id}"]`); if (f && val) f.value = val; }
+            function formatDateForDisplay(s) {
+                if (s.length === 6) { const y = parseInt(s.substring(0,2)), m = s.substring(2,4), d = s.substring(4,6); const cy = new Date().getFullYear(), c = Math.floor(cy/100)*100; let fy = c+y; if(fy>cy+50) fy-=100; return `${d.padStart(2,'0')}/${m.padStart(2,'0')}/${fy}`; }
+                else if (s.length >= 10) { const p = s.substring(0,10).split('-'); return `${p[2]}/${p[1]}/${p[0]}`; }
+                return s;
+            }
+        });
+
+        // MRZ format enforcer
+        const mrzTA = document.getElementById('mrzText');
+        if (mrzTA) {
+            mrzTA.addEventListener('keydown', function(e) {
+                if ([8,9,13,37,38,39,40,46].includes(e.keyCode) || e.ctrlKey || e.metaKey) return;
+                if (this.selectionStart !== this.selectionEnd) return;
+                const lines = this.value.split('\n'); let cl = 0, cc = 0;
+                for (let i=0; i<lines.length; i++) { if(this.selectionStart <= cc+lines[i].length) { cl=i; break; } cc+=lines[i].length+1; }
+                if (lines[cl] && lines[cl].length >= 44) e.preventDefault();
+            });
+            mrzTA.addEventListener('input', function(e) {
+                let cur = this.selectionStart, lines = this.value.toUpperCase().split(/\r?\n/);
+                if (e.inputType === 'insertFromPaste' && lines.length === 1 && lines[0].length > 44) lines = [lines[0].substring(0,44), lines[0].substring(44,88)];
+                if (lines.length > 2) lines = lines.slice(0,2);
+                lines = lines.map(l => l.substring(0,44));
+                this.value = lines.join('\n');
+                try { this.setSelectionRange(cur,cur); } catch(err){}
+            });
+            mrzTA.value = mrzTA.value.toUpperCase().split(/\r?\n/).map(l => l.substring(0,44)).slice(0,2).join('\n');
+        }
+    </script>
+
+    <div id="calPickerPopup" class="cal-popup" role="dialog" aria-label="Date picker" data-i18n-aria="Date picker">
+        <div class="cal-header">
+            <button class="cal-nav-btn" id="calPrevBtn" type="button" aria-label="Previous month" data-i18n-aria="Previous month">&#8249;</button>
+            <div class="cal-header-selects">
+                <select class="cal-month-sel" id="calMonthSel" aria-label="Month" data-i18n-aria="Month"></select>
+                <select class="cal-year-sel"  id="calYearSel"  aria-label="Year" data-i18n-aria="Year"></select>
+            </div>
+            <button class="cal-nav-btn" id="calNextBtn" type="button" aria-label="Next month" data-i18n-aria="Next month">&#8250;</button>
+        </div>
+        <div class="cal-grid">
+            <div class="cal-dow-row">
+                <span class="cal-dow" data-en="Sun" data-ar="الأحد">Sun</span>
+                <span class="cal-dow" data-en="Mon" data-ar="الاثنين">Mon</span>
+                <span class="cal-dow" data-en="Tue" data-ar="الثلاثاء">Tue</span>
+                <span class="cal-dow" data-en="Wed" data-ar="الأربعاء">Wed</span>
+                <span class="cal-dow" data-en="Thu" data-ar="الخميس">Thu</span>
+                <span class="cal-dow" data-en="Fri" data-ar="الجمعة">Fri</span>
+                <span class="cal-dow" data-en="Sat" data-ar="السبت">Sat</span>
+            </div>
+            <div class="cal-days-row" id="calDaysGrid"></div>
+        </div>
+        <div class="cal-footer">
+            <button class="cal-btn-clear" id="calClearBtn" type="button" data-en="Clear" data-ar="مسح">Clear</button>
+            <button class="cal-btn-today" id="calTodayBtn" type="button" data-en="Today" data-ar="اليوم">Today</button>
+        </div>
+    </div>
+
+    <script>
+    /* ── Jinix Calendar Picker ───────────────────────────────── */
+    (function () {
+        const MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        const MONTHS_AR = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+        
+        const popup   = document.getElementById('calPickerPopup');
+        const monthSel = document.getElementById('calMonthSel');
+        const yearSel  = document.getElementById('calYearSel');
+        const daysGrid = document.getElementById('calDaysGrid');
+        const prevBtn  = document.getElementById('calPrevBtn');
+        const nextBtn  = document.getElementById('calNextBtn');
+        const todayBtn = document.getElementById('calTodayBtn');
+        const clearBtn = document.getElementById('calClearBtn');
+
+        let curYear, curMonth;          
+        let activeInput = null;         
+        let activeHidden = null;        
+        let selectedISO = '';           
+
+        /* ── populate month dropdowns dynamically ── */
+        function populateMonths() {
+            monthSel.innerHTML = '';
+            const M_NAMES = (window.CURRENT_LANG === 'ar') ? MONTHS_AR : MONTHS_EN;
+            M_NAMES.forEach((m, i) => {
+                const o = document.createElement('option');
+                o.value = i; o.textContent = m;
+                monthSel.appendChild(o);
+            });
+            
+            // Re-apply aria-labels dynamically if needed
+            const _ar = window.CURRENT_LANG === 'ar';
+            popup.setAttribute('aria-label', _ar ? 'محدد التاريخ' : 'Date picker');
+            prevBtn.setAttribute('aria-label', _ar ? 'الشهر السابق' : 'Previous month');
+            nextBtn.setAttribute('aria-label', _ar ? 'الشهر التالي' : 'Next month');
+            monthSel.setAttribute('aria-label', _ar ? 'الشهر' : 'Month');
+            yearSel.setAttribute('aria-label', _ar ? 'السنة' : 'Year');
+        }
+
+        const nowY = new Date().getFullYear();
+        for (let y = nowY - 100; y <= nowY + 20; y++) {
+            const o = document.createElement('option');
+            o.value = y; o.textContent = y;
+            yearSel.appendChild(o);
+        }
+
+        /* ── render calendar grid ── */
+        function render() {
+            populateMonths(); // Update months dynamically in case language switched
+            monthSel.value = curMonth;
+            yearSel.value  = curYear;
+            daysGrid.innerHTML = '';
+
+            const today   = new Date();
+            const todayY  = today.getFullYear();
+            const todayM  = today.getMonth();
+            const todayD  = today.getDate();
+
+            const firstDay  = new Date(curYear, curMonth, 1).getDay();   // 0=Sun
+            const daysInMon = new Date(curYear, curMonth + 1, 0).getDate();
+            const prevDays  = new Date(curYear, curMonth, 0).getDate();
+
+            // previous month filler
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const d = prevDays - i;
+                const cell = makeCell(d, curMonth - 1, curYear, true);
+                daysGrid.appendChild(cell);
+            }
+            // current month
+            for (let d = 1; d <= daysInMon; d++) {
+                const isToday = (d === todayD && curMonth === todayM && curYear === todayY);
+                const isoStr  = isoDate(curYear, curMonth, d);
+                const cell = makeCell(d, curMonth, curYear, false, isToday, isoStr === selectedISO);
+                daysGrid.appendChild(cell);
+            }
+            // next month filler
+            const total = firstDay + daysInMon;
+            const trailing = (7 - (total % 7)) % 7;
+            for (let d = 1; d <= trailing; d++) {
+                const cell = makeCell(d, curMonth + 1, curYear, true);
+                daysGrid.appendChild(cell);
+            }
+            
+            // Format numbers to Arabic if required
+            if (window.fmtNum) {
+                daysGrid.querySelectorAll('.cal-day').forEach(el => {
+                    el.textContent = window.fmtNum(el.textContent);
+                });
+                yearSel.querySelectorAll('option').forEach(el => {
+                    el.textContent = window.fmtNum(el.value);
+                });
+            }
+        }
+
+        function makeCell(d, m, y, otherMonth, isToday, isSelected) {
+            const el = document.createElement('div');
+            el.className = 'cal-day';
+            if (otherMonth)  el.classList.add('cal-other-month');
+            if (isToday)     el.classList.add('cal-today');
+            if (isSelected)  el.classList.add('cal-selected');
+            el.textContent = d;
+            el.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                const realM = ((m % 12) + 12) % 12;
+                let realY = y;
+                if (m < 0)  realY--;
+                if (m > 11) realY++;
+                selectDate(realY, realM, d);
+            });
+            return el;
+        }
+
+        function isoDate(y, m, d) {
+            return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        }
+        function isoToDisplay(iso) {
+            const [y, m, d] = iso.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        function selectDate(y, m, d) {
+            selectedISO = isoDate(y, m, d);
+            if (activeInput)  activeInput.value  = isoToDisplay(selectedISO);
+            if (activeHidden) activeHidden.value = selectedISO;
+            if (activeInput)  activeInput.classList.remove('is-invalid');
+            // trigger change so MRZ live-update fires
+            if (activeInput)  activeInput.dispatchEvent(new Event('change', { bubbles: true }));
+            closeCalendar();
+        }
+
+        function openCalendar(inputEl, hiddenEl) {
+            activeInput  = inputEl;
+            activeHidden = hiddenEl;
+
+            // parse existing value
+            selectedISO = '';
+            if (hiddenEl && hiddenEl.value && hiddenEl.value.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                selectedISO = hiddenEl.value;
+            }
+            const d = selectedISO ? new Date(selectedISO + 'T00:00:00') : new Date();
+            curYear  = d.getFullYear();
+            curMonth = d.getMonth();
+
+            // position popup below input
+            const rect = inputEl.getBoundingClientRect();
+            const scrollTop  = window.scrollY || document.documentElement.scrollTop;
+            const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+            popup.style.top  = (rect.bottom + scrollTop  + 4) + 'px';
+            popup.style.left = (rect.left   + scrollLeft)     + 'px';
+            popup.style.position = 'absolute';
+            // move popup to body so it isn't clipped by overflow:hidden parents
+            document.body.appendChild(popup);
+
+            render();
+            popup.classList.add('cal-open');
+        }
+
+        function closeCalendar() {
+            popup.classList.remove('cal-open');
+            activeInput  = null;
+            activeHidden = null;
+        }
+
+        /* ── nav ── */
+        prevBtn.addEventListener('click', function () { curMonth--; if (curMonth < 0)  { curMonth = 11; curYear--; } render(); });
+        nextBtn.addEventListener('click', function () { curMonth++; if (curMonth > 11) { curMonth = 0;  curYear++; } render(); });
+        monthSel.addEventListener('change', function () { curMonth = +this.value; render(); });
+        yearSel.addEventListener('change',  function () { curYear  = +this.value; render(); });
+        todayBtn.addEventListener('click', function () {
+            const t = new Date();
+            selectDate(t.getFullYear(), t.getMonth(), t.getDate());
+        });
+        clearBtn.addEventListener('click', function () {
+            selectedISO = '';
+            if (activeInput)  { activeInput.value = ''; activeInput.classList.remove('is-invalid'); }
+            if (activeHidden) activeHidden.value = '';
+            closeCalendar();
+        });
+
+        /* ── close on outside click ── */
+        document.addEventListener('mousedown', function (e) {
+            if (!popup.contains(e.target) && e.target !== activeInput) {
+                closeCalendar();
+            }
+        });
+        /* ── close on Esc ── */
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeCalendar();
+        });
+
+        /* ── attach to all .date-input fields ── */
+        function attachCalendar() {
+            document.querySelectorAll('.date-input').forEach(function (inp) {
+                if (inp.dataset.calAttached) return;
+                inp.dataset.calAttached = '1';
+                inp.setAttribute('autocomplete', 'off');
+                inp.setAttribute('readonly', 'readonly');   // force picker only (no manual typo)
+                inp.style.cursor = 'pointer';
+
+                const grp    = inp.closest('.input-group');
+                const hidden = grp ? grp.querySelector('input[type="hidden"]') : null;
+                const icon   = grp ? grp.querySelector('.input-group-text') : null;
+
+                function open() { openCalendar(inp, hidden); }
+                inp.addEventListener('click', open);
+                if (icon) icon.addEventListener('click', open);
+                if (icon) icon.style.cursor = 'pointer';
+            });
+        }
+        attachCalendar();
+        // re-attach if dynamically added rows appear
+        const obs = new MutationObserver(attachCalendar);
+        obs.observe(document.body, { childList: true, subtree: true });
+    })();
+    </script>
+
+</body>
+</html>

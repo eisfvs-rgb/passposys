@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-en="Invalid Passports — Passport Manager" data-ar="جوازات السفر غير الصالحة — مدير جوازات السفر">Invalid Passports — Passport Manager</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+color-scheme: light;
+--navy-deep:    #060f1e;
+--navy-dark:    #0c1a30;
+--navy-mid:     #112244;
+--navy-light:   #1a3260;
+--gold:         #c9a84c;
+--gold-light:   #e8c97a;
+--gold-pale:    #f7edce;
+--cream:        #faf8f4;
+--white:        #ffffff;
+--border-light: #e8e4dc;
+--border-gold:  rgba(201,168,76,0.35);
+--text-dark:    #0c1a30;
+--text-mid:     #3d5275;
+--text-muted:   #7a8fa8;
+--success:      #0d7a55;
+--success-bg:   #edfaf5;
+--warning:      #b45309;
+--warning-bg:   #fffbeb;
+--danger:       #be2121;
+--danger-bg:    #fef2f2;
+--info-bg:      #eff6ff;
+--sidebar-w:    260px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+font-family: 'DM Sans', system-ui, sans-serif;
+background-color: var(--cream);
+color: var(--text-dark);
+display: flex;
+min-height: 100vh;
+}
+/* ══════════════════ SIDEBAR ══════════════════ */
+.sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15);overflow: hidden; }
+.sidebar-logo {
+    
+    margin: 20px auto;
+}
+        
+.sidebar-nav {
+padding: 20px 0;
+flex: 1;
+overflow-y: auto;
+scrollbar-width: thin;
+scrollbar-color: rgba(201,168,76,0.2) transparent;
+}
+.nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+.nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+.nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+.nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+.nav-link-item.active i { color: var(--gold); }
+.nav-link-item.nav-warning { color: rgba(255,200,80,0.75); }
+.nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+.nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+.nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+.nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+.nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+.sidebar-user {
+padding: 18px 28px;
+border-top: 1px solid rgba(201,168,76,0.15);
+background: inherit;
+flex-shrink: 0;
+}
+.user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+.user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+.user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+.sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: block; }
+.user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+.user-menu a:hover { background: rgba(255,80,80,0.1); }
+/* ══════════════════ MAIN ══════════════════ */
+.main-content {
+margin-left: var(--sidebar-w);
+flex: 1;
+padding: 40px 44px 60px;
+max-width: calc(100% - var(--sidebar-w));
+}
+.page-header { margin-bottom: 32px; }
+.page-eyebrow { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2.5px; color: var(--gold); margin-bottom: 6px; }
+.page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--navy-dark); line-height: 1.2; }
+.page-title span { color: var(--gold); }
+/* ══════════════════ NOTICE BANNER ══════════════════ */
+.notice-banner {
+display: flex; align-items: center; gap: 12px;
+background: var(--warning-bg);
+border: 1px solid #fde68a;
+border-left: 4px solid var(--gold);
+border-radius: 10px;
+padding: 13px 18px;
+margin-bottom: 28px;
+font-size: 0.85rem;
+color: #92400e;
+}
+/* ══════════════════ ACTION BAR ══════════════════ */
+.action-bar {
+display: flex; align-items: center; justify-content: space-between;
+gap: 16px;
+background: var(--white);
+border: 1px solid var(--border-light);
+border-radius: 12px;
+padding: 16px 22px;
+margin-bottom: 24px;
+box-shadow: 0 2px 8px rgba(12,26,48,0.04);
+}
+.action-bar-label {
+display: flex; align-items: center; gap: 10px;
+font-size: 1rem; font-weight: 700; color: var(--navy-dark);
+}
+/* ══════════════════ TABS ══════════════════ */
+.custom-tabs {
+display: flex; gap: 4px;
+border-bottom: 2px solid var(--border-light);
+margin-bottom: 22px;
+}
+.custom-tab-btn {
+background: none; border: none;
+padding: 10px 18px;
+font-family: 'DM Sans', sans-serif;
+font-size: 0.9rem; font-weight: 600;
+color: var(--text-muted); cursor: pointer;
+border-bottom: 3px solid transparent;
+margin-bottom: -2px;
+transition: all 0.2s ease;
+display: flex; align-items: center; gap: 8px;
+border-radius: 6px 6px 0 0;
+}
+.custom-tab-btn:hover { color: var(--text-dark); background: rgba(0,0,0,0.02); }
+.custom-tab-btn.active#tab-invalid {
+color: var(--danger);
+border-bottom-color: var(--danger);
+}
+.custom-tab-btn.active#tab-duplicates {
+color: var(--navy-mid);
+border-bottom-color: var(--navy-mid);
+}
+.tab-pill {
+font-size: 0.7rem; font-weight: 700;
+padding: 2px 8px; border-radius: 20px;
+}
+.tab-pill-danger { background: #fef2f2; color: var(--danger); }
+.tab-pill-blue { background: var(--info-bg); color: #1e40af; }
+/* ══════════════════ PASSPORT CARDS ══════════════════ */
+.invalid-card {
+background: var(--white);
+border: 1px solid var(--border-light);
+border-radius: 14px;
+margin-bottom: 18px;
+box-shadow: 0 2px 10px rgba(12,26,48,0.05);
+display: flex;
+overflow: hidden;
+transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+.invalid-card:hover {
+transform: translateY(-2px);
+box-shadow: 0 8px 24px rgba(12,26,48,0.1);
+border-color: #fca5a5;
+}
+.invalid-card.duplicate-card { border-left: 4px solid var(--navy-mid); }
+.invalid-card.duplicate-card:hover { border-color: #93c5fd; }
+@media (max-width: 767px) { .invalid-card { flex-direction: column; } }
+.card-image-section {
+flex: 0 0 180px;
+background: var(--cream);
+border-right: 1px solid var(--border-light);
+padding: 18px;
+display: flex; align-items: center; justify-content: center;
+}
+.card-image-section img {
+width: 100%; border-radius: 8px;
+border: 1px solid var(--border-light);
+box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.no-image-box {
+width: 100%; height: 140px;
+background: var(--cream);
+border: 2px dashed var(--border-light);
+border-radius: 8px;
+display: flex; flex-direction: column;
+align-items: center; justify-content: center;
+color: var(--text-muted); font-size: 0.8rem; font-weight: 600; gap: 6px;
+}
+.no-image-box i { font-size: 1.8rem; opacity: 0.4; }
+.card-data-section {
+flex: 1; padding: 22px 24px;
+display: flex; flex-direction: column;
+}
+.card-header-row {
+display: flex; justify-content: space-between;
+align-items: flex-start; margin-bottom: 10px;
+}
+.card-filename {
+font-size: 0.95rem; font-weight: 700;
+color: var(--navy-dark);
+display: flex; align-items: center; gap: 8px;
+}
+.card-filename i { color: var(--text-muted); }
+.card-timestamp {
+font-size: 0.78rem; color: var(--text-muted);
+display: flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.error-badge {
+display: inline-flex; align-items: center; gap: 6px;
+background: #fef2f2; color: #991b1b;
+border: 1px solid #fecaca;
+padding: 5px 12px; border-radius: 6px;
+font-size: 0.8rem; font-weight: 600;
+margin-bottom: 14px;
+}
+.duplicate-badge { background: var(--info-bg) !important; color: #1e40af !important; border-color: #bfdbfe !important; }
+.mrz-label {
+font-size: 0.68rem; font-weight: 700;
+text-transform: uppercase; letter-spacing: 1px;
+color: var(--text-muted); margin-bottom: 6px;
+}
+.mrz-box {
+background: var(--navy-deep);
+color: #a8d8a8;
+border: 1px solid rgba(201,168,76,0.15);
+padding: 10px 14px;
+border-radius: 8px;
+font-family: 'DM Mono', monospace;
+font-size: 0.82rem;
+letter-spacing: 1.5px;
+word-break: break-all;
+margin-bottom: 14px;
+white-space: pre-wrap;
+line-height: 1.7;
+}
+.mrz-empty {
+background: var(--cream);
+border: 2px dashed var(--border-light);
+color: var(--text-muted);
+text-align: center;
+padding: 10px;
+font-size: 0.82rem;
+}
+.card-actions {
+margin-top: auto;
+display: flex; gap: 10px;
+padding-top: 14px;
+border-top: 1px dashed var(--border-light);
+}
+/* ══════════════════ BUTTONS ══════════════════ */
+.btn {
+display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+padding: 9px 18px; font-size: 0.82rem; font-weight: 600;
+border-radius: 8px; border: 1.5px solid transparent; cursor: pointer;
+transition: all 0.2s; text-decoration: none;
+font-family: 'DM Sans', sans-serif;
+}
+.btn-primary { background: linear-gradient(135deg, var(--navy-mid), var(--navy-light)); color: white; box-shadow: 0 3px 10px rgba(12,26,48,0.2); }
+.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); color: white; }
+.btn-gold { background: linear-gradient(135deg, var(--gold), var(--gold-light)); color: var(--navy-deep); font-weight: 700; box-shadow: 0 3px 10px rgba(201,168,76,0.25); }
+.btn-gold:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(201,168,76,0.35); filter: brightness(1.05); }
+.btn-secondary { background: var(--white); color: var(--text-dark); border-color: var(--border-light); }
+.btn-secondary:hover { background: var(--cream); border-color: var(--gold); color: var(--navy-mid); }
+.btn-danger-outline { background: var(--white); color: var(--danger); border-color: #fca5a5; }
+.btn-danger-outline:hover { background: var(--danger-bg); border-color: var(--danger); }
+.btn-danger { background: var(--danger); color: white; border-color: var(--danger); }
+.btn-danger:hover { background: #991b1b; transform: translateY(-1px); color: white; }
+.btn-amber { background: #f59e0b; color: white; }
+.btn-amber:hover { background: #d97706; transform: translateY(-1px); color: white; }
+/* ══════════════════ EMPTY STATE ══════════════════ */
+.empty-state {
+text-align: center; padding: 72px 24px;
+background: var(--white);
+border: 1px solid var(--border-light);
+border-radius: 16px;
+box-shadow: 0 2px 12px rgba(12,26,48,0.05);
+}
+.empty-icon {
+width: 72px; height: 72px;
+border-radius: 50%;
+background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+display: flex; align-items: center; justify-content: center;
+font-size: 2rem; margin: 0 auto 20px;
+}
+.empty-state h3 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--navy-dark); margin-bottom: 8px; }
+.empty-state p { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 24px; }
+/* ══════════════════ PAGINATION ══════════════════ */
+.pagination .page-link {
+font-family: 'DM Sans', sans-serif;
+color: var(--navy-mid); border-color: var(--border-light);
+font-weight: 600; font-size: 0.85rem;
+}
+.pagination .page-item.active .page-link {
+background: var(--navy-mid); border-color: var(--navy-mid); color: white;
+}
+.pagination .page-link:hover { background: var(--cream); color: var(--navy-dark); }
+/* ══════════════════ ALERTS ══════════════════ */
+.alert { padding: 14px 18px; border-radius: 10px; margin-bottom: 20px; border: 1.5px solid transparent; font-size: 0.88rem; }
+.alert-success { background: var(--success-bg); border-color: #a7f3d0; color: #065f46; }
+.alert-danger  { background: var(--danger-bg);  border-color: #fecaca; color: #991b1b; }
+/* ══════════════════ EMPTY TAB MESSAGE ══════════════════ */
+#tabEmptyMessage {
+background: var(--white); border: 1px dashed var(--border-light);
+border-radius: 12px; padding: 48px 24px; text-align: center;
+}
+#tabEmptyMessage i { font-size: 2.5rem; color: var(--text-muted); display: block; margin-bottom: 12px; }
+#tabEmptyMessage h5 { font-family: 'Playfair Display', serif; color: var(--navy-dark); }
+#tabEmptyMessage p { font-size: 0.85rem; color: var(--text-muted); }
+/* ══════════════════ FADE ANIMATION ══════════════════ */
+.fade-up { opacity: 0; transform: translateY(16px); animation: fadeUp 0.45s ease forwards; }
+.fade-up:nth-child(1) { animation-delay: 0.05s; }
+.fade-up:nth-child(2) { animation-delay: 0.1s; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 768px) {
+:root { --sidebar-w: 0px; }
+.main-content { margin-left: 0; max-width: 100%; padding: 20px 16px 40px; }
+}
+/* ═══════════════════════════════════════
+SIDEBAR TOGGLE & RESPONSIVE
+═══════════════════════════════════════ */
+.sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.sidebar.collapsed { transform: translateX(-260px); }
+.sidebar-nav { overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: rgba(201,168,76,0.2) transparent; }
+.sidebar-nav::-webkit-scrollbar { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+.sidebar-toggle-btn {
+position: fixed; top: 5px; left: 0; z-index: 500;
+width: 36px; height: 36px; background: var(--navy-mid);
+border: 1px solid rgba(201,168,76,0.3);
+display: flex; align-items: center; justify-content: center;
+cursor: pointer; color: var(--gold); font-size: 1.1rem;
+transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+}
+.sidebar-toggle-btn:hover { background: var(--navy-light); color: var(--gold-light); }
+.sidebar-toggle-btn.sidebar-open { left: 220px; top: 5px; border-radius: 0; }
+.sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(6,15,30,0.7); z-index: 300; backdrop-filter: blur(3px); }
+.sidebar-overlay.visible { display: block; }
+.main-content { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width  0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; }
+.sidebar-user:hover .user-menu, .sidebar-user:focus-within .user-menu { display: none; }
+.user-menu.open { display: block !important; }
+@media (max-width: 768px) {
+.sidebar { display: flex !important; flex-direction: column; position: fixed; top: 0; left: 0; width: 260px; height: 100vh; min-height: 100vh; transform: translateX(-260px); z-index: 400; overflow: hidden; }
+.sidebar.mobile-open { transform: translateX(0) !important; box-shadow: 8px 0 32px rgba(0,0,0,0.5); }
+.sidebar.collapsed { transform: translateX(-260px); }
+.sidebar-nav { flex: 1; overflow-y: auto; max-height: none; }
+.main-content, .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; padding-top: 56px !important; }
+.sidebar-toggle-btn, .sidebar-toggle-btn.sidebar-open { left: 10px !important; top: 10px !important; width: 34px; height: 34px; border-radius: 8px !important; border: 1px solid rgba(201,168,76,0.35) !important; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+}
+</style>
+</head>
+<body>
+<!-- ══════════════════ SIDEBAR ══════════════════ -->
+<!-- ══════════════════ MAIN CONTENT ══════════════════ -->
+<div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+<main class="main-content">
+<!-- Page Header -->
+<div class="page-header fade-up">
+<div class="page-eyebrow" data-en="Review &amp; Remediate" data-ar="المراجعة والمعالجة">Review &amp; Remediate</div>
+<div style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+<!-- FIXED GRAMMAR FOR ARABIC TITLE ("السجلات غير الصالحة" instead of "غير صالحة السجلات") -->
+<h1 class="page-title">
+    <span data-en="Invalid" data-ar="السجلات" style="color:var(--navy-dark);">Invalid</span>
+    <span data-en="Records" data-ar="غير الصالحة">Records</span>
+</h1>
+
+<form method="POST" action="{{ url_for('delete_all_invalid') }}" style="margin:0;">
+<input type="hidden" name="delete_type" value="all">
+<input type="hidden" name="redirect_after" value="results">
+<button type="button" class="btn btn-danger" id="deleteAllBtn">
+<i class="bi bi-trash-fill"></i> <span data-en="Delete All" data-ar="حذف الكل">Delete All</span> (<span class="num">{{ total }}</span>)
+</button>
+</form>
+</div>
+</div>
+
+<!-- Notice -->
+<div class="notice-banner fade-up">
+<i class="bi bi-clock-history" style="font-size:1.1rem; color:var(--gold); flex-shrink:0;"></i>
+<span><strong data-en="Note:" data-ar="ملاحظة:">Note:</strong> <span data-en="Unhandled records listed here will be automatically removed from the system" data-ar="سيتم إزالة السجلات غير المعالجة المدرجة هنا من النظام تلقائياً">Unhandled records listed here will be automatically removed from the system</span> <strong><span class="num">7</span> <span data-en="days" data-ar="أيام">days</span></strong> <span data-en="after their initial upload." data-ar="بعد رفعها الأولي.">after their initial upload.</span></span>
+</div>
+
+<!-- Flash Messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<div class="alert alert-{{ 'success' if category == 'success' else 'danger' }} fade-up">
+<!-- Wrapped the dynamic message in a flash-text span for client-side translation -->
+<i class="bi bi-info-circle-fill me-2"></i> <span class="flash-text" data-orig-msg="{{ message }}">{{ message }}</span>
+</div>
+{% endfor %}
+{% endif %}
+{% endwith %}
+
+{% if invalid_passports %}
+<!-- Action Bar with Delete Buttons -->
+<div class="action-bar fade-up">
+<div class="action-bar-label">
+<i class="bi bi-exclamation-octagon-fill" style="color: #d97706;"></i>
+<span data-en="Failed Parsings &amp; Invalid Passports" data-ar="عمليات التحليل الفاشلة وجوازات السفر غير الصالحة">Failed Parsings &amp; Invalid Passports</span>
+</div>
+<div style="display:flex; gap:8px;">
+<!-- Always Visible: Delete All -->
+
+<!-- Tab-Specific: Delete Invalid (shown on Invalid tab) -->
+<form method="POST" action="{{ url_for('delete_all_invalid') }}" style="margin:0; display:none;" id="deleteInvalidForm">
+<input type="hidden" name="delete_type" value="invalid">
+<input type="hidden" name="redirect_after" value="results">
+<button type="button" class="btn btn-danger-outline" id="deleteInvalidBtn">
+<i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Delete Invalid" data-ar="حذف غير الصالحة">Delete Invalid</span> (<span class="num">{{ counts.invalid }}</span>)
+</button>
+</form>
+<!-- Tab-Specific: Delete Duplicates (shown on Duplicates tab) -->
+<form method="POST" action="{{ url_for('delete_all_invalid') }}" style="margin:0; display:none;" id="deleteDuplicateForm">
+<input type="hidden" name="delete_type" value="duplicate">
+<input type="hidden" name="redirect_after" value="results">
+<button type="button" class="btn btn-danger-outline" id="deleteDuplicateBtn">
+<i class="bi bi-files"></i> <span data-en="Delete Duplicates" data-ar="حذف المكررة">Delete Duplicates</span> (<span class="num">{{ counts.duplicate }}</span>)
+</button>
+</form>
+</div>
+</div>
+
+<!-- Tabs Navigation -->
+<div class="custom-tabs fade-up">
+<button class="custom-tab-btn active" id="tab-invalid" onclick="filterTabs('invalid')">
+<i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Invalid Data" data-ar="بيانات غير صالحة">Invalid Data</span>
+<span class="tab-pill tab-pill-danger num">{{ counts.invalid }}</span>
+</button>
+<button class="custom-tab-btn" id="tab-duplicates" onclick="filterTabs('duplicates')">
+<i class="bi bi-files"></i> <span data-en="Duplicates" data-ar="المكررة">Duplicates</span>
+<span class="tab-pill tab-pill-blue num">{{ counts.duplicate }}</span>
+</button>
+</div>
+
+<!-- Empty Tab Message -->
+<div id="tabEmptyMessage" style="display:none;">
+<i class="bi bi-folder-x"></i>
+<h5 data-en="No records found" data-ar="لم يتم العثور على سجلات">No records found</h5>
+<p data-en="There are no records of this type on the current page." data-ar="لا توجد سجلات من هذا النوع في الصفحة الحالية.">There are no records of this type on the current page.</p>
+</div>
+
+<!-- Records Container -->
+<div id="recordsContainer">
+{% for passport in invalid_passports %}
+{% set is_duplicate = 'Duplicate passport number' in passport.error_message %}
+<div class="invalid-card record-item {% if is_duplicate %}record-duplicate duplicate-card{% else %}record-invalid{% endif %} fade-up">
+<div class="card-image-section">
+{% if passport.original_image_b64 %}
+<img src="data:image/jpeg;base64,{{ passport.original_image_b64 }}" alt="Passport scan" onerror="this.parentNode.innerHTML='<div class=no-image-box><i class=bi bi-image></i>No Image</div>'">
+{% else %}
+<div class="no-image-box"><i class="bi bi-image"></i>No Image</div>
+{% endif %}
+</div>
+<div class="card-data-section">
+{% set grp_name = "" %}
+{% set display_error = passport.error_message %}
+{% if passport.group_name %}
+{% set grp_name = passport.group_name %}
+{% endif %}
+{% if "(Group: " in display_error %}
+{% set display_error = display_error.split(" (Group: ")[0] %}
+{% endif %}
+{% set lower_error = display_error | lower %}
+{% if 'provB' in lower_error or 'grpc' in lower_error or '503' in lower_error or 'vision' in lower_error or 'api' in lower_error %}
+{% set display_error = "Can't extract due to server error" %}
+{% set display_error_ar = "تعذر الاستخراج بسبب خطأ في الخادم" %}
+{% elif 'MRZ not detected after ProvA batch' in display_error %}
+{% set display_error_ar = "لم يتم اكتشاف MRZ بعد مسح دفعات ProvA ومسح ProvB Vision" %}
+{% elif 'MRZ not detected' in display_error %}
+{% set display_error_ar = "لم يتم اكتشاف MRZ" %}
+{% elif 'Duplicate passport number' in display_error %}
+{% set display_error_ar = display_error.replace('Duplicate passport number', 'رقم جواز سفر مكرر') %}
+{% elif 'Processing error' in display_error %}
+{% set display_error_ar = display_error.replace('Processing error', 'خطأ في المعالجة') %}
+{% elif 'Unhandled processing failure' in display_error %}
+{% set display_error_ar = "فشل غير معالج في المعالجة (شبكة الأمان)" %}
+{% elif 'Image fell through processing pipeline' in display_error %}
+{% set display_error_ar = "سقطت الصورة من مسار المعالجة (شبكة الأمان)" %}
+
+{# ── mrz_utils.py validator / parser messages (static, no dynamic values) ── #}
+{% elif display_error == "MRZ must contain exactly 2 lines" %}
+{% set display_error_ar = "يجب أن يحتوي MRZ على 2 أسطر بالضبط" %}
+{% elif display_error == "Line 1 must start with 'P' (Passport document type)" %}
+{% set display_error_ar = "يجب أن يبدأ السطر 1 بحرف 'P' (نوع مستند جواز السفر)" %}
+{% elif display_error == "Name field contains no readable characters" %}
+{% set display_error_ar = "حقل الاسم لا يحتوي على أحرف مقروءة" %}
+{% elif display_error == "Invalid name format: More than 2 consecutive separators (<<<) detected" %}
+{% set display_error_ar = "تنسيق الاسم غير صالح: تم اكتشاف أكثر من 2 فواصل متتالية (<<<)" %}
+{% elif display_error == "Name field must contain '<<' between surname and given names" %}
+{% set display_error_ar = "يجب أن يحتوي حقل الاسم على '<<' بين اسم العائلة والأسماء الأولى" %}
+{% elif display_error == "Invalid MRZ: Surname contains digits — likely an OCR misread." %}
+{% set display_error_ar = "MRZ غير صالح: اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+{% elif display_error == "Invalid MRZ: Given names contain digits — likely an OCR misread." %}
+{% set display_error_ar = "MRZ غير صالح: الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+{% elif display_error == "Surname contains internal filler (<) — likely a misread letter." %}
+{% set display_error_ar = "اسم العائلة يحتوي على حرف تعبئة داخلي (<) — يُرجح أنه حرف مقروء بشكل خاطئ." %}
+{% elif display_error.startswith("Surname field is empty.") %}
+{% set display_error_ar = "حقل اسم العائلة فارغ. إذا كان هذا جواز سفر هندي، استخدم validate_and_parse_mrz_ind()." %}
+{% elif display_error == "Passport number check digit failed" %}
+{% set display_error_ar = "فشل رقم التحقق لجواز السفر" %}
+{% elif display_error == "Date of birth check digit failed" %}
+{% set display_error_ar = "فشل رقم التحقق لتاريخ الميلاد" %}
+{% elif display_error == "Expiry date check digit failed" %}
+{% set display_error_ar = "فشل رقم التحقق لتاريخ الانتهاء" %}
+{% elif display_error == "Name field is entirely empty." %}
+{% set display_error_ar = "حقل الاسم فارغ تماماً." %}
+{% elif display_error == "Name field must contain '<<' as the surname/given-name separator." %}
+{% set display_error_ar = "يجب أن يحتوي حقل الاسم على '<<' كفاصل بين اسم العائلة والأسماء الأولى." %}
+{% elif display_error == "Surname contains digits — likely an OCR misread." %}
+{% set display_error_ar = "اسم العائلة يحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+{% elif display_error.startswith("Surname contains more than one internal separator") %}
+{% set display_error_ar = "اسم العائلة يحتوي على أكثر من فاصل داخلي واحد (<). يُسمح فقط بأسماء العائلة المركبة من كلمتين." %}
+{% elif display_error == "Given-name section is empty — at least one name token is required." %}
+{% set display_error_ar = "قسم الأسماء الأولى فارغ — مطلوب جزء واحد على الأقل من الاسم." %}
+{% elif display_error.startswith("Unexpected '<<' inside the given-name section") %}
+{% set display_error_ar = "وجود '<<' غير متوقع داخل قسم الأسماء الأولى. تحقق من أخطاء OCR." %}
+{% elif display_error == "Given names contain digits — likely an OCR misread." %}
+{% set display_error_ar = "الأسماء الأولى تحتوي على أرقام — يُرجح أنه خطأ في قراءة OCR." %}
+{% elif display_error == "Both surname and given-name sections are empty." %}
+{% set display_error_ar = "كل من قسمي اسم العائلة والأسماء الأولى فارغان." %}
+{% elif display_error == "MRZ must contain at least 2 lines" %}
+{% set display_error_ar = "يجب أن يحتوي MRZ على 2 أسطر على الأقل" %}
+{% elif display_error == "No parsed data available." %}
+{% set display_error_ar = "لا تتوفر بيانات تم تحليلها." %}
+{% elif display_error == "Cannot validate issue date: Missing or invalid expiry date." %}
+{% set display_error_ar = "لا يمكن التحقق من تاريخ الإصدار: تاريخ الانتهاء مفقود أو غير صالح." %}
+
+{# ── mrz_utils.py messages WITH dynamic values — translate the fixed  ── #}
+{# ── wording on either side of the value using replace(), keep value  ── #}
+{% elif display_error.startswith("Each MRZ line must be exactly 44 characters") %}
+{% set display_error_ar = display_error
+    | replace("Each MRZ line must be exactly 44 characters (Line 1: ", "يجب أن يكون كل سطر في MRZ 44 حرفاً بالضبط (السطر 1: ")
+    | replace(", Line 2: ", "، السطر 2: ") %}
+{% elif display_error.startswith("Invalid issuing country code") %}
+{% set display_error_ar = display_error | replace("Invalid issuing country code", "رمز بلد الإصدار غير صالح") %}
+{% elif display_error.startswith("Invalid nationality code") %}
+{% set display_error_ar = display_error | replace("Invalid nationality code", "رمز الجنسية غير صالح") %}
+{% elif display_error.startswith("Invalid MRZ: Issuing country") %}
+{% set display_error_ar = display_error
+    | replace("Invalid MRZ: Issuing country (", "MRZ غير صالح: بلد الإصدار (")
+    | replace(") does not match nationality (", ") لا يتطابق مع الجنسية (")
+    | replace(").", ").") %}
+{% elif display_error.startswith("Invalid MRZ: Surname exceeds 15 characters") %}
+{% set display_error_ar = display_error
+    | replace("Invalid MRZ: Surname exceeds 15 characters (length: ", "MRZ غير صالح: اسم العائلة يتجاوز 15 حرفاً (الطول: ") %}
+{% elif display_error.startswith("Invalid MRZ: First name exceeds 15 characters") %}
+{% set display_error_ar = display_error
+    | replace("Invalid MRZ: First name exceeds 15 characters (length: ", "MRZ غير صالح: الاسم الأول يتجاوز 15 حرفاً (الطول: ") %}
+{% elif display_error.startswith("Sex must be M, F, or <") %}
+{% set display_error_ar = display_error
+    | replace("Sex must be M, F, or < (found '", "يجب أن يكون الجنس M أو F أو < (تم العثور على '") %}
+{% elif display_error.startswith("DOB must be YYMMDD") %}
+{% set display_error_ar = display_error
+    | replace("DOB must be YYMMDD (found '", "يجب أن يكون تاريخ الميلاد بتنسيق YYMMDD (تم العثور على '") %}
+{% elif display_error.startswith("Expiry must be YYMMDD") %}
+{% set display_error_ar = display_error
+    | replace("Expiry must be YYMMDD (found '", "يجب أن يكون تاريخ الانتهاء بتنسيق YYMMDD (تم العثور على '") %}
+{% elif display_error.startswith("IND validator received a non-Indian passport") %}
+{% set display_error_ar = display_error
+    | replace("IND validator received a non-Indian passport (country: ", "تلقى مدقق IND جواز سفر غير هندي (البلد: ")
+    | replace("). Use the general validator instead.", "). استخدم المدقق العام بدلاً من ذلك.") %}
+{% elif display_error.startswith("Indian passport nationality mismatch") %}
+{% set display_error_ar = display_error
+    | replace("Indian passport nationality mismatch: expected IND, got '", "عدم تطابق جنسية جواز السفر الهندي: المتوقع IND، تم العثور على '") %}
+{% elif display_error.startswith("Individual surname token") %}
+{% set display_error_ar = display_error
+    | replace("Individual surname token '", "الجزء الفردي من اسم العائلة '")
+    | replace("' exceeds 15 characters.", "' يتجاوز 15 حرفاً.") %}
+{% elif display_error.startswith("Given-name section has") %}
+{% set display_error_ar = display_error
+    | replace("Given-name section has ", "قسم الأسماء الأولى يحتوي على ")
+    | replace(" tokens; maximum 4 are supported.", " أجزاء؛ الحد الأقصى المدعوم هو 4.") %}
+{% elif display_error.startswith("Given-name token") %}
+{% set display_error_ar = display_error
+    | replace("Given-name token '", "جزء الاسم الأول '")
+    | replace("' exceeds 20 characters.", "' يتجاوز 20 حرفاً.") %}
+{% elif display_error.startswith("Cannot open image:") %}
+{% set display_error_ar = display_error | replace("Cannot open image:", "لا يمكن فتح الصورة:") %}
+{% elif display_error.startswith("Passport is already expired") %}
+{% set display_error_ar = display_error
+    | replace("Passport is already expired (Expiry: ", "جواز السفر منتهي الصلاحية بالفعل (الانتهاء: ") %}
+{% elif display_error.startswith("Date calculation error:") %}
+{% set display_error_ar = display_error | replace("Date calculation error:", "خطأ في حساب التاريخ:") %}
+
+{# ── ICAO check-digit messages, possibly " | "-joined ── #}
+{% elif "check digit failed" in display_error %}
+{% set display_error_ar = display_error
+    | replace("Passport number check digit failed", "فشل رقم التحقق لجواز السفر")
+    | replace("Date of birth check digit failed", "فشل رقم التحقق لتاريخ الميلاد")
+    | replace("Expiry date check digit failed", "فشل رقم التحقق لتاريخ الانتهاء")
+    | replace(" | ", " | ") %}
+
+{% else %}
+{% set display_error_ar = display_error %}
+{% endif %}
+<div class="card-header-row">
+<div class="card-filename"><i class="bi bi-file-earmark-image"></i> {{ passport.filename }}</div>
+<div style="display: flex; gap: 10px; align-items: center;">
+{% if passport.is_emergency %}
+<span style="background: rgba(220,53,69,0.12); color: #c0392b; border: 1px solid rgba(220,53,69,0.35); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" title="Uploaded via Emergency upload">
+<i class="bi bi-lightning-fill"></i> <span data-en="Emergency" data-ar="طارئ">Emergency</span>
+</span>
+{% endif %}
+{% if grp_name %}
+<span style="background: rgba(201,168,76,0.12); color: black; border: 1px solid rgba(201,168,76,0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+<i class="bi bi-folder2-open"></i> {{ grp_name }}
+</span>
+{% endif %}
+<div class="card-timestamp"><i class="bi bi-clock"></i> <span class="num">{{ passport.created_at.strftime('%Y-%m-%d %H:%M') }}</span></div>
+</div>
+</div>
+{% if is_duplicate and passport.duplicate_matches %}
+<div style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+{% for dm in passport.duplicate_matches %}
+<a href="{{ url_for('results', group_name=dm.existing_group, passport_number=passport.duplicate_number, highlight=dm.passport_id, exact=1) }}" target="_blank" rel="noopener" style="background: rgba(99,179,237,0.12); color: #2b6cb0; border: 1px solid rgba(99,179,237,0.35); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-decoration: none; cursor: pointer; width: fit-content;" title="Click to open this record in Results" onmouseover="this.style.background='rgba(99,179,237,0.22)'" onmouseout="this.style.background='rgba(99,179,237,0.12)'">
+<i class="bi bi-files"></i> <span data-en="Passport Exist Group:" data-ar="مجموعة تواجد جواز السفر:">Passport Exist Group:</span> {{ dm.existing_group }}
+</a>
+{% if dm.expected_departure %}
+<span style="background: rgba(72,187,120,0.12); color: #276749; border: 1px solid rgba(72,187,120,0.35); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; width: fit-content;" title="Existing visit-visa record is valid until this departure date">
+<i class="bi bi-calendar-check"></i> <span data-en="Valid upto:" data-ar="صالح حتى:">Valid upto:</span> {{ dm.expected_departure }}
+</span>
+{% endif %}
+{% if dm.processed_on %}
+<span style="background: rgba(72,187,120,0.12); color: #276749; border: 1px solid rgba(72,187,120,0.35); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; width: fit-content;" title="Existing Nusuk record was processed on this date">
+<i class="bi bi-calendar-check"></i> <span data-en="Passport Uploaded On:" data-ar="تم رفع جواز السفر في:">Passport Uploaded On:</span> {{ dm.processed_on }}
+</span>
+{% elif dm.created_on %}
+<span style="background: rgba(72,187,120,0.12); color: #276749; border: 1px solid rgba(72,187,120,0.35); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; width: fit-content;" title="Existing Nusuk record was uploaded (unprocessed) on this date">
+<i class="bi bi-calendar-check"></i> <span data-en="Passport Uploaded On:" data-ar="تم رفع جواز السفر في:">Passport Uploaded On:</span> {{ dm.created_on }}
+</span>
+{% endif %}
+{% endfor %}
+</div>
+{% endif %}
+<div class="error-badge {% if is_duplicate %}duplicate-badge{% endif %}">
+{% if is_duplicate %}
+<i class="bi bi-files"></i> <span data-en="{{ display_error }}" data-ar="{{ display_error_ar }}">{{ display_error }}</span>
+{% else %}
+<i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Error:" data-ar="خطأ:">Error:</span> <span data-en="{{ display_error }}" data-ar="{{ display_error_ar }}">{{ display_error }}</span>
+{% endif %}
+</div>
+<div class="mrz-label" data-en="Raw MRZ Detected" data-ar="تم اكتشاف بيانات MRZ الخام">Raw MRZ Detected</div>
+{% if passport.mrz_text %}
+<div class="mrz-box">{{ passport.mrz_text }}</div>
+{% else %}
+<div class="mrz-box mrz-empty" data-en="No MRZ code could be detected in this image." data-ar="لم يتم اكتشاف رمز MRZ في هذه الصورة.">No MRZ code could be detected in this image.</div>
+{% endif %}
+<div class="card-actions">
+{% if not is_duplicate %}
+<button class="btn btn-amber" style="flex:1;" onclick="openReparseWindow({{ passport.id }})">
+<i class="bi bi-wrench-adjustable"></i> <span data-en="Manual Reparse" data-ar="إعادة التحليل يدوياً">Manual Reparse</span>
+</button>
+{% endif %}
+{% if is_duplicate and passport.can_force_insert %}
+<button type="button" class="btn btn-amber force-insert-btn" style="flex:1;" data-invalid-id="{{ passport.id }}">
+<i class="bi bi-lightning-charge-fill"></i> <span data-en="Force Insert" data-ar="إدراج قسري">Force Insert</span>
+</button>
+{% endif %}
+<form method="POST" action="{{ url_for('delete_invalid', invalid_id=passport.id) }}" class="single-delete-form" style="margin:0; flex:1;">
+<button type="button" class="btn btn-danger-outline w-100 delete-single-btn">
+<i class="bi bi-trash-fill"></i> <span data-en="Delete Record" data-ar="حذف السجل">Delete Record</span>
+</button>
+</form>
+</div>
+</div>
+</div>
+{% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="d-flex justify-content-center mt-4 mb-4">
+<ul class="pagination">
+{%- set _win = 2 %}
+{%- if page > 1 %}
+<li class="page-item"><a class="page-link" href="{{ url_for('view_invalid_passports', page=page-1) }}" data-en="Previous" data-ar="السابق">Previous</a></li>
+{%- endif %}
+{%- for p in range(1, total_pages+1) %}
+    {%- if p == 1 or p == total_pages or (p >= page - _win and p <= page + _win) %}
+        {%- if not loop.first and loop.previtem != p - 1 %}
+<li class="page-item disabled"><a class="page-link" href="#">…</a></li>
+        {%- endif %}
+<li class="page-item {% if p == page %}active{% endif %}"><a class="page-link num" href="{{ url_for('view_invalid_passports', page=p) }}">{{ p }}</a></li>
+    {%- endif %}
+{%- endfor %}
+{%- if page < total_pages %}
+<li class="page-item"><a class="page-link" href="{{ url_for('view_invalid_passports', page=page+1) }}" data-en="Next" data-ar="التالي">Next</a></li>
+{%- endif %}
+</ul>
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state fade-up">
+<div class="empty-icon">✅</div>
+<h3 data-en="Zero Invalid Passports" data-ar="لا يوجد جوازات سفر غير صالحة">Zero Invalid Passports</h3>
+<p data-en="All uploaded passports have been processed successfully. Clean queue." data-ar="تمت معالجة جميع جوازات السفر المرفوعة بنجاح. قائمة الانتظار فارغة.">All uploaded passports have been processed successfully. Clean queue.</p>
+<a href="{{ url_for('index') }}" class="btn btn-gold" style="padding:12px 28px;">
+<i class="bi bi-cloud-upload"></i> <span data-en="Upload New Passports" data-ar="رفع جوازات سفر جديدة">Upload New Passports</span>
+</a>
+</div>
+{% endif %}
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ── TAB FILTERING FUNCTION ──────────────────────────────────────────
+function filterTabs(type) {
+// Update tab active states
+document.getElementById('tab-invalid').classList.remove('active');
+document.getElementById('tab-duplicates').classList.remove('active');
+document.getElementById('tab-' + type).classList.add('active');
+
+// Filter records
+const allItems = document.querySelectorAll('.record-item');
+let visibleCount = 0;
+allItems.forEach(item => {
+if (type === 'invalid' && item.classList.contains('record-invalid')) {
+item.style.display = '';
+visibleCount++;
+} else if (type === 'duplicates' && item.classList.contains('record-duplicate')) {
+item.style.display = '';
+visibleCount++;
+} else {
+item.style.display = 'none';
+}
+});
+
+// Show/hide empty message
+document.getElementById('tabEmptyMessage').style.display = visibleCount === 0 ? 'block' : 'none';
+
+// ── SHOW/HIDE TAB-SPECIFIC DELETE BUTTONS ───────────────────────
+const deleteInvalidBtn = document.getElementById('deleteInvalidForm');
+const deleteDuplicateBtn = document.getElementById('deleteDuplicateForm');
+if (type === 'invalid') {
+if (deleteInvalidBtn) deleteInvalidBtn.style.display = 'block';
+if (deleteDuplicateBtn) deleteDuplicateBtn.style.display = 'none';
+} else if (type === 'duplicates') {
+if (deleteInvalidBtn) deleteInvalidBtn.style.display = 'none';
+if (deleteDuplicateBtn) deleteDuplicateBtn.style.display = 'block';
+}
+}
+
+// ── INIT ON PAGE LOAD ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+if (document.querySelectorAll('.record-item').length > 0) {
+filterTabs('invalid');
+}
+});
+
+// ── DELETE ALL BUTTON HANDLER ───────────────────────────────────────
+const deleteAllBtn = document.getElementById('deleteAllBtn');
+if (deleteAllBtn) {
+deleteAllBtn.addEventListener('click', function() {
+const _ar = window.CURRENT_LANG === 'ar';
+Swal.fire({
+title: _ar ? 'هل تريد حذف جميع السجلات؟' : 'Delete All Records?',
+text: _ar ? 'أنت على وشك إزالة جميع السجلات غير الصالحة والمكررة نهائياً. لا يمكن التراجع عن هذا الإجراء.' : "You are about to permanently remove ALL invalid & duplicate records. This cannot be undone.",
+icon: 'error',
+showCancelButton: true,
+confirmButtonColor: '#be2121',
+cancelButtonColor: '#7a8fa8',
+confirmButtonText: _ar ? 'نعم، احذف كل شيء' : 'Yes, Delete Everything',
+cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+background: '#ffffff',
+color: '#0c1a30'
+}).then(result => {
+if (result.isConfirmed) {
+const form = this.closest('form');
+form.submit();
+}
+});
+});
+}
+
+// ── DELETE INVALID BUTTON HANDLER ───────────────────────────────────
+const deleteInvalidBtn = document.getElementById('deleteInvalidBtn');
+if (deleteInvalidBtn) {
+deleteInvalidBtn.addEventListener('click', function() {
+const _ar = window.CURRENT_LANG === 'ar';
+Swal.fire({
+title: _ar ? 'هل تريد حذف جوازات السفر غير الصالحة؟' : 'Delete Invalid Passports?',
+text: _ar ? 'أنت على وشك إزالة جميع السجلات غير الصالحة (غير المكررة). لا يمكن التراجع عن هذا الإجراء.' : "You are about to remove all invalid (non-duplicate) records. This cannot be undone.",
+icon: 'warning',
+showCancelButton: true,
+confirmButtonColor: '#d97706',
+cancelButtonColor: '#7a8fa8',
+confirmButtonText: _ar ? 'نعم، احذف غير الصالحة' : 'Yes, Delete Invalid',
+cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+background: '#ffffff',
+color: '#0c1a30'
+}).then(result => {
+if (result.isConfirmed) {
+document.getElementById('deleteInvalidForm').submit();
+}
+});
+});
+}
+
+// ── DELETE DUPLICATE BUTTON HANDLER ─────────────────────────────────
+const deleteDuplicateBtn = document.getElementById('deleteDuplicateBtn');
+if (deleteDuplicateBtn) {
+deleteDuplicateBtn.addEventListener('click', function() {
+const _ar = window.CURRENT_LANG === 'ar';
+Swal.fire({
+title: _ar ? 'هل تريد حذف السجلات المكررة؟' : 'Delete Duplicate Records?',
+text: _ar ? 'أنت على وشك إزالة جميع سجلات جوازات السفر المكررة. لا يمكن التراجع عن هذا الإجراء.' : "You are about to remove all duplicate passport records. This cannot be undone.",
+icon: 'warning',
+showCancelButton: true,
+confirmButtonColor: '#1e40af',
+cancelButtonColor: '#7a8fa8',
+confirmButtonText: _ar ? 'نعم، احذف المكررة' : 'Yes, Delete Duplicates',
+cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+background: '#ffffff',
+color: '#0c1a30'
+}).then(result => {
+if (result.isConfirmed) {
+document.getElementById('deleteDuplicateForm').submit();
+}
+});
+});
+}
+
+// ── OPEN REPARSE WINDOW (with auto-advance queue) ───────────────────
+let _reparseQueue = [];
+let _reparseIdx   = -1;
+let _reparsePopup = null;
+let _reparseTimer = null;
+
+// Open the reparse popup at position idx in the queue, then auto-advance
+function _openReparseAt(idx) {
+    if (idx >= _reparseQueue.length) {
+        // All items processed — clear flag then reload to get fresh list
+        window._reparseActive = false;
+        location.reload();
+        return;
+    }
+    _reparseIdx = idx;
+    window._reparseActive = true;   // signal to popup: queue is running, don't navigate opener
+    const id = _reparseQueue[idx];
+    _reparsePopup = window.open(
+        "{{ url_for('reparse_invalid', invalid_id=0) }}".replace('/0', '/' + id),
+        'reparse_window',
+        `width=${screen.availWidth},height=${screen.availHeight},top=0,left=0,resizable=yes,scrollbars=yes`
+    );
+    if (!_reparsePopup || _reparsePopup.closed || typeof _reparsePopup.closed === 'undefined') {
+        window._reparseActive = false;
+        var _ar = window.CURRENT_LANG === 'ar';
+        Swal.fire({ icon:'warning', title: _ar ? 'تم حظر النافذة المنبثقة' : 'Popup Blocked', text: _ar ? 'يرجى السماح بالنوافذ المنبثقة لهذا الموقع.' : 'Please allow popups for this site.', confirmButtonColor:'#c9a84c' });
+        return;
+    }
+    if (_reparseTimer) clearInterval(_reparseTimer);
+    _reparseTimer = setInterval(function () {
+        if (_reparsePopup && _reparsePopup.closed) {
+            clearInterval(_reparseTimer);
+            _reparseTimer = null;
+            _openReparseAt(_reparseIdx + 1);
+        }
+    }, 400);
+}
+
+function openReparseWindow(invalidId) {
+    // Close any existing popup before starting a new queue
+    if (_reparsePopup && !_reparsePopup.closed) _reparsePopup.close();
+    if (_reparseTimer) { clearInterval(_reparseTimer); _reparseTimer = null; }
+
+    // Build ordered queue from all non-duplicate cards visible on this page
+    _reparseQueue = Array.from(
+        document.querySelectorAll('.record-invalid button[onclick^="openReparseWindow"]')
+    ).map(function(btn) {
+        var m = btn.getAttribute('onclick').match(/openReparseWindow\((\d+)\)/);
+        return m ? parseInt(m[1]) : null;
+    }).filter(Boolean);
+
+    // Start from the card the user clicked
+    var startIdx = _reparseQueue.indexOf(invalidId);
+    if (startIdx < 0) startIdx = 0;
+
+    _openReparseAt(startIdx);
+}
+
+// ── FORCE INSERT BUTTON HANDLER (Nusuk 1-year cross-group duplicates) ──
+document.querySelectorAll('.force-insert-btn').forEach(btn => {
+btn.addEventListener('click', function() {
+const invalidId = this.getAttribute('data-invalid-id');
+const _ar = window.CURRENT_LANG === 'ar';
+Swal.fire({
+title: _ar ? 'إدراج قسري؟' : 'Force Insert?',
+text: _ar ? 'تم إرسال جواز السفر هذا مسبقاً في مجموعة أخرى خلال آخر سنة. سيتم إدراجه بغض النظر عن ذلك.' : 'This passport was already sent in another group within the last year. It will be inserted anyway.',
+icon: 'warning',
+showCancelButton: true,
+confirmButtonColor: '#c9a84c',
+cancelButtonColor: '#7a8fa8',
+confirmButtonText: _ar ? 'نعم، أدرجه!' : 'Yes, insert it!',
+cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+background: '#ffffff',
+color: '#0c1a30'
+}).then(result => {
+if (!result.isConfirmed) return;
+const originalHtml = btn.innerHTML;
+btn.disabled = true;
+btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> ' + (_ar ? 'جارٍ الإدراج...' : 'Inserting...');
+fetch("{{ url_for('force_insert_duplicate', invalid_id=0) }}".replace('/0', '/' + invalidId), {
+method: 'POST',
+headers: { 'X-Requested-With': 'XMLHttpRequest' }
+})
+.then(r => r.json())
+.then(data => {
+if (data.success) {
+Swal.fire({
+icon: 'success',
+title: _ar ? 'تم الإدراج' : 'Inserted',
+text: _ar ? 'تم إدراج جواز السفر في النتائج.' : 'Passport inserted into Results.',
+confirmButtonColor: '#c9a84c'
+}).then(() => window.location.reload());
+} else {
+btn.disabled = false;
+btn.innerHTML = originalHtml;
+Swal.fire({ icon: 'error', title: _ar ? 'فشل' : 'Failed', text: data.message || (_ar ? 'حدث خطأ غير متوقع.' : 'An unexpected error occurred.'), confirmButtonColor: '#c9a84c' });
+}
+})
+.catch(err => {
+btn.disabled = false;
+btn.innerHTML = originalHtml;
+Swal.fire({ icon: 'error', title: _ar ? 'فشل' : 'Failed', text: String(err), confirmButtonColor: '#c9a84c' });
+});
+});
+});
+});
+
+// ── SINGLE DELETE BUTTON HANDLER ────────────────────────────────────
+document.querySelectorAll('.delete-single-btn').forEach(btn => {
+btn.addEventListener('click', function() {
+const form = this.closest('form');
+const _ar = window.CURRENT_LANG === 'ar';
+Swal.fire({
+title: _ar ? 'هل تريد النقل إلى سلة المهملات؟' : 'Move to Recycle Bin?',
+text: _ar ? 'يمكنك استعادة هذا السجل لاحقاً من سلة المهملات.' : "You can restore this record later from the Recycle Bin.",
+icon: 'warning',
+showCancelButton: true,
+confirmButtonColor: '#c9a84c',
+cancelButtonColor: '#7a8fa8',
+confirmButtonText: _ar ? 'نعم، انقله!' : 'Yes, move it!',
+cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+background: '#ffffff',
+color: '#0c1a30'
+}).then(result => { if (result.isConfirmed) form.submit(); });
+});
+});
+
+// ── TRANSLATE FLASH MESSAGES ON THE CLIENT-SIDE ─────────────────────
+function translateFlashMessages() {
+    const _ar = window.CURRENT_LANG === 'ar';
+    document.querySelectorAll('.flash-text').forEach(el => {
+        let msg = el.getAttribute('data-orig-msg');
+        if (_ar) {
+            // Regex replacements for common backend flash messages
+            msg = msg.replace(/Record #(\d+) moved to the Recycle Bin!/gi, 'تم نقل السجل #$1 إلى سلة المهملات!');
+            msg = msg.replace(/Successfully deleted (\d+) invalid records\.?/gi, 'تم حذف $1 سجلات غير صالحة بنجاح.');
+            msg = msg.replace(/Successfully deleted (\d+) duplicate records\.?/gi, 'تم حذف $1 سجلات مكررة بنجاح.');
+            msg = msg.replace(/All invalid records deleted!/gi, 'تم حذف جميع السجلات غير الصالحة!');
+            msg = msg.replace(/All duplicate records deleted!/gi, 'تم حذف جميع السجلات المكررة!');
+            msg = msg.replace(/Record deleted permanently\.?/gi, 'تم حذف السجل نهائياً.');
+            
+            // Convert numbers in message to Arabic digits using the global formatter if available
+            el.textContent = window.fmtNum ? window.fmtNum(msg) : msg; 
+        } else {
+            el.textContent = msg;
+        }
+    });
+}
+
+// Hook into the global applyLanguage from _sidebar.html
+const originalApplyLanguage = window.applyLanguage;
+if (originalApplyLanguage) {
+    window.applyLanguage = function(lang) {
+        originalApplyLanguage(lang);
+        translateFlashMessages();
+    };
+}
+
+// Run once on load
+document.addEventListener('DOMContentLoaded', () => {
+    if (window.CURRENT_LANG) translateFlashMessages();
+});
+
+</script>
+
+</body>
+</html>

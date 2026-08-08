@@ -1,0 +1,2347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-en="All Groups — Passport Manager" data-ar="كل المجموعات — مدير جوازات السفر">All Groups — Passport Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="icon" type="image/jpeg" href="{{ url_for('static', filename='icon.jpg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            color-scheme: light;
+            --navy-deep: #060f1e; --navy-dark: #0c1a30; --navy-mid: #112244; --navy-light: #1a3260;
+            --gold: #c9a84c; --gold-light: #e8c97a; --cream: #faf8f4; --white: #ffffff;
+            --border-light: #e8e4dc; --border-gold: rgba(201,168,76,0.35);
+            --text-dark: #0c1a30; --text-mid: #3d5275; --text-muted: #7a8fa8;
+            --success: #0d7a55; --success-bg: #edfaf5;
+            --danger: #be2121; --danger-bg: #fef2f2;
+            --sidebar-w: 260px;
+        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'DM Sans', system-ui, sans-serif; background: var(--cream); color: var(--text-dark); display: flex; min-height: 100vh; }
+
+        /* ══ SIDEBAR ══ */
+        .sidebar { width: var(--sidebar-w); height: 100vh; background: var(--navy-deep); background-image: radial-gradient(ellipse at 0% 0%, rgba(201,168,76,0.08) 0%, transparent 60%), radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6) 0%, transparent 60%); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 400; border-right: 1px solid rgba(201,168,76,0.15); overflow: hidden; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sidebar.collapsed { transform: translateX(-260px); }
+        .sidebar-logo { margin: 20px auto; }
+        .sidebar-nav { padding: 20px 0; flex: 1; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(201,168,76,0.2) transparent; }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+        .nav-section-label { padding: 8px 28px 6px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-link-item { display: flex; align-items: center; gap: 12px; padding: 11px 28px; font-size: 0.875rem; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: all 0.2s ease; border-left: 3px solid transparent; }
+        .nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+        .nav-link-item:hover { color: var(--white); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+        .nav-link-item.active { color: var(--white); background: rgba(201,168,76,0.12); border-left-color: var(--gold); }
+        .nav-link-item.active i { color: var(--gold); }
+        .nav-link-item.nav-danger:hover { color: #ff8080; background: rgba(255,80,80,0.07); border-left-color: #ff8080; }
+        .nav-link-item.nav-backup:hover { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+        .nav-badge { background: var(--danger); color: white; border-radius: 20px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; margin-left: auto; }
+        .nav-divider { margin: 10px 28px; border-color: rgba(255,255,255,0.08); }
+        .sidebar-user { padding: 18px 28px; border-top: 1px solid rgba(201,168,76,0.15); background: inherit; flex-shrink: 0; position: relative; }
+        .user-card { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .user-avatar { width: 36px; height: 36px; background: linear-gradient(135deg, var(--navy-light), var(--navy-mid)); border: 2px solid rgba(201,168,76,0.35); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--gold); flex-shrink: 0; }
+        .user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 700; color: var(--white); }
+        .user-menu { display: none; position: absolute; bottom: 80px; left: 18px; right: 18px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.2); border-radius: 10px; overflow: hidden; box-shadow: 0 -8px 30px rgba(0,0,0,0.4); z-index: 300; }
+        .user-menu.open { display: block !important; }
+        .user-menu a { display: flex; align-items: center; gap: 10px; padding: 12px 18px; font-size: 0.85rem; font-weight: 600; color: #ff8080; text-decoration: none; }
+        .user-menu a.white-link { color: white; }
+        .user-menu a:hover { background: rgba(255,80,80,0.1); }
+        .user-menu a.white-link:hover { background: rgba(255,255,255,0.08); }
+
+        /* ══ TOGGLE BUTTON ══ */
+        .sidebar-toggle-btn { position: fixed; top: 5px; left: 0; z-index: 500; width: 36px; height: 36px; background: var(--navy-mid); border: 1px solid rgba(201,168,76,0.3); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gold); font-size: 1.1rem; transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s; box-shadow: 3px 0 10px rgba(0,0,0,0.3); }
+        .sidebar-toggle-btn:hover { background: var(--navy-light); color: var(--gold-light); }
+        .sidebar-toggle-btn.sidebar-open { left: 220px; top: 5px; border-radius: 0; }
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(6,15,30,0.7); z-index: 300; backdrop-filter: blur(3px); }
+        .sidebar-overlay.visible { display: block; }
+
+        /* ══ MAIN ══ */
+        .main-content { margin-left: var(--sidebar-w); flex: 1; max-width: calc(100% - var(--sidebar-w)); transition: margin-left 0.3s cubic-bezier(0.4,0,0.2,1), max-width 0.3s cubic-bezier(0.4,0,0.2,1); }
+        .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; }
+
+        @media (max-width: 768px) {
+            :root { --sidebar-w: 0px; }
+            .main-content, .main-content.sidebar-collapsed { margin-left: 0; max-width: 100%; padding-top: 56px !important; }
+            .sidebar { transform: translateX(-260px); }
+            .sidebar.mobile-open { transform: translateX(0) !important; box-shadow: 8px 0 32px rgba(0,0,0,0.5); }
+            .sidebar.collapsed { transform: translateX(-260px); }
+            .sidebar-toggle-btn, .sidebar-toggle-btn.sidebar-open { left: 10px !important; top: 10px !important; width: 34px; height: 34px; border-radius: 8px !important; }
+        }
+
+        /* ══ TOOLBAR ══ */
+        .toolbar { position: sticky; top: 0; z-index: 100; background: var(--white); border-bottom: 1px solid var(--border-light); box-shadow: 0 2px 12px rgba(12,26,48,0.07); }
+        .toolbar-top { padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+        .toolbar-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--navy-dark); display: flex; align-items: center; gap: 10px; }
+        .toolbar-title .eyebrow { font-family: 'DM Sans', sans-serif; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--gold); display: block; margin-bottom: 2px; }
+
+        /* ══ PAGE CONTENT ══ */
+        .page-content { padding: 32px 36px; }
+
+        /* ══ STATS ══ */
+        .stats-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-box {
+            flex: 1; min-width: 140px;
+            background: var(--white);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 20px 22px 18px;
+            border-top: 3px solid var(--navy-mid);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .stat-box .stat-label {
+            font-size: 0.68rem; text-transform: uppercase;
+            letter-spacing: 1.4px; color: var(--text-muted);
+            font-weight: 700; display: block;
+        }
+        .stat-box .stat-value {
+            font-family: 'DM Sans', sans-serif; font-size: 2.2rem;
+            font-weight: 800; color: var(--navy-dark);
+            line-height: 1; display: block;
+        }
+
+        /* Total Groups — gold top border */
+        .stat-box.stat-groups { border-top-color: var(--gold); }
+        .stat-box.stat-groups .stat-value { color: var(--navy-dark); }
+        .stat-box.stat-groups .stat-label { color: var(--gold); }
+
+        /* Total Passports — navy top border */
+        .stat-box.stat-passports { border-top-color: var(--navy-mid); }
+        .stat-box.stat-passports .stat-value { color: var(--navy-dark); }
+
+        /* Sent — green top border */
+        .stat-box.stat-sent { border-top-color: var(--success); }
+        .stat-box.stat-sent .stat-value { color: var(--success); }
+        .stat-box.stat-sent .stat-label { color: var(--success); }
+
+        /* Unsent — amber top border */
+        .stat-box.stat-unsent { border-top-color: #b45309; }
+        .stat-box.stat-unsent .stat-value { color: #b45309; }
+        .stat-box.stat-unsent .stat-label { color: #b45309; }
+
+        /* Sent Records — teal top border, with an inner Nusuk/Visit Visa split */
+        .stat-box.stat-sent-records {
+            border-top-color: #0d9488;
+            min-width: 220px;
+        }
+        .stat-box.stat-sent-records .stat-value { color: #0d9488; }
+        .stat-box.stat-sent-records .stat-label { color: #0d9488; }
+        .stat-sub-breakdown {
+            display: flex; gap: 14px; margin-top: 4px;
+            padding-top: 10px; border-top: 1px dashed var(--border-light);
+        }
+        .stat-sub-item {
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .stat-sub-label {
+            font-size: 0.62rem; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-muted); font-weight: 700;
+        }
+        .stat-sub-value {
+            font-family: 'DM Sans', sans-serif; font-size: 1.15rem;
+            font-weight: 800; line-height: 1;
+        }
+        .stat-sub-item.stat-sub-nusuk .stat-sub-value { color: var(--navy-mid); }
+        .stat-sub-item.stat-sub-visa .stat-sub-value { color: var(--gold); }
+
+        /* ══ ACTIONS TOOLBAR ══ */
+        .actions-toolbar {
+            display: flex; flex-direction: column; gap: 10px;
+            padding: 11px 16px; border-bottom: 1px solid var(--border-light);
+            background: var(--white);
+        }
+        .toolbar-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .filter-group { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; min-width: 0; }
+        .toolbar-divider { width: 1px; height: 28px; background: var(--border-light); flex-shrink: 0; margin: 0 4px; }
+        .toolbar-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        @media (max-width: 700px) {
+            .toolbar-divider { display: none; }
+        }
+
+        /* Selection pill */
+        .sel-pill {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 6px 13px; border-radius: 7px; font-size: 0.78rem; font-weight: 700;
+            background: var(--cream); color: var(--text-muted);
+            border: 1.5px solid var(--border-light); white-space: nowrap;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+            width: max-content;
+        }
+        .sel-pill.has-selection {
+            background: rgba(201,168,76,0.12);
+            color: var(--navy-mid); border-color: var(--border-gold);
+        }
+        .sel-pill i { font-size: 0.82rem; }
+
+        /* ── Solid filled action buttons — matches site style (Export=green, Delete=red, Badge/Image=navy) ── */
+        .pro-btn {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 9px 20px; border-radius: 7px;
+            border: none; cursor: pointer; white-space: nowrap;
+            font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+            transition: opacity 0.15s, background 0.15s;
+            color: var(--white); line-height: 1;
+        }
+        .pro-btn i { font-size: 0.88rem; }
+        .pro-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* Export Data — green */
+        .pro-btn-export-data  { background: #1a7a4a; }
+        .pro-btn-export-data:not(:disabled):hover  { background: #145e39; }
+
+        /* Export Image — green */
+        .pro-btn-export-image { background: #1a7a4a; }
+        .pro-btn-export-image:not(:disabled):hover { background: #145e39; }
+
+        /* Generate Badge — gold */
+        .pro-btn-badge { background: var(--gold); color: var(--navy-deep); }
+        .pro-btn-badge:not(:disabled):hover { background: #b8943e; }
+
+        /* eVisa JSON — indigo/blue */
+        .pro-btn-evisa-json { background: #2563eb; }
+        .pro-btn-evisa-json:not(:disabled):hover { background: #1d4ed8; }
+
+        /* Delete — red */
+        /* Change Group — teal /green */
+        .pro-btn-change-group { background: #0e7490; }
+        .pro-btn-change-group:not(:disabled):hover { background: #0a5f75; }
+        .pro-btn-delete { background: #c0392b; }
+        .pro-btn-delete:not(:disabled):hover { background: #962d22; }
+
+        /* Hidden bulk-bar (keep for badge btn only) */
+        .bulk-bar { display: none; }
+        .bulk-count { display: none; }
+        .bulk-btn { display: none; }
+
+        /* ══ TABLE ══ */
+        .groups-card { background: var(--white); border: 1px solid var(--border-light); border-radius: 16px; box-shadow: 0 2px 12px rgba(12,26,48,0.05); overflow: hidden; }
+        .table-wrapper { width: 100%; overflow-x: auto; }
+        /* Dynamic-width table: group name takes max-content, rest fill remaining space */
+        .groups-table { width: 100%; min-width: 700px; border-collapse: collapse; table-layout: auto; }
+        .groups-table thead th { background: var(--navy-mid); color: rgba(255,255,255,0.85); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; padding: 14px 18px; border: none; white-space: nowrap; }
+        .groups-table tbody tr { border-bottom: 1px solid var(--border-light); transition: background 0.15s; }
+        .groups-table tbody tr:last-child { border-bottom: none; }
+        .groups-table tbody tr:hover { background: rgba(201,168,76,0.04); }
+        .groups-table tbody tr.row-selected { background: rgba(201,168,76,0.08) !important; }
+        .groups-table tbody td { padding: 14px 18px; font-size: 0.875rem; color: var(--text-dark); vertical-align: middle; }
+
+        /* Column behaviour */
+        .col-cb    { width: 42px; min-width: 42px; text-align: center; overflow: visible; }
+        .col-sl    { width: 48px; }
+        .col-date  { width: 130px; white-space: nowrap; }
+        .col-name  { width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .col-count { width: 100px; text-align: center; white-space: nowrap; }
+        .col-email { } /* fills remaining space */
+        .col-status{ width: 100px; white-space: nowrap; }
+        .col-act   { width: 120px; white-space: nowrap; }
+
+        /* Checkbox styling */
+        .row-cb { width: 16px; height: 16px; cursor: pointer; accent-color: var(--navy-mid); }
+        .th-cb-wrap { display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+
+        .sl-no { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        .group-link { font-weight: 700; color: var(--navy-mid); background: none; border: none; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; text-decoration: underline; text-decoration-color: rgba(17,34,68,0.3); text-underline-offset: 3px; transition: color 0.15s; }
+        .group-link:hover { color: var(--gold); text-decoration-color: var(--gold); }
+        .group-link i { color: var(--gold); font-size: 0.95rem; }
+        .group-link-emergency { color: #dc3545; text-decoration-color: rgba(220,53,69,0.4); }
+        .group-link-emergency:hover { color: #b02a37; text-decoration-color: #b02a37; }
+        .count-badge { display: inline-flex; align-items: center; justify-content: center; background: var(--cream); border: 1px solid var(--border-light); color: var(--navy-mid); font-weight: 700; font-family: 'DM Mono', monospace; border-radius: 20px; padding: 3px 12px; font-size: 0.82rem; min-width: 40px; }
+        .login-id-cell { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text-mid); }
+        .login-id-empty { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+        .platform-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
+        .platform-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 20px; padding: 2px 10px; font-size: 0.68rem; font-weight: 700; white-space: nowrap; }
+        .platform-badge-nusuk { background: rgba(139,69,19,0.1); color: #8B4513; border: 1px solid rgba(139,69,19,0.25); }
+        .platform-badge-visa { background: rgba(25,135,84,0.1); color: #198754; border: 1px solid rgba(25,135,84,0.25); }
+        .platform-badge-emergency { background: rgba(220,53,69,0.1); color: #dc3545; border: 1px solid rgba(220,53,69,0.3); }
+        .status-sent { display: inline-flex; align-items: center; gap: 5px; background: var(--success-bg); color: var(--success); border: 1px solid rgba(13,122,85,0.2); border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 700; }
+        .status-unsent { display: inline-flex; align-items: center; gap: 5px; background: #fff8ed; color: #b45309; border: 1px solid #fde68a; border-radius: 20px; padding: 3px 12px; font-size: 0.78rem; font-weight: 700; }
+        .date-cell { font-size: 0.82rem; color: var(--text-mid); line-height: 1.3; }
+        .date-cell .timestamp { display: block; font-size: 0.72rem; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
+        .email-wrap { font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--text-mid); line-height: 1.5; word-break: break-all; white-space: normal; display: block; width: 100%; }
+        .email-line { display: none; }
+        .empty-state { text-align: center; padding: 64px 32px; color: var(--text-muted); }
+        .empty-state i { font-size: 3rem; color: var(--border-light); display: block; margin-bottom: 16px; }
+        .empty-state h4 { font-size: 1.1rem; font-weight: 600; color: var(--text-mid); margin-bottom: 8px; }
+
+        /* ══ ACTIONS ══ */
+        .action-btn { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 7px; font-size: 0.78rem; font-weight: 600; border: 1.5px solid; cursor: pointer; text-decoration: none; transition: all 0.15s; background: var(--white); }
+        .action-btn-edit { color: var(--navy-mid); border-color: var(--border-light); }
+        .action-btn-edit:hover { background: rgba(17,34,68,0.06); border-color: var(--navy-mid); color: var(--navy-dark); }
+        .action-btn-duplicate { color: var(--navy-mid); border-color: var(--border-light); }
+        .action-btn-duplicate:hover { background: rgba(17,34,68,0.06); border-color: var(--navy-mid); color: var(--navy-dark); }
+        .action-btn-delete { color: var(--danger); border-color: rgba(190,33,33,0.2); }
+        .action-btn-delete:hover { background: var(--danger-bg); border-color: var(--danger); }
+
+        /* ══ PAGINATION ══ */
+        .pagination-wrap { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--border-light); background: var(--white); flex-wrap: wrap; gap: 10px; }
+        .pagination-info { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+        .pagination-controls { display: flex; align-items: center; gap: 4px; }
+        .pg-btn { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 7px; border: 1.5px solid var(--border-light); background: var(--white); color: var(--text-mid); font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .pg-btn:hover { border-color: var(--gold); color: var(--navy-mid); background: rgba(201,168,76,0.06); }
+        .pg-btn.active { background: var(--navy-mid); color: var(--white); border-color: var(--navy-mid); }
+        .pg-btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+        .pg-size-select { padding: 5px 10px; border-radius: 7px; border: 1.5px solid var(--border-light); font-size: 0.8rem; color: var(--text-mid); background: var(--white); cursor: pointer; }
+
+        /* ══ MODAL ══ */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(6,15,30,0.55); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+
+        /* SweetAlert2's default z-index (1060) sits BELOW this page's
+           .modal-overlay (2000, used by Change Group / Merge / etc.), so any
+           Swal.fire() call — like the duplicate-conflict popup — would
+           render invisibly behind an open modal. Force it above everything. */
+        .swal2-container { z-index: 3000 !important; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: var(--white); border-radius: 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.3); width: 440px; max-width: 92vw; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden; animation: dialogIn 0.2s ease; }
+        .modal-header { padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-light); flex-shrink: 0; }
+        .modal-header h5 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--navy-dark); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: color 0.15s; }
+        .modal-close:hover { color: var(--text-dark); }
+        .modal-body { padding: 22px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-mid); margin-bottom: 6px; }
+        .form-control { width: 100%; padding: 9px 13px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.875rem; font-family: 'DM Sans', sans-serif; color: var(--text-dark); transition: border-color 0.15s; }
+        .form-control:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+        .modal-footer { padding: 16px 22px; border-top: 1px solid var(--border-light); display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-primary-gold { padding: 9px 20px; background: var(--navy-mid); color: var(--white); border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+        .btn-primary-gold:hover { background: var(--navy-dark); }
+        .btn-cancel { padding: 9px 20px; background: var(--white); color: var(--text-mid); border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+        .btn-cancel:hover { border-color: var(--text-mid); color: var(--text-dark); }
+        .btn-danger-solid { padding: 9px 20px; background: var(--danger); color: var(--white); border: none; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+        .btn-danger-solid:hover { background: #9b1818; }
+        .delete-warning { background: var(--danger-bg); border: 1px solid rgba(190,33,33,0.2); border-radius: 10px; padding: 14px 16px; font-size: 0.875rem; color: var(--danger); display: flex; gap: 10px; align-items: flex-start; }
+        .delete-warning i { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+
+        /* ══ FLASH ══ */
+        .flash-wrap { margin-bottom: 20px; }
+        .flash-alert { display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 10px; font-size: 0.875rem; font-weight: 500; }
+        .flash-success { background: var(--success-bg); color: var(--success); border: 1px solid rgba(13,122,85,0.2); }
+        .flash-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(190,33,33,0.2); }
+
+        /* ══ NAT DIALOG ══ */
+        .nat-overlay { position: fixed; inset: 0; background: rgba(6,15,30,0.55); backdrop-filter: blur(4px); z-index: 1000; display: none; align-items: center; justify-content: center; }
+        .nat-overlay.open { display: flex; }
+        .nat-dialog { background: var(--white); border-radius: 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.3); width: 420px; max-width: 92vw; overflow: hidden; animation: dialogIn 0.2s ease; }
+        @keyframes dialogIn { from { opacity:0; transform:translateY(16px) scale(0.97); } to { opacity:1; transform:none; } }
+        .nat-dialog-header { background: var(--navy-mid); padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
+        .nat-dialog-header h5 { font-family: 'Playfair Display', serif; font-size: 1.05rem; color: var(--white); margin: 0; display: flex; align-items: center; gap: 10px; }
+        .nat-dialog-header h5 i { color: var(--gold); }
+        .nat-dialog-close { background: none; border: none; color: rgba(255,255,255,0.5); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; line-height: 1; transition: color 0.15s, background 0.15s; }
+        .nat-dialog-close:hover { color: var(--white); background: rgba(255,255,255,0.1); }
+        .nat-dialog-body { padding: 22px; }
+        .nat-dialog-body p { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px; }
+        .nat-list { display: flex; flex-direction: column; gap: 8px; }
+        .nat-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1.5px solid var(--border-light); border-radius: 10px; cursor: pointer; transition: all 0.18s; text-decoration: none; color: var(--text-dark); background: var(--white); }
+        .nat-item:hover { border-color: var(--gold); background: rgba(201,168,76,0.05); color: var(--navy-mid); transform: translateX(3px); }
+        .nat-item .nat-flag { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--navy-mid), var(--navy-light)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .nat-item .nat-flag i { color: var(--gold); font-size: 1rem; }
+        .nat-item .nat-name { font-weight: 600; font-size: 0.9rem; flex: 1; }
+        .nat-item .nat-count { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--text-muted); background: var(--cream); border: 1px solid var(--border-light); padding: 2px 10px; border-radius: 20px; }
+        .nat-item:hover .nat-count { background: rgba(201,168,76,0.12); border-color: var(--gold); color: var(--navy-mid); }
+        .nat-item-all { border-color: var(--gold); background: linear-gradient(135deg, rgba(201,168,76,0.10), rgba(201,168,76,0.03)); margin-bottom: 4px; }
+        .nat-item-all .nat-flag { background: linear-gradient(135deg, var(--gold), #b8923f); }
+        .nat-item-all .nat-flag i { color: var(--navy-mid); }
+        .nat-item-all:hover { border-color: var(--gold); background: rgba(201,168,76,0.16); }
+        .change-group-visa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 16px; }
+        .change-group-visa-grid .form-group { margin-bottom: 0; }
+        @media (max-width: 860px) { .change-group-visa-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 560px) { .change-group-visa-grid { grid-template-columns: 1fr; } }
+        .change-group-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 16px; align-items: start; }
+        .change-group-3col .form-group { margin-bottom: 0; }
+        @media (max-width: 860px) { .change-group-3col { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 560px) { .change-group-3col { grid-template-columns: 1fr; } }
+
+        /* ══ BULK DELETE MODAL ══ */
+        .bulk-delete-list { max-height: 180px; overflow-y: auto; background: var(--cream); border: 1px solid var(--border-light); border-radius: 8px; padding: 10px 14px 10px 30px; margin-top: 10px; }
+        .bulk-delete-list li { font-size: 0.82rem; color: var(--text-mid); padding: 3px 0; font-family: 'DM Mono', monospace; list-style-position: outside; }
+        /* ══ CHANGE GROUP MODAL ══ */
+        .change-group-select { width: 100%; padding: 9px 13px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.875rem; font-family: 'DM Sans', sans-serif; color: var(--text-dark); background: var(--white); transition: border-color 0.15s; cursor: pointer; }
+        input.change-group-select { cursor: text; }
+        .change-group-select:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+        .change-group-or-divider { display: flex; align-items: center; gap: 10px; margin: 12px 0; }
+        .change-group-or-divider::before, .change-group-or-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-light); }
+        .change-group-or-divider span { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; color: var(--text-muted); }
+        .change-group-info { background: rgba(201,168,76,0.08); border: 1px solid var(--border-gold); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--text-mid); margin-bottom: 14px; }
+        .change-group-info i { color: var(--gold); margin-right: 6px; }
+    </style>
+</head>
+<body>
+{% macro to_ar_num(val) %}
+{{ val | string | replace('0', '٠') | replace('1', '١') | replace('2', '٢') | replace('3', '٣') | replace('4', '٤') | replace('5', '٥') | replace('6', '٦') | replace('7', '٧') | replace('8', '٨') | replace('9', '٩') }}
+{% endmacro %}
+{% macro ar_date_str(d) %}
+{% set en_str = d.strftime('%d %b %Y') if d is not string else d[:10] %}
+{% set ar_str = en_str | replace('Jan', 'يناير') | replace('Feb', 'فبراير') | replace('Mar', 'مارس') | replace('Apr', 'أبريل') | replace('May', 'مايو') | replace('Jun', 'يونيو') | replace('Jul', 'يوليو') | replace('Aug', 'أغسطس') | replace('Sep', 'سبتمبر') | replace('Oct', 'أكتوبر') | replace('Nov', 'نوفمبر') | replace('Dec', 'ديسمبر') %}
+{{ to_ar_num(ar_str) }}
+{% endmacro %}
+{% macro ar_time_str(d) %}
+{% set en_str = d.strftime('%H:%M:%S') if d is not string else (d[11:19] if d|length > 10 else '') %}
+{{ to_ar_num(en_str) }}
+{% endmacro %}
+<div class="sidebar-overlay"></div>
+<button class="sidebar-toggle-btn" title="Toggle Menu"><i class="bi bi-list"></i></button>
+{% include '_sidebar.html' %}
+
+
+    <!-- ══ SIDEBAR ══ -->
+    <!-- ══ NATIONALITY PICKER DIALOG ══ -->
+    <div class="nat-overlay" id="natOverlay">
+        <div class="nat-dialog" id="natDialog">
+            <div class="nat-dialog-header">
+                <h5><i class="bi bi-globe2"></i> <span id="natDialogTitle" data-en="Select Nationality" data-ar="اختر الجنسية">Select Nationality</span></h5>
+                <button class="nat-dialog-close" id="natDialogClose" title="Close"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="nat-dialog-body">
+                <p id="natDialogSubtitle" data-en="This group contains multiple nationalities. Choose one to filter the records." data-ar="هذه المجموعة تحتوي على جنسيات متعددة. اختر واحدة لتصفية السجلات.">This group contains multiple nationalities. Choose one to filter the records.</p>
+                <div class="nat-list" id="natList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ NATIONALITY DATA ══ -->
+    <script>
+    const NAT_NAMES = {
+        {% for nid, nname in nationality_options %}"{{ nid }}": {{ nname | tojson }}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    };
+    const GROUPS = [
+        {% for g in groups %}{
+            name: {{ g.group_name | tojson }},
+            natIds: [{% for nid in g.nationality_ids %}{{ nid }}{% if not loop.last %},{% endif %}{% endfor %}]
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    </script>
+
+    <!-- ══ EDIT MODAL ══ -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h5><i class="bi bi-pencil-square" style="color:var(--gold);"></i> <span data-en="Edit Group" data-ar="تعديل المجموعة">Edit Group</span></h5>
+                <button class="modal-close" id="editModalClose"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_group') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="old_group_name" id="editOldName">
+                    <div class="form-group">
+                        <label data-en="Change group name" data-ar="تغيير اسم المجموعة">Change group name</label>
+                        <input type="text" class="form-control" name="new_group_name" id="editNewName" required placeholder="Enter group name" data-en="Enter group name" data-ar="أدخل اسم المجموعة">
+                    </div>
+                    <div class="form-group">
+                        <label data-en="Created Date" data-ar="تاريخ الإنشاء">Created Date</label>
+                        <input type="date" class="form-control" name="new_date" id="editNewDate">
+                    </div>
+                </div>
+                <div class="modal-footer" style="justify-content:space-between;">
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="action-btn action-btn-duplicate btn-duplicate-single-group" id="editModalDuplicateBtn"
+                                title="Create a full copy of this group (unprocessed) under a new date-suffixed name — this group stays exactly as it is">
+                            <i class="bi bi-copy"></i> <span data-en="Duplicate" data-ar="تكرار">Duplicate</span>
+                        </button>
+                        <button type="button" class="action-btn action-btn-delete btn-open-delete" id="editModalDeleteBtn" title="Delete group">
+                            <i class="bi bi-trash3"></i> <span data-en="Delete" data-ar="حذف">Delete</span>
+                        </button>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button type="button" class="btn-cancel" id="editModalCancelBtn" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                        <button type="submit" class="btn-primary-gold"><i class="bi bi-check2"></i> <span data-en="Save Changes" data-ar="حفظ التغييرات">Save Changes</span></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══ DELETE SINGLE MODAL ══ -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h5><i class="bi bi-trash3-fill" style="color:var(--danger);"></i> <span data-en="Delete Group" data-ar="حذف المجموعة">Delete Group</span></h5>
+                <button class="modal-close" id="deleteModalClose"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form method="POST" action="{{ url_for('delete_group') }}">
+                <div class="modal-body">
+                    <input type="hidden" name="group_name" id="deleteGroupName">
+                    <div class="delete-warning">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>
+                            <strong data-en="This action cannot be undone." data-ar="هذا الإجراء لا يمكن التراجع عنه.">This action cannot be undone.</strong><br>
+                            <span data-en="All passport records in group" data-ar="جميع سجلات جوازات السفر في المجموعة">All passport records in group</span> <strong id="deleteGroupLabel"></strong> <span data-en="will be permanently deleted." data-ar="سيتم حذفها نهائياً.">will be permanently deleted.</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="deleteModalCancelBtn" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                    <button type="submit" class="btn-danger-solid"><i class="bi bi-trash3"></i> <span data-en="Delete Group" data-ar="حذف المجموعة">Delete Group</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══ BULK DELETE MODAL ══ -->
+    <div class="modal-overlay" id="bulkDeleteModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h5><i class="bi bi-trash3-fill" style="color:var(--danger);"></i> <span data-en="Delete Selected Groups" data-ar="حذف المجموعات المحددة">Delete Selected Groups</span></h5>
+                <button class="modal-close" id="bulkDeleteModalClose"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-warning">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <strong data-en="This action cannot be undone." data-ar="هذا الإجراء لا يمكن التراجع عنه.">This action cannot be undone.</strong><br>
+                        <span data-en="All passport records in the selected" data-ar="جميع سجلات جوازات السفر في الـ">All passport records in the selected</span> <strong id="bulkDeleteCount" data-en="0" data-ar="٠">0</strong> <span data-en="group(s) will be permanently deleted." data-ar="مجموعة (مجموعات) المحددة سيتم حذفها نهائياً.">group(s) will be permanently deleted.</span>
+                    </div>
+                </div>
+                <ul class="bulk-delete-list" id="bulkDeleteList"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" id="bulkDeleteCancelBtn" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                <button type="button" class="btn-danger-solid" id="bulkDeleteConfirmBtn"><i class="bi bi-trash3"></i> <span data-en="Delete All Selected" data-ar="حذف كل المحدد">Delete All Selected</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ GENERATE BADGE FROM EXCEL MODAL ══ -->
+    <div class="modal-overlay" id="badgeExcelModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h5><i class="bi bi-file-earmark-excel" style="color:var(--gold);"></i> <span data-en="Generate Badge from Excel Data" data-ar="إنشاء بطاقة من بيانات إكسل">Generate Badge from Excel Data</span></h5>
+                <button class="modal-close" id="badgeExcelModalClose"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <form id="formBadgeExcel" method="POST" action="{{ url_for('generate_badges_from_excel') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="delete-warning" style="background:rgba(184,148,62,0.08); border-color:rgba(184,148,62,0.3);">
+                        <i class="bi bi-info-circle-fill" style="color:var(--gold);"></i>
+                        <div>
+                            <strong data-en="Allowed file types: .xlsx or .csv." data-ar="أنواع الملفات المسموح بها: .xlsx أو .csv.">Allowed file types: .xlsx or .csv.</strong><br>
+                            <span data-en="Passport numbers must be in the first column (A), starting from cell A1, with no header row." data-ar="يجب أن تكون أرقام جوازات السفر في العمود الأول (A) بدءًا من الخلية A1، بدون صف عنوان.">Passport numbers must be in the first column (A), starting from cell A1, with no header row.</span>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top:14px;">
+                        <label data-en="Upload File" data-ar="تحميل الملف">Upload File</label>
+                        <input type="file" class="form-control" name="badge_excel_file" id="badgeExcelFile" accept=".xlsx,.csv" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" id="badgeExcelCancelBtn" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                    <button type="submit" class="btn-primary-gold"><i class="bi bi-person-badge"></i> <span data-en="Generate Badges" data-ar="إنشاء البطاقات">Generate Badges</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ══ CHANGE GROUP MODAL ══ -->
+    <div class="modal-overlay" id="changeGroupModal">
+        <div class="modal-box" style="width: 780px;">
+            <div class="modal-header">
+                <h5><i class="bi bi-arrow-left-right" style="color:var(--gold);"></i> <span data-en="Change Group" data-ar="تغيير المجموعة">Change Group</span></h5>
+                <button class="modal-close" id="changeGroupModalClose"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="change-group-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span data-en="Transfer the selected groups' records into another group, change their visa type, or both. Only fill in what you need." data-ar="انقل سجلات المجموعات المحددة إلى مجموعة أخرى، أو غيّر نوع التأشيرة، أو كلاهما. املأ فقط ما تحتاجه.">Transfer the selected groups' records into another group, change their visa type, or both. Only fill in what you need.</span>
+                </div>
+                <div class="form-group">
+                    <label><span data-en="Selected Groups" data-ar="المجموعات المحددة">Selected Groups</span> (<span id="changeGroupCount" data-en="0" data-ar="٠">0</span>)</label>
+                    <ul class="bulk-delete-list" id="changeGroupList"></ul>
+                </div>
+                <div class="change-group-3col">
+                    <div class="form-group">
+                        <label data-en="Transfer into Group" data-ar="نقل إلى المجموعة">Transfer into Group</label>
+                        <select class="change-group-select" id="changeGroupTarget">
+                            <option value="" data-en="— Select target group —" data-ar="— اختر المجموعة المستهدفة —">— Select target group —</option>
+                            {% for g in groups %}
+                            <option value="{{ g.group_name | e }}" data-visa="{{ 'visit_visa' if (g.visa_count or 0) > 0 and (g.nusuk_count or 0) == 0 else 'nusuk' }}">{{ g.group_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="changeGroupNewName" data-en="Create New Group" data-ar="إنشاء مجموعة جديدة">Create New Group</label>
+                        <input type="text" class="change-group-select" id="changeGroupNewName"
+                               data-placeholder-en="Type a new group name to create & transfer into it"
+                               data-placeholder-ar="اكتب اسم مجموعة جديدة لإنشائها والنقل إليها"
+                               placeholder="Type a new group name to create &amp; transfer into it" autocomplete="off">
+                        <span id="changeGroupNewNameError" style="display:none; color:#ef4444; font-size:0.78rem; margin-top:4px;"></span>
+                    </div>
+                    <div class="form-group" id="changeGroupTypeWrap" style="display:none;">
+                        <label data-en="Group Type" data-ar="نوع المجموعة">Group Type</label>
+                        <select class="change-group-select" id="changeGroupType">
+                            <option value="nusuk" data-en="Nusuk" data-ar="نسك">Nusuk</option>
+                            <option value="visit_visa" data-en="Visit Visa" data-ar="تأشيرة زيارة">Visit Visa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- ══ VISIT VISA GENERAL DATA (shown only when switching to Visit Visa) ══ -->
+                <div class="form-group" id="changeGroupVisaDataWrap" style="display:none;">
+                    <div class="change-group-info" style="margin-bottom:12px;">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <span data-en="Fill in the Visit Visa general data below. These values will be applied to every record that ends up with Visit Visa type in the destination group." data-ar="املأ بيانات تأشيرة الزيارة العامة أدناه. سيتم تطبيق هذه القيم على كل سجل ينتهي به الأمر بنوع تأشيرة زيارة في المجموعة الوجهة.">Fill in the Visit Visa general data below. These values will be applied to every record that ends up with Visit Visa type in the destination group.</span>
+                    </div>
+                    <div class="change-group-visa-grid">
+                        <div class="form-group">
+                            <label data-en="Marital Status" data-ar="الحالة الاجتماعية">Marital Status</label>
+                            <select class="change-group-select" id="cgvMaritalStatus" name="marital_status" required>
+                                <option value="" data-en="-- Select --" data-ar="-- اختر --">-- Select --</option>
+                                {% for id, name in marital_status_options %}
+                                    <option value="{{ id }}" {% if defaults and id == defaults.marital_status %}selected{% endif %}>{{ name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="City of Birth" data-ar="مدينة الميلاد">City of Birth</label>
+                            <input type="text" class="change-group-select" id="cgvCityOfBirth" name="city_of_birth" value="{{ defaults.city_of_birth if defaults else '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Profession" data-ar="المهنة">Profession</label>
+                            <input type="text" class="change-group-select" id="cgvProfession" name="profession" value="{{ defaults.profession if defaults else '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Passport Issue Place" data-ar="مكان إصدار الجواز">Passport Issue Place</label>
+                            <input type="text" class="change-group-select" id="cgvIssuePlace" name="passport_issue_place" value="{{ defaults.passport_issue_place if defaults else '' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Hotel Name" data-ar="اسم الفندق">Hotel Name</label>
+                            <input type="text" class="change-group-select" id="cgvHotelName" name="hotel_name" value="{{ defaults.hotel_name if defaults else 'Makkah' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Address" data-ar="العنوان">Address</label>
+                            <input type="text" class="change-group-select" id="cgvAddress" name="address" value="{{ defaults.address if defaults else 'City' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="City" data-ar="المدينة">City</label>
+                            <input type="text" class="change-group-select" id="cgvCity" name="city" value="{{ defaults.city if defaults else 'City' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Zip / Postal Code" data-ar="الرمز البريدي">Zip / Postal Code</label>
+                            <input type="text" class="change-group-select" id="cgvZip" name="zip_postal_code" value="{{ defaults.zip_postal_code if defaults else '1234' }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-en="Expected Arrival" data-ar="الوصول المتوقع">Expected Arrival</label>
+                            <input type="date" class="change-group-select" id="cgvArrival" name="expected_arrival" required
+                                   value="{% if defaults and defaults.expected_arrival %}{{ defaults.expected_arrival.strftime('%Y-%m-%d') }}{% else %}{{ today_iso }}{% endif %}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="flex-shrink:0;">
+                <button type="button" class="btn-cancel" id="changeGroupCancelBtn" data-en="Cancel" data-ar="إلغاء">Cancel</button>
+                <button type="button" class="btn-primary-gold" id="changeGroupConfirmBtn"><i class="bi bi-check2"></i> <span data-en="Apply Changes" data-ar="تطبيق التغييرات">Apply Changes</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <div class="main-content">
+        <div class="toolbar">
+            <div class="toolbar-top">
+                <div class="toolbar-title">
+                    <i class="bi bi-collection-fill" style="color:var(--gold); font-size:1.1rem;"></i>
+                    <span data-en="All Groups" data-ar="كل المجموعات">All Groups</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-content">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-wrap">
+                {% for category, message in messages %}
+                <div class="flash-alert flash-{{ 'success' if category == 'success' else 'danger' }}">
+                    <i class="bi bi-{{ 'check-circle-fill' if category == 'success' else 'exclamation-circle-fill' }}"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            {% if groups %}
+            {% set sent_count = groups | selectattr('status', 'equalto', 'Sent') | list | length %}
+            {% set unsent_count = groups | selectattr('status', 'equalto', 'Unsent') | list | length %}
+            {% set total_passports = groups | sum(attribute='passport_count') %}
+            <div class="stats-row">
+                <div class="stat-box stat-groups">
+                    <span class="stat-label" data-en="Total Groups" data-ar="إجمالي المجموعات">Total Groups</span>
+                    <span class="stat-value" data-en="{{ groups | length }}" data-ar="{{ to_ar_num(groups | length) }}">{{ groups | length }}</span>
+                </div>
+                <div class="stat-box stat-passports">
+                    <span class="stat-label" data-en="Total Passports" data-ar="إجمالي الجوازات">Total Passports</span>
+                    <span class="stat-value" data-en="{{ total_passports }}" data-ar="{{ to_ar_num(total_passports) }}">{{ total_passports }}</span>
+                </div>
+                <div class="stat-box stat-sent">
+                    <span class="stat-label" data-en="Sent" data-ar="مُرسلة">Sent</span>
+                    <span class="stat-value" data-en="{{ sent_count }}" data-ar="{{ to_ar_num(sent_count) }}">{{ sent_count }}</span>
+                </div>
+                <div class="stat-box stat-unsent">
+                    <span class="stat-label" data-en="Unsent" data-ar="غير مُرسلة">Unsent</span>
+                    <span class="stat-value" data-en="{{ unsent_count }}" data-ar="{{ to_ar_num(unsent_count) }}">{{ unsent_count }}</span>
+                </div>
+                <div class="stat-box stat-sent-records">
+                    <span class="stat-label" data-en="Sent Records" data-ar="السجلات المُرسلة">Sent Records</span>
+                    <span class="stat-value" data-en="{{ sent_totals.total }}" data-ar="{{ to_ar_num(sent_totals.total) }}">{{ sent_totals.total }}</span>
+                    <div class="stat-sub-breakdown">
+                        <span class="stat-sub-item stat-sub-nusuk">
+                            <span class="stat-sub-label" data-en="Nusuk" data-ar="نُسُك">Nusuk</span>
+                            <span class="stat-sub-value" data-en="{{ sent_totals.nusuk }}" data-ar="{{ to_ar_num(sent_totals.nusuk) }}">{{ sent_totals.nusuk }}</span>
+                        </span>
+                        <span class="stat-sub-item stat-sub-visa">
+                            <span class="stat-sub-label" data-en="Visit Visa" data-ar="تأشيرة زيارة">Visit Visa</span>
+                            <span class="stat-sub-value" data-en="{{ sent_totals.visit_visa }}" data-ar="{{ to_ar_num(sent_totals.visit_visa) }}">{{ sent_totals.visit_visa }}</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="groups-card">
+                {% if groups %}
+
+                <!-- Actions Toolbar: filter + always-visible bulk actions -->
+                <div class="actions-toolbar" id="actionsToolbar">
+                    <div class="toolbar-row">
+                        <div class="filter-group">
+                            <label for="statusFilter" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);white-space:nowrap;text-transform:uppercase;letter-spacing:0.8px;">
+                                <i class="bi bi-funnel-fill" style="color:var(--gold);margin-right:5px;"></i><span data-en="Status" data-ar="الحالة">Status</span>
+                            </label>
+                            <select id="statusFilter" onchange="applyFilter()" style="font-size:0.82rem;padding:6px 12px;border-radius:7px;border:1.5px solid var(--border-light);background:var(--white);color:var(--text-dark);cursor:pointer;font-family:'DM Sans',sans-serif;max-width:120px;">
+                                <option value="" data-en="All" data-ar="الكل">All</option>
+                                <option value="Sent" data-en="Sent" data-ar="مُرسلة">Sent</option>
+                                <option value="Unsent" data-en="Unsent" data-ar="غير مُرسلة">Unsent</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="platformFilter" style="font-size:0.78rem;font-weight:700;color:var(--text-muted);white-space:nowrap;text-transform:uppercase;letter-spacing:0.8px;">
+                                <i class="bi bi-funnel-fill" style="color:var(--gold);margin-right:5px;"></i><span data-en="Platform" data-ar="المنصة">Platform</span>
+                            </label>
+                            <select id="platformFilter" onchange="applyFilter()" style="font-size:0.82rem;padding:6px 12px;border-radius:7px;border:1.5px solid var(--border-light);background:var(--white);color:var(--text-dark);cursor:pointer;font-family:'DM Sans',sans-serif;max-width:130px;">
+                                <option value="" data-en="All" data-ar="الكل">All</option>
+                                <option value="nusuk" data-en="Nusuk" data-ar="نسك">Nusuk</option>
+                                <option value="visit_visa" data-en="Visit Visa" data-ar="تأشيرة زيارة">Visit Visa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="toolbar-row">
+                        <span class="sel-pill" id="selPill">
+                            <i class="bi bi-check2-square"></i>
+                            <span id="selPillText" data-en="0" data-ar="٠">0</span>
+                        </span>
+                        <div class="toolbar-divider"></div>
+                        <div class="toolbar-actions">
+                            <button class="pro-btn pro-btn-export-data" id="btnExportData" title="Export CSV data of selected groups">
+                                <i class="bi bi-filetype-csv"></i> <span data-en="Export Data" data-ar="تصدير البيانات">Export Data</span>
+                            </button>
+                            <button class="pro-btn pro-btn-export-image" id="btnExportImage" title="Download image export of selected groups">
+                                <i class="bi bi-image"></i> <span data-en="Export Image" data-ar="تصدير صورة">Export Image</span>
+                            </button>
+                            <div class="dropdown" style="display:inline-block;">
+                                <button class="pro-btn pro-btn-badge dropdown-toggle" id="btnGenerateBadge"
+                                        type="button" data-bs-toggle="dropdown" aria-expanded="false"
+                                        title="Generate ID card PDF">
+                                    <i class="bi bi-person-badge"></i> <span data-en="ID Card" data-ar="بطاقة الهوية">ID Card</span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="btnGenerateBadge">
+                                    <li>
+                                        <a class="dropdown-item" href="#" id="btnGenerateBadgeSelected">
+                                            <i class="bi bi-people"></i>
+                                            <span data-en="Generate from Selected Group" data-ar="إنشاء من المجموعة المحددة">Generate from Selected Group</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="#" id="btnGenerateBadgeExcel">
+                                            <i class="bi bi-file-earmark-excel"></i>
+                                            <span data-en="Generate from Excel Data" data-ar="إنشاء من بيانات إكسل">Generate from Excel Data</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <button class="pro-btn pro-btn-evisa-json" id="btnEvisaJson" title="Download visa_processed zip for selected groups">
+                                <i class="bi bi-filetype-json"></i> <span data-en="Generate E-Visa" data-ar="إنشاء التأشيرة الإلكترونية">Generate E-Visa</span>
+                            </button>
+                            <button class="pro-btn pro-btn-change-group" id="btnChangeGroup" title="Move selected groups into another group">
+                                <i class="bi bi-arrow-left-right"></i> <span data-en="Change Group" data-ar="تغيير المجموعة">Change Group</span>
+                            </button>
+                            <button class="pro-btn pro-btn-delete" id="btnBulkDelete" title="Delete selected groups">
+                                <i class="bi bi-trash3"></i> <span data-en="Delete" data-ar="حذف">Delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Legacy bulk bar (hidden, kept for JS compatibility) -->
+                <div class="bulk-bar" id="bulkBar" aria-hidden="true"></div>
+
+                <div class="table-wrapper">
+                <table class="groups-table" id="groupsTable">
+                    <thead>
+                        <tr>
+                            <th class="col-cb">
+                                <div class="th-cb-wrap">
+                                    <input type="checkbox" class="row-cb" id="checkAll" title="Select all">
+                                </div>
+                            </th>
+                            <th class="col-sl">#</th>
+                            <th class="col-date" data-en="Created Date" data-ar="تاريخ الإنشاء">Created Date</th>
+                            <th class="col-name" data-en="Group Name" data-ar="اسم المجموعة">Group Name</th>
+                            <th class="col-count" style="text-align:center;" data-en="Passport Count" data-ar="عدد الجوازات">Passport<br>Count</th>
+                            <th class="col-email" data-en="Contract Login" data-ar="تسجيل الدخول للعقد">Contract Login</th>
+                            <th class="col-status" data-en="Status" data-ar="الحالة">Status</th>
+                            <th class="col-act" data-en="Actions" data-ar="الإجراءات">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="groupsTableBody">
+                        {% for g in groups %}
+                        <tr class="group-row"
+                            data-group="{{ g.group_name | e }}"
+                            data-status="{{ 'Sent' if (g.unsent_count or 0) == 0 else ('Unsent' if (g.sent_count or 0) == 0 else 'Mixed') }}"
+                            data-platform="{{ 'nusuk' if (g.nusuk_count or 0) > 0 else '' }} {{ 'visit_visa' if (g.visa_count or 0) > 0 else '' }}"
+                            data-created="{{ g.created_at.strftime('%Y-%m-%d') if g.created_at and g.created_at is not string else (g.created_at[:10] if g.created_at else '') }}">
+                            <td class="col-cb" style="text-align:center;">
+                                <input type="checkbox" class="row-cb group-cb" data-group="{{ g.group_name | e }}"
+                                       data-visa-type="{{ 'visit_visa' if (g.visa_count or 0) > 0 and (g.nusuk_count or 0) == 0 else 'nusuk' }}"
+                                       data-nusuk-sent="{{ 'true' if (g.nusuk_processed_count or 0) > 0 else 'false' }}"
+                                       data-visa-sent="{{ 'true' if (g.visa_processed_count or 0) > 0 else 'false' }}"
+                                       title="Select {{ g.group_name }}">
+                            </td>
+                            <td class="col-sl"><span class="sl-no row-index"></span></td>
+                            <td class="col-date date-cell">
+                                {% if g.created_at %}
+                                    {% set en_d = g.created_at.strftime('%d %b %Y') if g.created_at is not string else g.created_at[:10] %}
+                                    {% set en_t = g.created_at.strftime('%H:%M:%S') if g.created_at is not string else (g.created_at[11:19] if g.created_at|length > 10 else '') %}
+                                    <span data-en="{{ en_d }}" data-ar="{{ ar_date_str(g.created_at) }}">{{ en_d }}</span>
+                                    <span class="timestamp" data-en="{{ en_t }}" data-ar="{{ ar_time_str(g.created_at) }}">
+                                        {{ en_t }}
+                                    </span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="col-name">
+                                <button class="group-link{% if g.is_emergency %} group-link-emergency{% endif %}"
+                                        data-group="{{ g.group_name | e }}"
+                                        data-nats="{{ g.nationality_ids | join(',') }}"
+                                        title="View records for {{ g.group_name }}">
+                                    <i class="bi bi-folder2-open"></i>{{ g.group_name }}
+                                </button>
+                                <div class="platform-badges">
+                                    {% if (g.nusuk_count or 0) > 0 %}
+                                        <span class="platform-badge platform-badge-nusuk" title="{{ g.nusuk_processed_count or 0 }} of {{ g.nusuk_count }} processed on Nusuk">
+                                            <i class="bi bi-check-circle-fill"></i> <span data-en="Nusuk" data-ar="نسك">Nusuk</span>
+                                        </span>
+                                    {% endif %}
+                                    {% if (g.visa_count or 0) > 0 %}
+                                        <span class="platform-badge platform-badge-visa" title="{{ g.visa_processed_count or 0 }} of {{ g.visa_count }} processed on Visit Visa">
+                                            <i class="bi bi-check-circle-fill"></i> <span data-en="Visit Visa" data-ar="تأشيرة زيارة">Visit Visa</span>
+                                        </span>
+                                    {% endif %}
+                                    {% if g.is_emergency %}
+                                        <span class="platform-badge platform-badge-emergency" title="Contains emergency-uploaded record(s)">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> <span data-en="Emergency" data-ar="طارئ">Emergency</span>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="col-count" style="text-align:center;"><span class="count-badge" data-en="{{ g.passport_count }}" data-ar="{{ to_ar_num(g.passport_count) }}">{{ g.passport_count }}</span></td>
+                            <td class="col-email login-id-cell">
+                                {% if g.contract_login_id %}
+                                    <span class="email-wrap">{{ g.contract_login_id }}</span>
+                                {% else %}
+                                    <span class="login-id-empty">—</span>
+                                {% endif %}
+                            </td>
+                            <td class="col-status">
+                                {% set sc = g.sent_count or 0 %}
+                                {% set uc = g.unsent_count or 0 %}
+                                <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">
+                                {% if sc > 0 %}
+                                    <span class="status-sent"><i class="bi bi-check-circle-fill"></i> <span data-en="Sent" data-ar="مُرسلة">Sent</span> [<span data-en="{{ sc }}" data-ar="{{ to_ar_num(sc) }}">{{ sc }}</span>]</span>
+                                {% endif %}
+                                {% if uc > 0 %}
+                                    <span class="status-unsent"><i class="bi bi-clock-fill"></i> <span data-en="Unsent" data-ar="غير مُرسلة">Unsent</span> [<span data-en="{{ uc }}" data-ar="{{ to_ar_num(uc) }}">{{ uc }}</span>]</span>
+                                {% endif %}
+                                </div>
+                            </td>
+                            <td class="col-act">
+                                <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
+                                    <button class="action-btn action-btn-edit btn-open-edit"
+                                            data-group="{{ g.group_name | e }}"
+                                            data-created="{{ g.created_at.strftime('%Y-%m-%d') if g.created_at and g.created_at is not string else (g.created_at[:10] if g.created_at else '') }}"
+                                            title="Edit group">
+                                        <i class="bi bi-pencil"></i> <span data-en="Edit" data-ar="تعديل">Edit</span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination-wrap" id="paginationWrap">
+                    <div class="pagination-info" id="paginationInfo"></div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <select class="pg-size-select" id="pageSizeSelect">
+                            <option value="10" data-en="10 / page" data-ar="١٠ / صفحة">10 / page</option>
+                            <option value="25" selected data-en="25 / page" data-ar="٢٥ / صفحة">25 / page</option>
+                            <option value="50" data-en="50 / page" data-ar="٥٠ / صفحة">50 / page</option>
+                            <option value="100" data-en="100 / page" data-ar="١٠٠ / صفحة">100 / page</option>
+                        </select>
+                        <div class="pagination-controls" id="paginationControls"></div>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-collection"></i>
+                    <h4 data-en="No Groups Found" data-ar="لم يتم العثور على مجموعات">No Groups Found</h4>
+                    <p data-en="Upload passports and assign group names to see them here." data-ar="قم برفع جوازات السفر وتعيين أسماء المجموعات لرؤيتها هنا.">Upload passports and assign group names to see them here.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Hidden forms for bulk operations -->
+    <form id="formDuplicateGroup" method="POST" action="{{ url_for('duplicate_group') }}" style="display:none;">
+        <input type="hidden" name="group_name" id="inputDuplicateGroup">
+    </form>
+    <form id="formExportData"   method="POST" action="{{ url_for('export_groups_data')  }}" style="display:none;">
+        <input type="hidden" name="group_names" id="inputExportData">
+    </form>
+    <form id="formExportImage"  method="POST" action="{{ url_for('export_groups_image') }}" style="display:none;">
+        <input type="hidden" name="group_names" id="inputExportImage">
+    </form>
+    <form id="formGenerateBadge" method="POST" action="{{ url_for('generate_groups_badges') }}" style="display:none;">
+        <input type="hidden" name="group_names" id="inputGenerateBadge">
+    </form>
+    <form id="formBulkDelete"   method="POST" action="{{ url_for('delete_groups_bulk')  }}" style="display:none;">
+        <input type="hidden" name="group_names" id="inputBulkDelete">
+    </form>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    // ══ TRANSLATION HELPERS ══
+    function isArabicLang() {
+        const testEl = document.querySelector('.toolbar-title span');
+        return testEl && testEl.textContent.trim() === 'كل المجموعات';
+    }
+    function toArNum(str) {
+        if (!str && str !== 0) return '';
+        return str.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+    }
+
+    // ══ SIDEBAR TOGGLE ══
+    (function(){
+        const sidebar  = document.querySelector('.sidebar');
+        const overlay  = document.querySelector('.sidebar-overlay');
+        const toggleBtn = document.querySelector('.sidebar-toggle-btn');
+        const main     = document.querySelector('.main-content');
+        if (!sidebar || !toggleBtn) return;
+
+        function isMobile(){ return window.innerWidth <= 768; }
+
+        function openSidebar(){
+            if(isMobile()){
+                sidebar.classList.add('mobile-open');
+                sidebar.classList.remove('collapsed');
+                overlay.classList.add('visible');
+            } else {
+                sidebar.classList.remove('collapsed');
+                if(main) { main.classList.remove('sidebar-collapsed'); }
+            }
+            toggleBtn.classList.add('sidebar-open');
+        }
+        function closeSidebar(){
+            if(isMobile()){
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('visible');
+            } else {
+                sidebar.classList.add('collapsed');
+                if(main) { main.classList.add('sidebar-collapsed'); }
+            }
+            toggleBtn.classList.remove('sidebar-open');
+        }
+
+        let open = !isMobile();
+        if(open) openSidebar(); else closeSidebar();
+
+        toggleBtn.addEventListener('click', function(){ open = !open; open ? openSidebar() : closeSidebar(); });
+        overlay.addEventListener('click', function(){ open = false; closeSidebar(); });
+        window.addEventListener('resize', function(){
+            if(!isMobile() && open) openSidebar();
+        });
+
+        // User menu
+        const userCard = document.querySelector('.user-card');
+        const userMenu = document.querySelector('.user-menu');
+        if(userCard && userMenu){
+            userCard.addEventListener('click', function(e){ e.stopPropagation(); userMenu.classList.toggle('open'); });
+            document.addEventListener('click', function(){ userMenu.classList.remove('open'); });
+        }
+    })();
+
+    // ══ SELECTION & BUTTON STATE ══
+    const checkAll    = document.getElementById('checkAll');
+    const selPill     = document.getElementById('selPill');
+    const selPillText = document.getElementById('selPillText');
+    const btnExportData    = document.getElementById('btnExportData');
+    const btnExportImage   = document.getElementById('btnExportImage');
+    const btnGenerateBadge = document.getElementById('btnGenerateBadge');
+    const btnGenerateBadgeSelected = document.getElementById('btnGenerateBadgeSelected');
+    const btnGenerateBadgeExcel    = document.getElementById('btnGenerateBadgeExcel');
+    const badgeExcelModal          = document.getElementById('badgeExcelModal');
+    const btnEvisaJson     = document.getElementById('btnEvisaJson');
+    const btnBulkDelete    = document.getElementById('btnBulkDelete');
+    const btnChangeGroup   = document.getElementById('btnChangeGroup');
+
+    function getRowCbs(visibleOnly){
+        const all = Array.from(document.querySelectorAll('.group-cb'));
+        if(!visibleOnly) return all;
+        return all.filter(cb => cb.closest('tr') && cb.closest('tr').style.display !== 'none');
+    }
+
+    function getSelected(){
+        return getRowCbs(true).filter(cb => cb.checked);
+    }
+
+    function requireSelection(){
+        if(getSelected().length > 0) return true;
+        const _ar = isArabicLang();
+        Swal.fire({
+            icon: 'error',
+            title: _ar ? 'لم يتم تحديد مجموعة' : 'No group selected',
+            text: _ar ? 'يرجى تحديد مجموعة واحدة على الأقل للمتابعة.' : 'Please select at least one group to continue.',
+            confirmButtonColor: '#198754'
+        });
+        return false;
+    }
+
+    function updateSelection(){
+        const selected = getSelected();
+        const count = selected.length;
+        const hasAny = count > 0;
+        const isAr = isArabicLang();
+
+        if(selPillText) {
+            const enText = count.toString();
+            const arText = toArNum(enText);
+            selPillText.setAttribute('data-en', enText);
+            selPillText.setAttribute('data-ar', arText);
+            selPillText.textContent = isAr ? arText : enText;
+        }
+        if(selPill) selPill.classList.toggle('has-selection', hasAny);
+
+        if(btnGenerateBadgeSelected) {
+            btnGenerateBadgeSelected.closest('li').style.display = hasAny ? '' : 'none';
+        }
+
+        // Sync checkAll state
+        if(checkAll){
+            const visible = getRowCbs(true);
+            if(visible.length === 0){
+                checkAll.indeterminate = false;
+                checkAll.checked = false;
+            } else if(count === visible.length){
+                checkAll.indeterminate = false;
+                checkAll.checked = true;
+            } else if(count > 0){
+                checkAll.indeterminate = true;
+                checkAll.checked = false;
+            } else {
+                checkAll.indeterminate = false;
+                checkAll.checked = false;
+            }
+        }
+
+        // Highlight selected rows
+        getRowCbs(false).forEach(cb => {
+            const row = cb.closest('tr');
+            if(row) row.classList.toggle('row-selected', cb.checked);
+        });
+    }
+
+    // Check-all header checkbox
+    if(checkAll){
+        checkAll.addEventListener('change', function(){
+            getRowCbs(true).forEach(cb => { cb.checked = this.checked; });
+            updateSelection();
+        });
+    }
+
+    // Individual row checkboxes — event delegation on tbody
+    // Multi-range selection (Explorer/Gmail style):
+    //   - Plain click:        toggle just that row's checkbox (default behavior — unchanged).
+    //   - Shift+click:        select every checkbox between the "anchor" (the last
+    //                         checkbox clicked without Shift) and this one, in visible
+    //                         DOM order, without touching anything outside that range.
+    //   - Ctrl/Cmd+click:     toggle just that checkbox (same as plain click) but ALSO
+    //                         moves the anchor here, so a later Shift+click starts a
+    //                         new range from this point without clearing prior selections.
+    // Net effect: click row 1, shift+click row 10 -> 1-10 selected. Ctrl+click row 15
+    // -> 15 added, anchor moves to 15. Shift+click row 20 -> 15-20 added on top of
+    // 1-10, without touching 11-14.
+    let selectionAnchorGroupCb = null;
+    const tbody = document.getElementById('groupsTableBody');
+    if(tbody){
+        tbody.addEventListener('click', function(e){
+            if(!e.target.classList.contains('group-cb')) return;
+            const cb = e.target;
+            const vis = getRowCbs(true);
+            if(e.shiftKey && selectionAnchorGroupCb && vis.includes(selectionAnchorGroupCb)){
+                // Let the browser's native click toggle `cb` itself first (so it
+                // renders checked/unchecked correctly), then apply that same
+                // state to the rest of the range. We do NOT preventDefault here —
+                // doing so previously stopped the clicked checkbox from visually
+                // updating even though its .checked property was set correctly.
+                const start = vis.indexOf(selectionAnchorGroupCb);
+                const end = vis.indexOf(cb);
+                if(start !== -1 && end !== -1){
+                    const [lo, hi] = start < end ? [start, end] : [end, start];
+                    const targetState = cb.checked; // post-toggle state of the clicked checkbox
+                    for(let i = lo; i <= hi; i++){
+                        vis[i].checked = targetState;
+                    }
+                }
+                updateSelection();
+            } else {
+                // Plain click or Ctrl/Cmd+click: let the native checkbox toggle happen,
+                // just move the anchor here for the next Shift+click.
+                selectionAnchorGroupCb = cb;
+            }
+        });
+        tbody.addEventListener('change', function(e){
+            if(e.target.classList.contains('group-cb')) updateSelection();
+        });
+    }
+
+    // ══ FILTER ══
+    function applyFilter(){
+        reapplyFilter();
+        // Uncheck hidden rows
+        getRowCbs(false).forEach(cb => {
+            const row = cb.closest('tr');
+            if(row && row._filteredOut) cb.checked = false;
+        });
+        updateSelection();
+        renderPage(1);
+    }
+    window.applyFilter = applyFilter;
+
+    // ══ PAGINATION ══
+    let currentPage = 1;
+    function getPageSize(){ return parseInt((document.getElementById('pageSizeSelect') || {}).value || '25'); }
+
+    function getVisibleRows(){
+        return Array.from(document.querySelectorAll('#groupsTableBody .group-row'))
+            .filter(r => r.style.display !== 'none');
+    }
+
+    function renderPage(page){
+        const rows = getVisibleRows();
+        const size = getPageSize();
+        const total = rows.length;
+        const pages = Math.max(1, Math.ceil(total / size));
+        page = Math.max(1, Math.min(page, pages));
+        currentPage = page;
+
+        const start = (page - 1) * size;
+        rows.forEach((r, i) => {
+            r.style.display = (i >= start && i < start + size) ? '' : 'none';
+            // Re-apply filter hidden rows — keep them hidden
+        });
+        // But respect filter: rows hidden by filter stay hidden
+        getVisibleRows().forEach((r, i) => {
+            // already shown above; pagination hides beyond page window
+        });
+        // Redo: only touch rows that passed the filter
+        const filtered = Array.from(document.querySelectorAll('#groupsTableBody .group-row'))
+            .filter(r => !(r._filteredOut));
+
+        // Actually simplest correct approach:
+        reapplyPagination(page, size);
+        updateSerialNumbers();
+        renderPaginationControls(page, pages, total);
+        updateSelection();
+    }
+
+    // Store filter state per row
+    function reapplyFilter(){
+        const status   = (document.getElementById('statusFilter') || {}).value || '';
+        const platform = (document.getElementById('platformFilter') || {}).value || '';
+        const rows = document.querySelectorAll('#groupsTableBody .group-row');
+        rows.forEach(row => {
+            const rowStatus = row.dataset.status || '';
+            const rowPlatforms = (row.dataset.platform || '').split(' ').filter(Boolean);
+            const statusMismatch   = status && rowStatus !== status;
+            const platformMismatch = platform && !rowPlatforms.includes(platform);
+            row._filteredOut = !!(statusMismatch || platformMismatch);
+            row.style.display = row._filteredOut ? 'none' : '';
+        });
+    }
+
+    function reapplyPagination(page, size){
+        const rows = Array.from(document.querySelectorAll('#groupsTableBody .group-row'))
+            .filter(r => !r._filteredOut);
+        const start = (page - 1) * size;
+        rows.forEach((r, i) => {
+            r.style.display = (i >= start && i < start + size) ? '' : 'none';
+        });
+    }
+
+    function renderPaginationControls(page, pages, total){
+        const info = document.getElementById('paginationInfo');
+        const ctrl = document.getElementById('paginationControls');
+        const size = getPageSize();
+        const isAr = isArabicLang();
+        
+        if(info){
+            const start = Math.min((page-1)*size + 1, total);
+            const end   = Math.min(page*size, total);
+            if (total > 0) {
+                const enText = `Showing ${start}–${end} of ${total} groups`;
+                const arText = `عرض ${toArNum(start)}–${toArNum(end)} من ${toArNum(total)} مجموعة`;
+                info.innerHTML = `<span data-en="${enText}" data-ar="${arText}">${isAr ? arText : enText}</span>`;
+            } else {
+                const enText = `No groups`;
+                const arText = `لا توجد مجموعات`;
+                info.innerHTML = `<span data-en="${enText}" data-ar="${arText}">${isAr ? arText : enText}</span>`;
+            }
+        }
+        if(!ctrl) return;
+        ctrl.innerHTML = '';
+
+        const prev = document.createElement('button');
+        prev.className = 'pg-btn'; prev.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        prev.disabled = page <= 1;
+        prev.addEventListener('click', () => { reapplyFilter(); renderPage(currentPage - 1); });
+        ctrl.appendChild(prev);
+
+        // Page number buttons (show up to 7 pages)
+        let startP = Math.max(1, page - 3);
+        let endP   = Math.min(pages, page + 3);
+        if(endP - startP < 6){ startP = Math.max(1, endP - 6); endP = Math.min(pages, startP + 6); }
+
+        for(let p = startP; p <= endP; p++){
+            const btn = document.createElement('button');
+            btn.className = 'pg-btn' + (p === page ? ' active' : '');
+            
+            const enText = p.toString();
+            const arText = toArNum(enText);
+            btn.setAttribute('data-en', enText);
+            btn.setAttribute('data-ar', arText);
+            btn.textContent = isAr ? arText : enText;
+            
+            const _p = p;
+            btn.addEventListener('click', () => { reapplyFilter(); renderPage(_p); });
+            ctrl.appendChild(btn);
+        }
+
+        const next = document.createElement('button');
+        next.className = 'pg-btn'; next.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        next.disabled = page >= pages;
+        next.addEventListener('click', () => { reapplyFilter(); renderPage(currentPage + 1); });
+        ctrl.appendChild(next);
+    }
+
+    function updateSerialNumbers(){
+        const rows = Array.from(document.querySelectorAll('#groupsTableBody .group-row'));
+        let idx = 1;
+        const isAr = isArabicLang();
+        rows.forEach(r => {
+            const sl = r.querySelector('.row-index');
+            if(sl) {
+                const enText = idx.toString();
+                const arText = toArNum(enText);
+                sl.setAttribute('data-en', enText);
+                sl.setAttribute('data-ar', arText);
+                sl.textContent = isAr ? arText : enText;
+                idx++;
+            }
+        });
+    }
+
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    if(pageSizeSelect){
+        pageSizeSelect.addEventListener('change', function(){ reapplyFilter(); renderPage(1); });
+    }
+
+    // ══ EDIT MODAL ══
+    const editModal       = document.getElementById('editModal');
+    const editModalClose  = document.getElementById('editModalClose');
+    const editModalCancel = document.getElementById('editModalCancelBtn');
+    const editOldName     = document.getElementById('editOldName');
+    const editNewName     = document.getElementById('editNewName');
+    const editNewDate     = document.getElementById('editNewDate');
+
+    document.querySelectorAll('.btn-open-edit').forEach(btn => {
+        btn.addEventListener('click', function(){
+            if(editOldName) editOldName.value = this.dataset.group || '';
+            if(editNewName) editNewName.value = this.dataset.group || '';
+            if(editNewDate) editNewDate.value = this.dataset.created || '';
+            const dupBtn = document.getElementById('editModalDuplicateBtn');
+            const delBtn = document.getElementById('editModalDeleteBtn');
+            if(dupBtn) dupBtn.dataset.group = this.dataset.group || '';
+            if(delBtn) delBtn.dataset.group = this.dataset.group || '';
+            if(editModal)   editModal.classList.add('open');
+        });
+    });
+    if(editModalClose)  editModalClose.addEventListener('click',  () => editModal.classList.remove('open'));
+    if(editModalCancel) editModalCancel.addEventListener('click', () => editModal.classList.remove('open'));
+    if(editModal) editModal.addEventListener('click', e => { if(e.target === editModal) editModal.classList.remove('open'); });
+
+    // ══ DELETE SINGLE MODAL ══
+    const deleteModal       = document.getElementById('deleteModal');
+    const deleteModalClose  = document.getElementById('deleteModalClose');
+    const deleteModalCancel = document.getElementById('deleteModalCancelBtn');
+    const deleteGroupName   = document.getElementById('deleteGroupName');
+    const deleteGroupLabel  = document.getElementById('deleteGroupLabel');
+
+    document.querySelectorAll('.btn-open-delete').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const grp = this.dataset.group || '';
+            if(deleteGroupName)  deleteGroupName.value   = grp;
+            if(deleteGroupLabel) deleteGroupLabel.textContent = grp;
+            if(editModal)        editModal.classList.remove('open');
+            if(deleteModal)      deleteModal.classList.add('open');
+        });
+    });
+    if(deleteModalClose)  deleteModalClose.addEventListener('click',  () => deleteModal.classList.remove('open'));
+    if(deleteModalCancel) deleteModalCancel.addEventListener('click', () => deleteModal.classList.remove('open'));
+    if(deleteModal) deleteModal.addEventListener('click', e => { if(e.target === deleteModal) deleteModal.classList.remove('open'); });
+
+    // ══ DUPLICATE SINGLE GROUP ══
+    // Creates a full, independent copy of the group (new group named
+    // "<name>_<today's date>") with every record reset to unprocessed.
+    // The source group itself is never modified — its records, their
+    // processed/sent status (fully, partially, or not at all), and its
+    // name are all left exactly as they were.
+    document.querySelectorAll('.btn-duplicate-single-group').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const grp = this.dataset.group || '';
+            if(!grp) return;
+            if(editModal) editModal.classList.remove('open');
+            const _ar = isArabicLang();
+            Swal.fire({
+                icon: 'question',
+                title: _ar ? 'تكرار هذه المجموعة؟' : 'Duplicate this group?',
+                html: _ar
+                    ? `سيتم إنشاء مجموعة جديدة تحمل نفس بيانات "<b>${grp}</b>" باسم مع تاريخ اليوم، وستكون جميع سجلاتها <b>غير مُرسلة</b>.<br><br>لن يتم تغيير أي شيء في المجموعة الأصلية.`
+                    : `A new group with a copy of every record in "<b>${grp}</b>" will be created, named with today's date. Every record in the new copy will be reset to <b>unprocessed</b>.<br><br>The original group will not be changed in any way.`,
+                showCancelButton: true,
+                confirmButtonText: _ar ? 'نعم، كرّر' : 'Yes, duplicate it',
+                cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+                confirmButtonColor: '#c9a84c'
+            }).then(function(result){
+                if(!result.isConfirmed) return;
+                Swal.fire({
+                    title: _ar ? 'جارٍ التكرار…' : 'Duplicating…',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+                fetch("{{ url_for('duplicate_group') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: 'group_name=' + encodeURIComponent(grp)
+                })
+                .then(r => r.json().then(data => ({ ok: r.ok, data })))
+                .then(({ ok, data }) => {
+                    if(ok && data.success){
+                        Swal.fire({
+                            icon: 'success',
+                            title: _ar ? 'تم التكرار!' : 'Duplicated!',
+                            text: data.message,
+                            confirmButtonColor: '#c9a84c'
+                        }).then(() => window.location.reload());
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: _ar ? 'فشل التكرار' : 'Duplicate failed',
+                            text: (data && data.message) || (_ar ? 'حدث خطأ غير متوقع.' : 'An unexpected error occurred.'),
+                            confirmButtonColor: '#c9a84c'
+                        });
+                    }
+                })
+                .catch(err => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: _ar ? 'فشل التكرار' : 'Duplicate failed',
+                        text: String(err),
+                        confirmButtonColor: '#c9a84c'
+                    });
+                });
+            });
+        });
+    });
+
+    // ══ BULK DELETE MODAL ══
+    const bulkDeleteModal   = document.getElementById('bulkDeleteModal');
+    const bulkDeleteClose   = document.getElementById('bulkDeleteModalClose');
+    const bulkDeleteCancel  = document.getElementById('bulkDeleteCancelBtn');
+    const bulkDeleteConfirm = document.getElementById('bulkDeleteConfirmBtn');
+    const bulkDeleteCount   = document.getElementById('bulkDeleteCount');
+    const bulkDeleteList    = document.getElementById('bulkDeleteList');
+
+    if(btnBulkDelete){
+        btnBulkDelete.addEventListener('click', function(){
+            const selected = getSelected();
+            if(!selected.length) { requireSelection(); return; }
+            const names = selected.map(cb => cb.dataset.group || '');
+            if(bulkDeleteCount) {
+                const enText = names.length.toString();
+                const arText = toArNum(enText);
+                bulkDeleteCount.setAttribute('data-en', enText);
+                bulkDeleteCount.setAttribute('data-ar', arText);
+                bulkDeleteCount.textContent = isArabicLang() ? arText : enText;
+            }
+            if(bulkDeleteList){
+                bulkDeleteList.innerHTML = names.map(n => `<li>${n}</li>`).join('');
+            }
+            if(bulkDeleteModal) bulkDeleteModal.classList.add('open');
+        });
+    }
+    if(bulkDeleteClose)  bulkDeleteClose.addEventListener('click',  () => bulkDeleteModal.classList.remove('open'));
+    if(bulkDeleteCancel) bulkDeleteCancel.addEventListener('click', () => bulkDeleteModal.classList.remove('open'));
+    if(bulkDeleteModal)  bulkDeleteModal.addEventListener('click', e => { if(e.target === bulkDeleteModal) bulkDeleteModal.classList.remove('open'); });
+
+    if(bulkDeleteConfirm){
+        bulkDeleteConfirm.addEventListener('click', function(){
+            const names = getSelected().map(cb => cb.dataset.group || '');
+            document.getElementById('inputBulkDelete').value = JSON.stringify(names);
+            document.getElementById('formBulkDelete').submit();
+        });
+    }
+
+    // ══ CHANGE GROUP MODAL ══
+    const changeGroupModal   = document.getElementById('changeGroupModal');
+    const changeGroupClose   = document.getElementById('changeGroupModalClose');
+    const changeGroupCancel  = document.getElementById('changeGroupCancelBtn');
+    const changeGroupConfirm = document.getElementById('changeGroupConfirmBtn');
+    const changeGroupCount   = document.getElementById('changeGroupCount');
+    const changeGroupList    = document.getElementById('changeGroupList');
+    const changeGroupTarget  = document.getElementById('changeGroupTarget');
+    const changeGroupNewName = document.getElementById('changeGroupNewName');
+    const changeGroupTypeWrap = document.getElementById('changeGroupTypeWrap');
+    const changeGroupType     = document.getElementById('changeGroupType');
+    const changeGroupVisaDataWrap = document.getElementById('changeGroupVisaDataWrap');
+
+    // Show the Visit Visa general-data fields only when that type is picked.
+    function syncVisaDataVisibility(){
+        if(!changeGroupVisaDataWrap || !changeGroupType) return;
+        changeGroupVisaDataWrap.style.display = (changeGroupType.value === 'visit_visa') ? '' : 'none';
+    }
+    if(changeGroupType) changeGroupType.addEventListener('change', syncVisaDataVisibility);
+
+    // "Change Visa Type" always offers both Nusuk and Visit Visa — it only
+    // applies on the Create-New-Group path anyway (see
+    // syncTransferFieldLocks), so there's no need to infer options from the
+    // selected groups' current types.
+    function populateChangeGroupType(selected){
+        if(!changeGroupType || !changeGroupTypeWrap) return;
+
+        // Reset
+        changeGroupType.innerHTML = '';
+
+        function addOption(value, en, ar){
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.setAttribute('data-en', en);
+            opt.setAttribute('data-ar', ar);
+            opt.textContent = isArabicLang() ? ar : en;
+            changeGroupType.appendChild(opt);
+        }
+
+        addOption('nusuk', 'Nusuk', 'نسك');
+        addOption('visit_visa', 'Visit Visa', 'تأشيرة زيارة');
+
+        changeGroupType.value = 'nusuk';
+        changeGroupTypeWrap.style.display = '';
+        syncTransferFieldLocks();
+    }
+
+    if(btnChangeGroup){
+        btnChangeGroup.addEventListener('click', function(){
+            const selected = getSelected();
+            if(!selected.length) { requireSelection(); return; }
+            const names = selected.map(cb => cb.dataset.group || '');
+            populateChangeGroupType(selected);
+            if(changeGroupCount) {
+                const enText = names.length.toString();
+                const arText = toArNum(enText);
+                changeGroupCount.setAttribute('data-en', enText);
+                changeGroupCount.setAttribute('data-ar', arText);
+                changeGroupCount.textContent = isArabicLang() ? arText : enText;
+            }
+            if(changeGroupList){
+                changeGroupList.innerHTML = names.map(n => `<li>${n}</li>`).join('');
+            }
+            // Remove selected groups from target dropdown so a group can't transfer into itself
+            if(changeGroupTarget){
+                Array.from(changeGroupTarget.options).forEach(opt => {
+                    opt.hidden = names.includes(opt.value);
+                });
+                changeGroupTarget.value = '';
+            }
+            if(changeGroupNewName){
+                changeGroupNewName.value = '';
+                changeGroupNewName.style.borderColor = '';
+            }
+            const changeGroupNewNameErrorEl = document.getElementById('changeGroupNewNameError');
+            if(changeGroupNewNameErrorEl){
+                changeGroupNewNameErrorEl.style.display = 'none';
+                changeGroupNewNameErrorEl.textContent = '';
+            }
+            syncTransferFieldLocks();
+            if(changeGroupModal) changeGroupModal.classList.add('open');
+        });
+    }
+    // When transferring into an EXISTING target group, the target group's own
+    // visa_type + general data are auto-applied server-side — so "Create New
+    // Group" and "Change Visa Type" (and its general-data grid) don't apply
+    // and are disabled to avoid confusion. They re-enable once the target
+    // selection is cleared.
+    function syncTransferFieldLocks(){
+        const transferringIntoExisting = !!(changeGroupTarget && changeGroupTarget.value);
+        const creatingNew = !!(changeGroupNewName && changeGroupNewName.value.trim());
+
+        if(changeGroupTarget){
+            changeGroupTarget.disabled = creatingNew;
+        }
+        if(changeGroupNewName){
+            changeGroupNewName.disabled = transferringIntoExisting;
+            if(transferringIntoExisting) changeGroupNewName.value = '';
+        }
+        // "Change Visa Type" only makes sense when creating a brand-new
+        // group — it's disabled by default and while transferring into an
+        // existing group (whose own type is auto-applied instead).
+        const typeEnabled = creatingNew;
+        if(changeGroupType){
+            changeGroupType.disabled = !typeEnabled;
+            if(!typeEnabled) changeGroupType.value = 'nusuk';
+        }
+        if(changeGroupTypeWrap){
+            changeGroupTypeWrap.style.opacity = typeEnabled ? '' : '0.5';
+            changeGroupTypeWrap.style.pointerEvents = typeEnabled ? '' : 'none';
+        }
+        syncVisaDataVisibility();
+    }
+
+    // Blocks creating a "new" group whose name already exists (case-
+    // insensitive), showing an inline error below the field instead of a
+    // popup.
+    const EXISTING_GROUP_NAMES = new Set(GROUPS.map(g => String(g.name).trim().toLowerCase()));
+    function checkChangeGroupNewNameDuplicate(){
+        const errorEl = document.getElementById('changeGroupNewNameError');
+        if(!changeGroupNewName || !errorEl) return false;
+        const _ar_ng = isArabicLang();
+        const typed = changeGroupNewName.value.trim().toLowerCase();
+        const isDuplicate = !!typed && EXISTING_GROUP_NAMES.has(typed);
+        if(isDuplicate){
+            changeGroupNewName.style.borderColor = '#ef4444';
+            errorEl.textContent = _ar_ng
+                ? 'اسم المجموعة هذا موجود بالفعل. اختر اسمًا مختلفًا أو استخدم "نقل إلى المجموعة" بدلاً من ذلك.'
+                : 'A group with this name already exists. Choose a different name, or use "Transfer into Group" instead.';
+            errorEl.style.display = 'block';
+        } else {
+            changeGroupNewName.style.borderColor = '';
+            errorEl.style.display = 'none';
+            errorEl.textContent = '';
+        }
+        return isDuplicate;
+    }
+
+    // Selecting an existing group clears the "create new" field, and vice versa
+    if(changeGroupTarget && changeGroupNewName){
+        changeGroupTarget.addEventListener('change', () => {
+            if(changeGroupTarget.value) changeGroupNewName.value = '';
+            syncTransferFieldLocks();
+        });
+        changeGroupNewName.addEventListener('input', () => {
+            if(changeGroupNewName.value.trim()) changeGroupTarget.value = '';
+            syncTransferFieldLocks();
+            checkChangeGroupNewNameDuplicate();
+        });
+    }
+    if(changeGroupClose)  changeGroupClose.addEventListener('click',  () => changeGroupModal.classList.remove('open'));
+    if(changeGroupCancel) changeGroupCancel.addEventListener('click', () => changeGroupModal.classList.remove('open'));
+    if(changeGroupModal)  changeGroupModal.addEventListener('click', e => { if(e.target === changeGroupModal) changeGroupModal.classList.remove('open'); });
+
+    // ── Shared duplicate-conflict popup for the Groups page ──────────────
+    // Used by both the visit_visa transfer flow and the plain merge flow.
+    // Shows each colliding passport with "Show" (open the existing record
+    // in a new tab) and "Delete" (remove the existing record) buttons, plus
+    // Submit/Close. Submit re-runs the caller's merge attempt from scratch,
+    // which re-checks duplicates live — anything already deleted here won't
+    // reappear; anything still colliding is shown again.
+    function showGroupsDuplicateConflictPopup(duplicates, onSubmit) {
+        const _ar = isArabicLang();
+        const rows = duplicates.map(function (d) {
+            return '<div class="dup-row" style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; border:1px solid #fecaca; background:#fef2f2; border-radius:8px; margin-bottom:8px; flex-wrap:wrap;">'
+                + '<div style="text-align:left; font-size:0.85rem;">'
+                + '<strong>' + d.passport_number + '</strong>'
+                + '<div style="color:#7a8fa8; font-size:0.75rem;">' + (_ar ? 'موجود بالفعل في: ' : 'Already exists in: ') + '<strong>' + d.group_name + '</strong></div>'
+                + '</div>'
+                + '<div style="display:flex; gap:6px; flex-wrap:wrap;">'
+                + '<button type="button" class="btn btn-outline-secondary btn-sm dup-show-btn" data-existing-id="' + d.existing_passport_id + '" data-passport-number="' + d.passport_number + '" style="white-space:nowrap;">'
+                + (_ar ? 'عرض' : 'Show')
+                + '</button>'
+                + '<button type="button" class="btn btn-danger-outline btn-sm dup-delete-btn" data-existing-id="' + d.existing_passport_id + '" data-passport-number="' + d.passport_number + '" style="white-space:nowrap;">'
+                + (_ar ? 'حذف' : 'Delete')
+                + '</button>'
+                + '</div>'
+                + '</div>';
+        }).join('');
+
+        Swal.fire({
+            icon: 'warning',
+            title: _ar ? 'تعارض في التكرار' : 'Duplicate Conflict',
+            html: '<div style="text-align:left; margin-top:6px;">'
+                + '<p style="font-size:0.85rem; color:#0c1a30;">' + (_ar
+                    ? 'بعض جوازات السفر موجودة بالفعل في المجموعة الهدف. اعرض السجل الموجود للتحقق منه، أو احذفه لتحرير مكانه. اضغط "إرسال" لإعادة التحقق ومتابعة العملية.'
+                    : 'Some passports already exist in the target group. Show the existing record to inspect it, or delete it to free up its spot. Press "Submit" to re-check and continue.')
+                + '</p><div>' + rows + '</div></div>',
+            showConfirmButton: true,
+            showCancelButton: true,
+            confirmButtonText: _ar ? 'إرسال' : 'Submit',
+            cancelButtonText: _ar ? 'إغلاق' : 'Close',
+            confirmButtonColor: '#0d9488',
+            cancelButtonColor: '#7a8fa8',
+            background: '#ffffff',
+            color: '#0c1a30',
+            allowOutsideClick: false,
+            didOpen: function (popup) {
+                popup.querySelectorAll('.dup-show-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        const pn = this.getAttribute('data-passport-number') || '';
+                        window.open('/results?passport_number=' + encodeURIComponent(pn), '_blank');
+                    });
+                });
+                popup.querySelectorAll('.dup-delete-btn').forEach(function (btn) {
+                    btn.addEventListener('click', function () {
+                        const existingId = this.getAttribute('data-existing-id');
+                        const pn = this.getAttribute('data-passport-number');
+                        const row = this.closest('.dup-row');
+                        const buttonsWrap = this.parentElement;
+                        buttonsWrap.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+                        this.innerHTML = _ar ? 'جارٍ الحذف...' : 'Deleting...';
+
+                        fetch('/change_group/resolve_duplicate', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest' },
+                            body: 'existing_passport_id=' + encodeURIComponent(existingId)
+                        })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            if (data && data.success) {
+                                row.style.opacity = '0.6';
+                                row.style.background = '#f0fdf4';
+                                row.style.borderColor = '#bbf7d0';
+                                row.innerHTML = '<div style="color:#16a34a; font-size:0.8rem; padding:4px 0;"><i class="bi bi-check-circle-fill"></i> ' + (_ar ? 'تم حذف التكرار — ' : 'Duplicate deleted — ') + pn + '</div>';
+                            } else {
+                                Swal.showValidationMessage((data && data.message) || (_ar ? 'فشل الحذف' : 'Failed to delete'));
+                                buttonsWrap.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+                                this.innerHTML = _ar ? 'حذف' : 'Delete';
+                            }
+                        }.bind(this))
+                        .catch(function () {
+                            buttonsWrap.querySelectorAll('button').forEach(function (b) { b.disabled = false; });
+                            this.innerHTML = _ar ? 'حذف' : 'Delete';
+                        }.bind(this));
+                    });
+                });
+            }
+        }).then(function (result) {
+            if (result.isConfirmed && typeof onSubmit === 'function') {
+                onSubmit();
+            }
+        });
+    }
+
+    if(changeGroupConfirm){
+        let cgConfirmedFlip = false;
+        function runChangeGroupConfirm(){
+            const newName  = (changeGroupNewName && changeGroupNewName.value.trim()) || '';
+            const target   = newName || (changeGroupTarget && changeGroupTarget.value) || '';
+            const typeVal  = (changeGroupType && changeGroupType.value) || '';
+
+            // A target group is only mandatory if no visa type was chosen.
+            // Picking a visa type alone is enough to submit — it updates the
+            // selected group(s)' records in place without requiring a transfer.
+            if(!target && !typeVal){
+                changeGroupTarget && (changeGroupTarget.style.borderColor = '#ef4444');
+                changeGroupNewName && (changeGroupNewName.style.borderColor = '#ef4444');
+                return;
+            }
+            if(changeGroupTarget) changeGroupTarget.style.borderColor = '';
+            if(changeGroupNewName) changeGroupNewName.style.borderColor = '';
+
+            if(newName && checkChangeGroupNewNameDuplicate()){
+                changeGroupNewName && changeGroupNewName.focus();
+                return;
+            }
+
+            // When switching to Visit Visa, the general-data fields below
+            // are mandatory (mirrors the same required fields on the
+            // Index defaults form and the Results-page Change Group
+            // modal). This div-based modal isn't a native <form>, so we
+            // validate manually instead of relying on the HTML `required`
+            // attribute alone.
+            if(typeVal === 'visit_visa'){
+                const requiredVisaFields = [
+                    document.getElementById('cgvMaritalStatus'),
+                    document.getElementById('cgvCityOfBirth'),
+                    document.getElementById('cgvProfession'),
+                    document.getElementById('cgvIssuePlace'),
+                    document.getElementById('cgvHotelName'),
+                    document.getElementById('cgvAddress'),
+                    document.getElementById('cgvCity'),
+                    document.getElementById('cgvZip'),
+                    document.getElementById('cgvArrival'),
+                ];
+                let firstInvalid = null;
+                requiredVisaFields.forEach(function(el){
+                    if(!el) return;
+                    const isEmpty = !el.value || !el.value.trim();
+                    el.style.borderColor = isEmpty ? '#ef4444' : '';
+                    if(isEmpty && !firstInvalid) firstInvalid = el;
+                });
+                if(firstInvalid){
+                    firstInvalid.focus();
+                    return;
+                }
+            }
+
+            const sourceNames = getSelected().map(cb => cb.dataset.group || '');
+
+            // ── Warn ONLY when this action will actually flip a selected
+            // group's visa_type (Nusuk <-> Visit Visa) AND that group has
+            // records already marked "Sent" under its current type. A
+            // same-visa-type transfer/merge never triggers this, since
+            // /merge_groups_into leaves sent status untouched in that case.
+            if (!cgConfirmedFlip) {
+                const destVisa = target
+                    ? (function () {
+                        const opt = changeGroupTarget && Array.from(changeGroupTarget.options).find(o => o.value === target);
+                        return opt ? (opt.getAttribute('data-visa') || 'nusuk') : null;
+                    })()
+                    : (typeVal || null);
+
+                let flipSentCount = 0;
+                if (destVisa) {
+                    getSelected().forEach(function (cb) {
+                        const srcVisa = cb.getAttribute('data-visa-type') || 'nusuk';
+                        if (srcVisa === destVisa) return; // no flip, no warning
+                        const wasSent = srcVisa === 'visit_visa'
+                            ? cb.getAttribute('data-visa-sent') === 'true'
+                            : cb.getAttribute('data-nusuk-sent') === 'true';
+                        if (wasSent) flipSentCount++;
+                    });
+                }
+
+                if (flipSentCount > 0) {
+                    const _ar = isArabicLang();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: _ar ? 'إعادة تعيين حالة الإرسال' : 'Sent status will be reset',
+                        html: _ar
+                            ? ('<p style="font-size:0.85rem; color:#0c1a30;">تغيير نوع التأشيرة لـ <strong>' + flipSentCount + '</strong> مجموعة/مجموعات محددة سيؤدي إلى مسح حالة "تم الإرسال" لسجلاتها (تُعاد إلى غير مرسل). هذا يحدث فقط لأن نوع التأشيرة يتغيّر فعليًا — نقل ضمن نفس نوع التأشيرة لا يؤثر على حالة الإرسال.</p>')
+                            : ('<p style="font-size:0.85rem; color:#0c1a30;"><strong>' + flipSentCount + '</strong> selected group(s) have records already marked "Sent" that will have their sent status cleared, because this changes their visa type. Moving/merging within the same visa type never affects sent status.</p>'),
+                        showConfirmButton: true,
+                        showCancelButton: true,
+                        confirmButtonText: _ar ? 'المتابعة على أي حال' : 'Continue anyway',
+                        cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+                        confirmButtonColor: '#c9a84c',
+                        cancelButtonColor: '#7a8fa8',
+                        background: '#ffffff',
+                        color: '#0c1a30'
+                    }).then(function (result) {
+                        if (result.isConfirmed) {
+                            cgConfirmedFlip = true;
+                            runChangeGroupConfirm();
+                            cgConfirmedFlip = false;
+                        }
+                    });
+                    return;
+                }
+            }
+
+
+            // ── Switching to Visit Visa: run the transfer/type-change first,
+            // then bulk-apply the Visit Visa general data fields — scoped to
+            // only the records that ended up with visa_type = 'visit_visa'
+            // in the destination group, so any Nusuk records left in a mixed
+            // group are never touched. ──
+            if(typeVal === 'visit_visa'){
+                changeGroupConfirm.disabled = true;
+                const originalLabel = changeGroupConfirm.innerHTML;
+                const busyText = isArabicLang() ? 'جارِ التطبيق...' : 'Applying...';
+                changeGroupConfirm.innerHTML = `<i class="bi bi-arrow-repeat"></i> ${busyText}`;
+
+                const mergeBody = new URLSearchParams();
+                mergeBody.set('source_groups', JSON.stringify(sourceNames));
+                if(target) mergeBody.set('target_group', target);
+                mergeBody.set('new_visa_type', typeVal);
+
+                // The destination group is the transfer target if one was
+                // given, otherwise the (single) source group being switched.
+                const destGroup = target || sourceNames[0] || '';
+
+                fetch('/merge_groups_into', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+                    body: mergeBody.toString()
+                })
+                .then(function(res){ return res.json().catch(function(){ return {}; }).then(function(data){ return {status: res.status, data: data}; }); })
+                .then(function(result){
+                    if (result.data && result.data.duplicate_conflict) {
+                        // Stop here — do not proceed to /update_group_data, or the
+                        // visit_visa fields would be applied as if the merge had
+                        // gone through. Show the same Delete/Show/Submit popup as
+                        // /change_group; Submit re-runs this whole click handler,
+                        // which re-checks duplicates live.
+                        throw Object.assign(new Error('duplicate_conflict'), {
+                            handled: true,
+                            popup: function(){
+                                showGroupsDuplicateConflictPopup(result.data.duplicates || [], function(){
+                                    runChangeGroupConfirm();
+                                });
+                            }
+                        });
+                    }
+                    if (!(result.data && (result.data.success === true || result.data.success === undefined))) {
+                        const _ar = isArabicLang();
+                        throw Object.assign(new Error((result.data && result.data.message) || 'merge_failed'), {
+                            handled: true,
+                            popup: function(){
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: _ar ? 'تعذر الدمج' : 'Could not merge',
+                                    text: (result.data && result.data.message) || (_ar ? 'حدث خطأ ما.' : 'Something went wrong.'),
+                                    confirmButtonColor: '#c9a84c'
+                                });
+                            }
+                        });
+                    }
+                    const dataBody = new FormData();
+                    dataBody.set('group_name', destGroup);
+                    dataBody.set('visa_type_filter', 'visit_visa');
+                    ['marital_status','city_of_birth','profession','passport_issue_place',
+                     'hotel_name','address','city','zip_postal_code',
+                     'expected_arrival'
+                    ].forEach(function(name){
+                        const el = document.getElementById({
+                            marital_status: 'cgvMaritalStatus', city_of_birth: 'cgvCityOfBirth',
+                            profession: 'cgvProfession', passport_issue_place: 'cgvIssuePlace',
+                            hotel_name: 'cgvHotelName', address: 'cgvAddress', city: 'cgvCity',
+                            zip_postal_code: 'cgvZip',
+                            expected_arrival: 'cgvArrival'
+                        }[name]);
+                        dataBody.set(name, el ? el.value : '');
+                    });
+                    return fetch('/update_group_data', { method: 'POST', body: dataBody });
+                })
+                .then(function(res){ return res.json().catch(function(){ return {}; }); })
+                .then(function(){
+                    const _ar = isArabicLang();
+                    Swal.fire({
+                        icon: 'success',
+                        title: _ar ? 'تم تغيير المجموعة' : 'Group changed',
+                        text: _ar ? 'تم نقل السجلات بنجاح.' : 'Records were moved successfully.',
+                        timer: 1800,
+                        showConfirmButton: false
+                    }).then(function(){
+                        window.location.href = '/groups';
+                    });
+                })
+                .catch(function(err){
+                    changeGroupConfirm.disabled = false;
+                    changeGroupConfirm.innerHTML = originalLabel;
+                    if (err && err.handled && typeof err.popup === 'function') {
+                        err.popup();
+                        return;
+                    }
+                    const _ar = isArabicLang();
+                    Swal.fire({
+                        icon: 'error',
+                        title: _ar ? 'خطأ' : 'Error',
+                        text: (_ar ? 'فشل تطبيق التغييرات: ' : 'Failed to apply changes: ') + err.message,
+                        confirmButtonColor: '#198754'
+                    });
+                });
+                return;
+            }
+
+            // POST to /merge_groups_into via AJAX so duplicate conflicts are
+            // shown as a popup instead of the request silently failing after
+            // a full page navigation.
+            const mergeBody2 = new URLSearchParams();
+            mergeBody2.set('source_groups', JSON.stringify(sourceNames));
+            if(target) mergeBody2.set('target_group', target);
+            if(typeVal) mergeBody2.set('new_visa_type', typeVal);
+
+            changeGroupConfirm.disabled = true;
+            const originalLabel2 = changeGroupConfirm.innerHTML;
+            const busyText2 = isArabicLang() ? 'جارِ الدمج...' : 'Merging...';
+            changeGroupConfirm.innerHTML = `<i class="bi bi-arrow-repeat"></i> ${busyText2}`;
+
+            fetch('/merge_groups_into', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-Requested-With': 'XMLHttpRequest'},
+                body: mergeBody2.toString()
+            })
+            .then(function(res){ return res.json().catch(function(){ return {}; }).then(function(data){ return {status: res.status, data: data}; }); })
+            .then(function(result){
+                const _ar = isArabicLang();
+                if (result.data && result.data.duplicate_conflict) {
+                    changeGroupConfirm.disabled = false;
+                    changeGroupConfirm.innerHTML = originalLabel2;
+                    showGroupsDuplicateConflictPopup(result.data.duplicates || [], function(){
+                        runChangeGroupConfirm();
+                    });
+                    return;
+                }
+                if (!(result.data && (result.data.success === true || result.data.success === undefined))) {
+                    changeGroupConfirm.disabled = false;
+                    changeGroupConfirm.innerHTML = originalLabel2;
+                    Swal.fire({
+                        icon: 'error',
+                        title: _ar ? 'تعذر الدمج' : 'Could not merge',
+                        text: (result.data && result.data.message) || (_ar ? 'حدث خطأ ما.' : 'Something went wrong.'),
+                        confirmButtonColor: '#c9a84c'
+                    });
+                    return;
+                }
+                Swal.fire({
+                    icon: 'success',
+                    title: _ar ? 'تم تغيير المجموعة' : 'Group changed',
+                    text: (result.data && result.data.message) || (_ar ? 'تم نقل السجلات بنجاح.' : 'Records were moved successfully.'),
+                    timer: 1800,
+                    showConfirmButton: false
+                }).then(function(){
+                    window.location.href = '/groups';
+                });
+            })
+            .catch(function(err){
+                changeGroupConfirm.disabled = false;
+                changeGroupConfirm.innerHTML = originalLabel2;
+                const _ar = isArabicLang();
+                Swal.fire({
+                    icon: 'error',
+                    title: _ar ? 'خطأ في الشبكة' : 'Network error',
+                    text: _ar ? 'تعذر الاتصال بالخادم.' : 'Could not reach the server.',
+                    confirmButtonColor: '#198754'
+                });
+            });
+        }
+
+        changeGroupConfirm.addEventListener('click', runChangeGroupConfirm);
+    }
+
+    // ══ EXPORT / BADGE BUTTONS ══
+    if(btnExportData){
+        btnExportData.addEventListener('click', function(){
+            if(!requireSelection()) return;
+            const names = getSelected().map(cb => cb.dataset.group || '');
+            document.getElementById('inputExportData').value = JSON.stringify(names);
+            document.getElementById('formExportData').submit();
+        });
+    }
+    if(btnExportImage){
+        btnExportImage.addEventListener('click', function(){
+            if(!requireSelection()) return;
+            const names = getSelected().map(cb => cb.dataset.group || '');
+            document.getElementById('inputExportImage').value = JSON.stringify(names);
+            document.getElementById('formExportImage').submit();
+        });
+    }
+    if(btnGenerateBadgeSelected){
+        btnGenerateBadgeSelected.addEventListener('click', function(e){
+            e.preventDefault();
+            const names = getSelected().map(cb => cb.dataset.group || '');
+            document.getElementById('inputGenerateBadge').value = JSON.stringify(names);
+            document.getElementById('formGenerateBadge').submit();
+        });
+    }
+    if(btnGenerateBadgeExcel){
+        btnGenerateBadgeExcel.addEventListener('click', function(e){
+            e.preventDefault();
+            if(badgeExcelModal) badgeExcelModal.classList.add('open');
+        });
+    }
+    const badgeExcelModalClose = document.getElementById('badgeExcelModalClose');
+    const badgeExcelCancelBtn  = document.getElementById('badgeExcelCancelBtn');
+    [badgeExcelModalClose, badgeExcelCancelBtn].forEach(el => {
+        if(el) el.addEventListener('click', function(){
+            if(badgeExcelModal) badgeExcelModal.classList.remove('open');
+        });
+    });
+
+    // ══ E-VISA: DOWNLOAD VISA_PROCESSED ZIP(S) FOR SELECTED GROUPS ══
+    // Downloads one group at a time via /groups/download_visa, since the
+    // browser can only download one file per click. If any selected group
+    // has zero visa PDFs yet, a popup lets the user download just the
+    // ready groups, or trigger MOFA for the remaining ones' passports.
+    async function _downloadGroupZips(groupNames) {
+        const _ar = isArabicLang();
+        const originalHtml = btnEvisaJson.innerHTML;
+        btnEvisaJson.disabled = true;
+
+        const downloaded = [];
+        const missing = [];
+
+        for (const grp of groupNames) {
+            btnEvisaJson.innerHTML = '<span class="spinner-border spinner-border-sm me-2" style="width: 1rem; height: 1rem; vertical-align: middle;"></span> ' +
+                (_ar ? `جارٍ التحميل (${downloaded.length + missing.length + 1}/${groupNames.length})...` : `Downloading (${downloaded.length + missing.length + 1}/${groupNames.length})...`);
+            try {
+                const res = await fetch('/groups/download_visa?group_name=' + encodeURIComponent(grp));
+                if (!res.ok) {
+                    missing.push(grp);
+                    continue;
+                }
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = grp.replace(/[\\/]/g, '-') + '.zip';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+                downloaded.push(grp);
+            } catch (err) {
+                missing.push(grp);
+            }
+        }
+
+        btnEvisaJson.disabled = false;
+        btnEvisaJson.innerHTML = originalHtml;
+
+        if (missing.length) {
+            Swal.fire({
+                icon: downloaded.length ? 'warning' : 'info',
+                title: _ar ? 'لا توجد تأشيرات' : 'No Visa Processed',
+                text: _ar
+                    ? `لا توجد تأشيرات معالجة للمجموعات التالية: ${missing.join('، ')}`
+                    : `No visa processed for: ${missing.join(', ')}`,
+                confirmButtonColor: '#c9a84c'
+            });
+        }
+    }
+
+    // Triggers MOFA for every passport still missing its PDF within the
+    // given groups, shows a progress popup, and polls group_status until
+    // all the groups have at least one PDF ready (or we time out).
+    async function _checkRemainingGroupVisas(groupNames) {
+        const _ar = isArabicLang();
+        const total = groupNames.length;
+        const maxAttempts = 45; // ~3 minutes at 4s intervals
+        const startedAt = Date.now();
+
+        // Passport-level counts from the batch job (falls back to 0/0 until
+        // the job_id is known or the first job_status poll returns). This is
+        // the SOURCE OF TRUTH for when the batch is actually done --
+        // group_status only reports "this group has >=1 pdf on disk", which
+        // goes true after the FIRST passport in a multi-passport batch
+        // finishes, long before the rest are done. Using it to end the
+        // polling loop closed the popup (and re-triggered downloads on the
+        // next click) while the batch was still running in the background.
+        let passportsDone  = 0;
+        let passportsTotal = 0;
+        let jobFinished    = false;
+        let lastError      = null; // most recent classified failure reason from job_status, if any
+
+        function _progressHtml(confirmedCount, attempts) {
+            const elapsedSec = Math.floor((Date.now() - startedAt) / 1000);
+            const passportLine = passportsTotal > 0
+                ? `<div style="font-size:0.9rem; margin-bottom:4px;">
+                       ${_ar ? `تم تنزيل <b>${passportsDone}</b> من <b>${passportsTotal}</b> جواز سفر`
+                             : `Downloaded <b>${passportsDone}</b> of <b>${passportsTotal}</b> passport(s)`}
+                   </div>`
+                : '';
+            const errorLine = lastError
+                ? `<div style="font-size:0.85rem; color:#c9302c; margin-bottom:4px;">
+                       ${_ar ? `آخر خطأ: ${lastError}` : `Last error: ${lastError}`}
+                   </div>`
+                : '';
+            return `
+                ${passportLine}
+                <div style="font-size:1.05rem; margin-bottom:6px;">
+                    ${_ar ? `تم التأكد من <b>${confirmedCount}</b> من <b>${total}</b> مجموعة` : `Confirmed <b>${confirmedCount}</b> of <b>${total}</b> group(s)`}
+                </div>
+                ${errorLine}
+                <div style="font-size:0.85rem; color:#7a8fa8;">
+                    ${_ar ? `الوقت المنقضي: ${elapsedSec} ث` : `Elapsed: ${elapsedSec}s`}
+                </div>
+            `;
+        }
+
+        // icon left unset (not 'info') so Swal.showLoading() can render its
+        // own spinner in place of it -- an 'info' icon is static and, with
+        // showConfirmButton:false, showLoading() had nothing to spin.
+        // didOpen calls showLoading() once; Swal.update() below only
+        // touches the html content, so the spinner keeps spinning
+        // continuously through the whole polling loop instead of
+        // resetting or disappearing on each update.
+        Swal.fire({
+            title: _ar ? 'جاري التحقق من موافي...' : 'Checking MOFA…',
+            html: _progressHtml(0, 0),
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        let jobId = null;
+        try {
+            const triggerRes = await fetch('/api/mofa_visa/trigger_group', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ group_names: groupNames })
+            });
+            const triggerData = await triggerRes.json();
+            jobId = triggerData.job_id || null;
+            passportsTotal = triggerData.total_pending || 0;
+            // No job was started (nothing pending) -- nothing to wait for.
+            if (!triggerData.triggered) {
+                jobFinished = true;
+            }
+        } catch (_e) { /* keep polling regardless -- some triggers may have started */ }
+
+        let attempts = 0;
+        let stillRemaining = groupNames.slice();
+
+        // Tick the elapsed-time display every second so the popup is
+        // visibly alive between the 4s status polls, not just on updates.
+        const ticker = setInterval(() => {
+            Swal.update({ html: _progressHtml(total - stillRemaining.length, attempts) });
+        }, 1000);
+
+        await new Promise(resolve => {
+            const poll = setInterval(async () => {
+                attempts++;
+
+                if (jobId) {
+                    try {
+                        const jobRes = await fetch('/api/mofa_visa/job_status', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ job_id: jobId })
+                        });
+                        const jobData = await jobRes.json();
+                        if (jobData.found) {
+                            passportsDone  = jobData.done + jobData.failed;
+                            passportsTotal = jobData.total;
+                            jobFinished    = jobData.finished;
+                            if (jobData.last_error) {
+                                lastError = jobData.last_error;
+                            }
+                        }
+                    } catch (_e) { /* transient, keep polling */ }
+                }
+
+                // Only re-check group_status (folder scan) once the batch
+                // job itself has actually finished -- this is now purely to
+                // learn which groups ended up with a PDF, not to decide
+                // whether to stop polling.
+                if (jobFinished) {
+                    try {
+                        const res = await fetch('/api/mofa_visa/group_status', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ group_names: groupNames })
+                        });
+                        const data = await res.json();
+                        stillRemaining = data.remaining || [];
+                    } catch (_e) { /* transient, keep polling */ }
+                }
+
+                Swal.update({ html: _progressHtml(total - stillRemaining.length, attempts) });
+
+                if (jobFinished || attempts >= maxAttempts) {
+                    clearInterval(poll);
+                    clearInterval(ticker);
+                    resolve();
+                }
+            }, 4000);
+        });
+
+        if (!jobFinished) {
+            // Timed out waiting for the batch to finish -- it's still
+            // running server-side in the background. Don't claim success
+            // or failure; tell the user honestly and let them re-check later.
+            const timeoutErrSuffix = lastError
+                ? (_ar ? `\n\nآخر خطأ: ${lastError}` : `\n\nLast error: ${lastError}`)
+                : '';
+            Swal.fire({
+                icon: 'info',
+                title: _ar ? 'لا يزال قيد التشغيل' : 'Still Running',
+                text: (_ar
+                    ? `التنزيل لا يزال قيد التشغيل في الخلفية (${passportsDone} من ${passportsTotal} جواز سفر حتى الآن). يمكنك التحقق مرة أخرى بعد قليل.`
+                    : `The download is still running in the background (${passportsDone} of ${passportsTotal} passport(s) so far). You can check again shortly.`) + timeoutErrSuffix,
+                confirmButtonColor: '#c9a84c'
+            }).then(() => window.location.reload());
+        } else if (stillRemaining.length === 0) {
+            Swal.fire({
+                icon: 'success',
+                title: _ar ? 'اكتمل التحقق' : 'Check Complete',
+                text: _ar ? 'أصبحت جميع المجموعات جاهزة للتنزيل الآن.' : 'All groups now have a visa ready to download.',
+                confirmButtonColor: '#198754'
+            }).then(() => window.location.reload());
+        } else {
+            const partialErrSuffix = lastError
+                ? (_ar ? `\n\nآخر خطأ: ${lastError}` : `\n\nLast error: ${lastError}`)
+                : '';
+            Swal.fire({
+                icon: 'warning',
+                title: _ar ? 'اكتمل جزئياً' : 'Partially Complete',
+                text: (_ar
+                    ? `${total - stillRemaining.length} من ${total} مجموعة أصبحت جاهزة. لا تزال ${stillRemaining.length} بلا تأشيرات.`
+                    : `${total - stillRemaining.length} of ${total} group(s) are now ready. ${stillRemaining.length} still have no visa.`) + partialErrSuffix,
+                confirmButtonColor: '#c9a84c'
+            }).then(() => window.location.reload());
+        }
+    }
+
+    if(btnEvisaJson){
+        btnEvisaJson.addEventListener('click', async function(){
+            const selectedGroups = getSelected().map(cb => cb.dataset.group || '').filter(Boolean);
+            if(!selectedGroups.length) { requireSelection(); return; }
+
+            const _ar = isArabicLang();
+
+            // Pre-check: for each selected group, how many passports still
+            // have no visa PDF (pending_counts)? A group with pending > 0
+            // is "not fully done" even if it already has 1+ PDFs on disk --
+            // available/remaining alone can't tell a fully-ready group from
+            // a partially-ready one, since both have >=1 PDF.
+            let pendingCounts = {};
+            let availableGroups = [];
+            try {
+                const statusRes = await fetch('/api/mofa_visa/group_status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ group_names: selectedGroups })
+                });
+                const statusData = await statusRes.json();
+                pendingCounts = statusData.pending_counts || {};
+                // Groups that have at least one PDF on disk already (could
+                // still be partially pending -- this is just "has something
+                // downloadable right now", distinct from "fully done").
+                availableGroups = statusData.available || [];
+            } catch (_e) {
+                // If the status check fails, fall back to the original
+                // behavior and let /groups/download_visa sort it out.
+                _downloadGroupZips(selectedGroups);
+                return;
+            }
+
+            const fullyReadyGroups = selectedGroups.filter(g => (pendingCounts[g] || 0) === 0);
+            const notFullyReadyGroups = selectedGroups.filter(g => (pendingCounts[g] || 0) > 0);
+            const totalPending = notFullyReadyGroups.reduce((sum, g) => sum + (pendingCounts[g] || 0), 0);
+            // Among the not-fully-ready groups, which ones have at least one
+            // PDF already downloaded (partial) vs. none at all.
+            const partiallyReadyGroups = notFullyReadyGroups.filter(g => availableGroups.includes(g));
+
+            if (notFullyReadyGroups.length === 0) {
+                // Every selected group is fully downloaded — download directly, no popup.
+                _downloadGroupZips(selectedGroups);
+                return;
+            }
+
+            if (fullyReadyGroups.length === 0 && partiallyReadyGroups.length === 0) {
+                // Nothing downloadable at all yet (no group has even one PDF) — skip straight to the check flow.
+                _checkRemainingGroupVisas(notFullyReadyGroups);
+                return;
+            }
+
+            // Something is downloadable right now (fully ready groups
+            // and/or groups with a partial download already on disk) while
+            // other passports are still pending — let the user choose.
+            // "Ready" here means "download whatever's currently on disk",
+            // which for a partially-ready group is just those PDFs already
+            // saved, not the whole group.
+            const readyToDownload = selectedGroups.filter(g => fullyReadyGroups.includes(g) || partiallyReadyGroups.includes(g));
+            Swal.fire({
+                icon: 'question',
+                title: _ar ? 'بعض التأشيرات غير متوفرة' : 'Some Visas Not Available',
+                text: _ar
+                    ? `من أصل ${selectedGroups.length} مجموعة محددة، ${readyToDownload.length} بها تأشيرات جاهزة للتنزيل الآن، ولا تزال ${totalPending} جواز سفر قيد الانتظار.`
+                    : `Of ${selectedGroups.length} selected group(s), ${readyToDownload.length} have visa(s) ready to download now, and ${totalPending} passport(s) are still pending.`,
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: _ar ? `تنزيل المتوفر (${readyToDownload.length})` : `Download Available (${readyToDownload.length})`,
+                denyButtonText: _ar ? `التحقق من المتبقي (${totalPending})` : `Check Remaining (${totalPending})`,
+                cancelButtonText: _ar ? 'إلغاء' : 'Cancel',
+                confirmButtonColor: '#198754',
+                denyButtonColor: '#c9a84c',
+                cancelButtonColor: '#7a8fa8'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    _downloadGroupZips(readyToDownload);
+                } else if (result.isDenied) {
+                    _checkRemainingGroupVisas(notFullyReadyGroups);
+                }
+            });
+        });
+    }
+
+    // ══ GROUP LINK (nationality picker) ══
+    const natOverlay    = document.getElementById('natOverlay');
+    const natDialogClose = document.getElementById('natDialogClose');
+    const natDialogTitle = document.getElementById('natDialogTitle');
+    const natList        = document.getElementById('natList');
+
+    document.querySelectorAll('.group-link').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const group = this.dataset.group;
+            const nats  = (this.dataset.nats || '').split(',').map(s => s.trim()).filter(Boolean);
+            if(nats.length <= 1){
+                // Single or no nationality — go directly
+                const natId = nats[0] || '';
+                window.location.href = `/results?group_name=${encodeURIComponent(group)}${natId ? '&nationality_id=' + encodeURIComponent(natId) : ''}`;
+                return;
+            }
+            // Multiple nationalities — show picker
+            if(natDialogTitle) natDialogTitle.textContent = group;
+            if(natList){
+                const isAr = (typeof isArabicLang === 'function') && isArabicLang();
+                const allLabel = isAr ? 'اختر كل الجنسيات' : 'Select all nationality';
+                const allLink = `<a class="nat-item nat-item-all" href="/results?group_name=${encodeURIComponent(group)}">
+                        <span class="nat-flag"><i class="bi bi-check2-all"></i></span>
+                        <span class="nat-name">${allLabel}</span>
+                    </a>`;
+                const singleLinks = nats.map(nid => {
+                    const name = (typeof NAT_NAMES !== 'undefined' && NAT_NAMES[nid]) || nid;
+                    return `<a class="nat-item" href="/results?group_name=${encodeURIComponent(group)}&nationality_id=${encodeURIComponent(nid)}">
+                        <span class="nat-flag"><i class="bi bi-globe2"></i></span>
+                        <span class="nat-name">${name}</span>
+                    </a>`;
+                }).join('');
+                natList.innerHTML = allLink + singleLinks;
+            }
+            if(natOverlay) natOverlay.classList.add('open');
+        });
+    });
+    if(natDialogClose) natDialogClose.addEventListener('click', () => natOverlay.classList.remove('open'));
+    if(natOverlay) natOverlay.addEventListener('click', e => { if(e.target === natOverlay) natOverlay.classList.remove('open'); });
+
+    // ══ INIT ══
+    (function init(){
+        reapplyFilter();
+        renderPage(1);
+        updateSerialNumbers();
+        updateSelection();
+    })();
+    </script>
+
+</body>
+</html>

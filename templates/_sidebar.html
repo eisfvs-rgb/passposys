@@ -1,0 +1,465 @@
+{# ═══════════════════════════════════════════════════════════════
+   _sidebar.html  —  Shared sidebar include for all pages
+   Usage:  {% include '_sidebar.html' %}
+═══════════════════════════════════════════════════════════════ #}
+
+<style id="sidebar-shared-styles">
+/* ═══════════════════════════════════════
+   SIDEBAR — base styles
+═══════════════════════════════════════ */
+.sidebar {
+    width: var(--sidebar-w, 260px);
+    height: 100vh;
+    background: var(--navy-deep, #060f1e);
+    background-image:
+        radial-gradient(ellipse at 0% 0%,   rgba(201,168,76,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 100% 100%, rgba(26,50,96,0.6)  0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 400;
+    border-right: 1px solid rgba(201,168,76,0.15);
+    overflow: hidden;
+}
+.sidebar-logo { margin: 10px auto 6px; display: flex; flex-direction: column; align-items: center; gap: 12px;}
+.sidebar-logout-icon {
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,100,100,0.75);
+    font-size: 1rem;
+    text-decoration: none;
+    border: 1px solid rgba(255,100,100,0.3);
+    border-radius: 6px;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.sidebar-logout-icon:hover { color: #ff8080; border-color: rgba(255,120,120,0.6); background: rgba(255,80,80,0.08); }
+
+/* Language Toggle Styles (pill buttons, matches old design) */
+.lang-switch {
+    display: inline-flex;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 6px;
+    padding: 3px;
+    margin-top: 0;
+    gap: 4px;
+}
+.lang-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.lang-btn.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--gold, #c9a84c);
+}
+.lang-btn:hover:not(.active) {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.sidebar-nav {
+    padding: 8px 0;
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(201,168,76,0.2) transparent;
+}
+.nav-section-label {
+    padding: 6px 28px 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: rgba(255,255,255,0.25);
+}
+.nav-link-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 28px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-left: 3px solid transparent;
+}
+.nav-link-item i { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+.nav-link-item:hover          { color: var(--white, #fff); background: rgba(255,255,255,0.05); border-left-color: rgba(201,168,76,0.4); }
+.nav-link-item.active         { color: var(--white, #fff); background: rgba(201,168,76,0.12); border-left-color: var(--gold, #c9a84c); }
+.nav-link-item.active i       { color: var(--gold, #c9a84c); }
+
+.nav-link-item.nav-danger.active { color: var(--white, #fff); background: rgba(255,80,80,0.14); border-left-color: #ff5050; }
+.nav-link-item.nav-danger.active i { color: #ff5050; }
+.nav-link-item.nav-warning    { color: rgba(255,200,80,0.75); }
+.nav-link-item.nav-warning:hover { color: #ffc850; background: rgba(255,200,80,0.07); border-left-color: #ffc850; }
+.nav-link-item.nav-danger:hover  { color: #ff8080; background: rgba(255,80,80,0.07);  border-left-color: #ff8080; }
+.nav-link-item.nav-backup:hover  { color: #80d4ff; background: rgba(80,160,255,0.07); border-left-color: #80d4ff; }
+.nav-badge {
+    background: var(--danger, #be2121);
+    color: white;
+    border-radius: 20px;
+    padding: 2px 7px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-left: auto;
+}
+.nav-divider { margin: 6px 28px; border-color: rgba(255,255,255,0.08); }
+
+/* ── Sidebar user section ── */
+.sidebar-user {
+    padding: 12px 28px;
+    border-top: 1px solid rgba(201,168,76,0.15);
+    background: inherit;
+    flex-shrink: 0;
+    position: relative;
+}
+.user-static { display: flex; align-items: center; gap: 12px; }
+.user-avatar {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--navy-light, #1a3260), var(--navy-mid, #112244));
+    border: 2px solid rgba(201,168,76,0.35);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--gold, #c9a84c); flex-shrink: 0;
+}
+.user-info .user-label { font-size: 0.65rem; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+.user-info .user-name  { font-size: 0.9rem; font-weight: 700; color: var(--white, #fff); }
+
+/* Sidebar toggle */
+.sidebar { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.sidebar.collapsed { transform: translateX(-260px); }
+.sidebar-nav::-webkit-scrollbar       { width: 4px; }
+.sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 4px; }
+
+/* Toggle button */
+.sidebar-toggle-btn,
+body .sidebar-toggle-btn {
+    position: fixed; top: 5px; left: 0; z-index: 500;
+    width: 36px; height: 36px;
+    background: var(--navy-mid, #112244);
+    border: 1px solid rgba(201,168,76,0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--gold, #c9a84c); font-size: 1.1rem;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), right 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s;
+    box-shadow: 3px 0 10px rgba(0,0,0,0.3);
+}
+body .sidebar-toggle-btn:hover { background: var(--navy-light, #1a3260); color: var(--gold-light, #e8c97a); }
+body .sidebar-toggle-btn.sidebar-open {
+    left: 220px; top: 5px;
+    border-radius: 0;
+    border: 1px solid rgba(201,168,76,0.3);
+    background: var(--navy-mid, #112244);
+    color: var(--gold, #c9a84c);
+}
+
+.sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(6,15,30,0.7); z-index: 300; backdrop-filter: blur(3px);
+}
+.sidebar-overlay.visible { display: block; }
+.main-content { transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; }
+
+/* Mobile <= 768px */
+@media (max-width: 768px) {
+    .sidebar {
+        display: flex !important; flex-direction: column; position: fixed;
+        top: 0; left: 0; width: 260px; height: 100vh; min-height: 100vh;
+        transform: translateX(-260px); z-index: 400; overflow: hidden;
+    }
+    .sidebar.mobile-open  { transform: translateX(0) !important; box-shadow: 8px 0 32px rgba(0,0,0,0.5); }
+    .sidebar.collapsed    { transform: translateX(-260px); }
+    .sidebar-nav          { overflow-y: auto; flex: 1; }
+    .main-content         { margin-left: 0 !important; max-width: 100% !important; padding: 52px 16px 40px !important; }
+    .main-content.sidebar-collapsed { margin-left: 0 !important; max-width: 100% !important; }
+    body .sidebar-toggle-btn,
+    body .sidebar-toggle-btn.sidebar-open { left: 10px !important; top: 10px !important; border-radius: 8px !important; }
+}
+</style>
+
+{# ── Sidebar HTML ── #}
+<aside class="sidebar">
+    <div class="sidebar-logo">
+        <img src="/static/log.png" alt="PasspoSys Logo" width="130px"/>
+
+        <!-- Logout & Language Toggle -->
+        <div style="display:flex; align-items:center; justify-content:center; gap:16px;">
+            <a href="{{ url_for('logout') }}" class="sidebar-logout-icon" title="Logout">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
+            
+            <div class="lang-switch">
+                <button id="label-en" class="lang-btn active" onclick="applyLanguage('en')" type="button">EN</button>
+                <button id="label-ar" class="lang-btn" onclick="applyLanguage('ar')" type="button">AR</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <div class="nav-section-label" data-i18n="nav_main">Main</div>
+
+        <a class="nav-link-item {% if request.endpoint == 'index' or request.path == '/' %}active{% endif %}" href="/">
+            <i class="bi bi-upload"></i> <span data-i18n="menu_upload">Upload Passport</span>
+        </a>
+
+        <a class="nav-link-item {% if request.endpoint == 'view_invalid_passports' %}active{% endif %}" href="{{ url_for('view_invalid_passports') }}">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span data-i18n="menu_invalid">Invalid Passports</span>
+            {% if total_invalid %}<span class="nav-badge dynamic-number">{{ total_invalid }}</span>{% endif %}
+        </a>
+
+        <a class="nav-link-item {% if request.endpoint == 'results' %}active{% endif %}" href="{{ url_for('results') }}">
+            <i class="bi bi-table"></i> <span data-i18n="menu_view">View Passports</span>
+        </a>
+
+        <a class="nav-link-item {% if request.endpoint == 'view_all_groups' %}active{% endif %}" href="{{ url_for('view_all_groups') }}">
+            <i class="bi bi-collection-fill"></i> <span data-i18n="menu_groups">All Groups</span>
+        </a>
+
+        <hr class="nav-divider"/>
+        <div class="nav-section-label" data-i18n="nav_ops">Operations</div>
+
+        <a class="nav-link-item {% if request.endpoint == 'recycle_bin' %}active{% endif %}" href="{{ url_for('recycle_bin') }}">
+            <i class="bi bi-trash3-fill"></i> <span data-i18n="menu_recycle">Recycle Bin</span>
+            {% if recycled_total and recycled_total > 0 %}
+            <span class="nav-badge dynamic-number">{{ recycled_total }}</span>
+            {% endif %}
+        </a>
+
+        <a class="nav-link-item {% if request.endpoint == 'pdf_extractor' %}active{% endif %}" href="{{ url_for('pdf_extractor') }}">
+            <i class="bi bi-file-pdf-fill"></i> <span data-i18n="menu_pdf">PDF Extractor</span>
+        </a>
+
+        <a class="nav-link-item nav-backup" href="{{ url_for('backup_database') }}">
+            <i class="bi bi-database-down"></i> <span data-i18n="menu_backup">Backup Database</span>
+        </a>
+
+        <a class="nav-link-item {% if request.endpoint == 'account' %}active{% endif %}" href="{{ url_for('account') }}">
+            <i class="bi bi-person-circle"></i> <span data-i18n="menu_account">My Account</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-user">
+        <div class="user-static">
+            <div class="user-avatar">
+                <i class="bi bi-person-fill"></i>
+            </div>
+            <div class="user-info">
+                <div class="user-label" data-i18n="user_signed_in">Signed in as</div>
+                <div class="user-name">{{ session.get('full_name') or session['username'] }}</div>
+            </div>
+        </div>
+    </div>
+</aside>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SITE-WIDE I18N MODULE
+   - Translates elements marked data-i18n="key" (sidebar menu, etc.)
+     using the I18N_STRINGS map below.
+   - Translates elements marked data-en="..." data-ar="..." (index.html
+     dynamic overlay text) by swapping their textContent.
+   - Converts digits inside elements with class="num" to Arabic-Indic
+     numerals when Arabic is active — numbers are NEVER translated as
+     words, only re-rendered with localized digit glyphs.
+   - Persists the choice in localStorage so it survives page loads.
+═══════════════════════════════════════════════════════════════ */
+window.I18N_STRINGS = {
+    nav_main:            { en: "Main",                                    ar: "الرئيسية" },
+    menu_upload:         { en: "Upload Passport",                         ar: "رفع جواز السفر" },
+    menu_invalid:        { en: "Invalid Passports",                       ar: "جوازات سفر غير صالحة" },
+    menu_view:           { en: "View Passports",                         ar: "عرض جوازات السفر" },
+    menu_groups:         { en: "All Groups",                              ar: "جميع المجموعات" },
+    nav_ops:             { en: "Operations",                              ar: "العمليات" },
+    menu_recycle:        { en: "Recycle Bin",                             ar: "سلة المهملات" },
+    menu_pdf:            { en: "PDF Extractor",                           ar: "مستخرج PDF" },
+    menu_backup:         { en: "Backup Database",                         ar: "النسخ الاحتياطي لقاعدة البيانات" },
+    menu_account:        { en: "My Account",                              ar: "حسابي" },
+    user_signed_in:      { en: "Signed in as",                            ar: "مسجل الدخول باسم" }
+};
+
+var AR_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+
+function toArabicDigits(str) {
+    return String(str).replace(/[0-9]/g, function (d) { return AR_DIGITS[+d]; });
+}
+function toAsciiDigits(str) {
+    return String(str).replace(/[٠-٩]/g, function (d) { return String(AR_DIGITS.indexOf(d)); });
+}
+
+/* window.fmtNum — call this whenever a number is written into the DOM,
+   so it automatically renders in the active language's numeral system. */
+window.fmtNum = function (n) {
+    var s = String(n);
+    return (window.CURRENT_LANG === 'ar') ? toArabicDigits(s) : s;
+};
+function translateFlashMessages(lang) {
+    // Target flash messages from both groups.html (.flash-alert) and results.html (.alert)
+    const flashBoxes = document.querySelectorAll('.alert, .flash-alert');
+    
+    flashBoxes.forEach(box => {
+        // Find the raw text node inside the alert (skipping the <i> icon)
+        let textNode = null;
+        box.childNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE && node.nodeValue.trim() !== '') {
+                textNode = node;
+            }
+        });
+        
+        if (!textNode) return;
+        
+        // Store the original English text on the element the first time we process it
+        let originalText = box.dataset.origEn;
+        if (!originalText) {
+            originalText = textNode.nodeValue.trim();
+            box.dataset.origEn = originalText;
+        }
+
+        let translatedText = originalText;
+
+        // ── Pattern 1: Successfully changed group ──
+        let match1 = originalText.match(/Successfully changed group to "(.+)" for (\d+) passport\(s\)\.?/i);
+        if (match1) {
+            let group = match1[1];
+            let num = (lang === 'ar') ? toArabicDigits(match1[2]) : match1[2];
+            if (lang === 'ar') {
+                translatedText = `تم تغيير المجموعة بنجاح إلى "${group}" لـ ${num} جواز/جوازات سفر.`;
+            } else {
+                translatedText = `Successfully changed group to "${group}" for ${num} passport(s).`;
+            }
+        }
+
+        // ── Pattern 2: Successfully transferred group ──
+        let match2 = originalText.match(/Successfully transferred (\d+) record\(s\) from "(.+)" into "(.+)"\.?/i);
+        if (match2) {
+            let num = (lang === 'ar') ? toArabicDigits(match2[1]) : match2[1];
+            let groupFrom = match2[2];
+            let groupTo = match2[3];
+            if (lang === 'ar') {
+                translatedText = `تم نقل ${num} سجل/سجلات بنجاح من "${groupFrom}" إلى "${groupTo}".`;
+            } else {
+                translatedText = `Successfully transferred ${num} record(s) from "${groupFrom}" into "${groupTo}".`;
+            }
+        }
+        
+        // NOTE: You can easily add more `match3`, `match4` here for any other backend alerts
+        
+        // Apply the translated text (with a leading space to push it away from the icon)
+        textNode.nodeValue = " " + translatedText + " ";
+    });
+}
+function translateStaticStrings(lang) {
+    // Sidebar-style data-i18n="key" elements
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+        var key = el.getAttribute('data-i18n');
+        var entry = window.I18N_STRINGS[key];
+        if (entry && entry[lang]) el.textContent = entry[lang];
+    });
+
+    // index.html-style data-en/data-ar elements
+    document.querySelectorAll('[data-en][data-ar]').forEach(function (el) {
+        var text = (lang === 'ar') ? el.getAttribute('data-ar') : el.getAttribute('data-en');
+        if (text !== null) el.textContent = text;
+    });
+
+    // Inputs whose *placeholder* (not text content) needs translating
+    document.querySelectorAll('[data-placeholder-en][data-placeholder-ar]').forEach(function (el) {
+        var ph = (lang === 'ar') ? el.getAttribute('data-placeholder-ar') : el.getAttribute('data-placeholder-en');
+        if (ph !== null) el.setAttribute('placeholder', ph);
+    });
+
+    // Re-render any already-placed numbers so their digits match the
+    // active language (counts, percentages, dates, etc.)
+    document.querySelectorAll('.num').forEach(function (el) {
+        var ascii = toAsciiDigits(el.textContent);
+        el.textContent = (lang === 'ar') ? toArabicDigits(ascii) : ascii;
+    });
+}
+
+function applyLanguage(lang) {
+    window.CURRENT_LANG = lang;
+    try { localStorage.setItem('site_lang', lang); } catch (e) {}
+
+    document.documentElement.setAttribute('lang', lang);
+    // Layout direction intentionally stays LTR regardless of language —
+    // only text content and numerals change, the page never flips.
+
+    var labelEn = document.getElementById('label-en');
+    var labelAr = document.getElementById('label-ar');
+    if (labelEn) labelEn.classList.toggle('active', lang === 'en');
+    if (labelAr) labelAr.classList.toggle('active', lang === 'ar');
+
+    translateStaticStrings(lang);
+    translateFlashMessages(lang);
+}
+window.applyLanguage = applyLanguage;
+
+document.addEventListener("DOMContentLoaded", function () {
+    var savedLang = 'en';
+    try { savedLang = localStorage.getItem('site_lang') || 'en'; } catch (e) {}
+    applyLanguage(savedLang);
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    var sidebar   = document.querySelector('.sidebar');
+    var main      = document.querySelector('.main-content');
+    var overlay   = document.querySelector('.sidebar-overlay');
+    var toggleBtn = document.querySelector('.sidebar-toggle-btn');
+
+    var isMobile = function () { return window.innerWidth <= 768; };
+
+    function setSidebarOpen(open) {
+        if (isMobile()) {
+            if (sidebar)   sidebar.classList.toggle('mobile-open', open);
+            if (overlay)   overlay.classList.toggle('visible', open);
+            if (toggleBtn) toggleBtn.classList.toggle('sidebar-open', open);
+        } else {
+            if (sidebar)   sidebar.classList.toggle('collapsed', !open);
+            if (main)      main.classList.toggle('sidebar-collapsed', !open);
+            if (toggleBtn) toggleBtn.classList.toggle('sidebar-open', open);
+        }
+    }
+
+    function isSidebarOpen() {
+        if (isMobile()) return sidebar && sidebar.classList.contains('mobile-open');
+        return sidebar && !sidebar.classList.contains('collapsed');
+    }
+
+    function applyInitialState() {
+        if (isMobile()) {
+            if (sidebar)   sidebar.classList.remove('mobile-open', 'collapsed');
+            if (overlay)   overlay.classList.remove('visible');
+            if (main)      main.classList.remove('sidebar-collapsed');
+            if (toggleBtn) toggleBtn.classList.remove('sidebar-open');
+        } else {
+            if (sidebar)   sidebar.classList.remove('collapsed', 'mobile-open');
+            if (overlay)   overlay.classList.remove('visible');
+            if (main)      main.classList.remove('sidebar-collapsed');
+            if (toggleBtn) toggleBtn.classList.add('sidebar-open');
+        }
+    }
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            setSidebarOpen(!isSidebarOpen());
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', function () { setSidebarOpen(false); });
+    }
+
+    window.addEventListener('resize', applyInitialState);
+    applyInitialState();
+});
+</script>

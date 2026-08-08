@@ -1,0 +1,32 @@
+{% include "db_admin/_layout_top.html" %}
+
+<h2>Edit row &mdash; {{ table_name }} <code class="tag">{{ pk_col }} = {{ pk_value }}</code></h2>
+
+<div class="card">
+<form method="post">
+  <div class="grid">
+    {% for c in columns %}
+      <label>{{ c.name }}{% if c.is_pk %} (PK){% endif %}</label>
+      {% if c.is_pk %}
+        <input type="text" value="{{ row[c.name] }}" disabled>
+      {% else %}
+        {% set val = row[c.name] if row[c.name] is not none else '' %}
+        {% if val|string|length > 500 %}
+          <details>
+            <summary class="muted">Large value ({{ val|string|length }} chars) &mdash; click to view/edit</summary>
+            <textarea name="{{ c.name }}" style="min-height:160px;margin-top:8px;">{{ val }}</textarea>
+          </details>
+        {% else %}
+          <textarea name="{{ c.name }}" style="min-height:38px;">{{ val }}</textarea>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+  </div>
+  <div style="margin-top:20px;display:flex;gap:10px;">
+    <button class="btn btn-primary" type="submit">Save changes</button>
+    <a class="btn" href="{{ url_for('db_admin.view_table', table_name=table_name) }}">Cancel</a>
+  </div>
+</form>
+</div>
+
+{% include "db_admin/_layout_bottom.html" %}
