@@ -18,7 +18,13 @@ werkzeug
 python-dotenv
 cryptography
 mysql-connector-python
-opencv-python-headless      # NOT opencv-python -- build.bat warns against having both installed
+opencv-python-headless==4.10.0.84   # NOT opencv-python -- build.bat warns against having both installed.
+                                     # Pinned: unpinned installs on a fresh arm64 macOS runner have been
+                                     # observed to resolve to a wheel missing cv2.CascadeClassifier
+                                     # (AttributeError: module 'cv2' has no attribute 'CascadeClassifier'),
+                                     # which app_core.py / ocr_client.py / pdf_extractor.py / mrz_utils.py
+                                     # all call at import time. 4.10.0.84 is a known-good version that
+                                     # includes the objdetect module cv2.CascadeClassifier lives in.
 numpy
 Pillow
 python-dateutil
